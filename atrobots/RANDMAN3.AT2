@@ -1,0 +1,254 @@
+;Randman.                Ed T. Toton III   02/11/92
+;
+;converted to ATR2 on 02/10/97,  Improved on 02/26/97
+
+; define vars
+#def armor
+#def hitcheck
+#def hit
+#def accuracy
+#def x
+#def y
+
+
+; Settings...
+        mov     hitcheck  50
+        opo     17      6       ; scan-arc width is now 6
+        opo     13              ; aim turret forward.       (missing operands
+        opo     18              ; overburn off               are assumed 0's)
+        call    4000
+        opo     11      100     ; Throttle to 100%
+
+        mov     ax,     1
+        int     3               ; turn keep-shift on.
+
+
+; Main loop...
+
+:1
+
+        opo     11,     100     ; Throttle to 100%
+
+ ;Shift 19
+        opo     12      11      ; Rotate turret right
+
+ ;if enemy gosub 1000
+        ipo     7       ax      ; Scan!
+        cmp     ax      5000    ; find anything?
+        ja      2               ; if not, continue on...
+        call    1000            ; if so, let's shoot it.
+:2
+ ;if hit gosub 2000
+        mov     hit     0       ; hit=0
+        call    hitcheck        
+        cmp     hit     0       ; have we been shot?
+        je      3               ; if not, let's continue...
+        call    4000            ; if so, let's pick a new direction.
+:3
+ ;if heat>350 gosub 8999
+        ipo     2       ax      ; get heat into AX
+        cmp     ax      200     ; are we hotter than 200?
+        jls     4               ; if not, skip along..
+        call    8999            ; otherwise, let's run cool-down routine.
+:4
+
+ ;if enemy gosub 1000
+        ipo     7       ax      ; scan!
+        cmp     ax      5000    ; find anything?
+        ja      5               ; if not, continue...
+        call    1000            ; if so, shoot him!! kill! Kill!!
+:5
+
+       ;Get location
+        int     2               ; EX,FX = X,Y
+
+       ;Scenario 1
+        cmp     ex      950     ; X>=950?
+        jb      11              ; If not, skip.
+        call    4001            ; If so, call scenario1
+:11
+       ;Scenario 2
+        cmp     ex      50      ; X<=50?
+        ja      12              ; If not, skip.
+        call    4002            ; If so, call scenario2
+:12
+       ;Scenario 3
+        cmp     fx      950     ; Y>=950?
+        jb      13              ; If not, skip.
+        call    4003            ; If so, call scenario3
+:13
+       ;Scenario 4
+        cmp     fx      50      ; Y<=50?
+        ja      14              ; If not, skip.
+        call    4004            ; If so, call scenario4
+:14
+
+;        ipo     1,      ax      ; Get currnt throttle
+;        cmp     ax,     0       ; throttle>0?
+;        ja      20              ; if so, skip
+;        call    2000            ; if not, let's get moving!
+:20
+jmp 1
+
+
+
+; Shooting sub-routine...
+:1000
+
+ ;fire
+        ipo     8       accuracy        ; get scan accuracy
+        mpy     accuracy,      3
+        opo     15      accuracy        ; fire using it!
+
+ ;if hit gosub 2000
+        set     hit     0       ; hit=0
+        gsb     hitcheck
+        cmp     hit     0       ; have we been hit?
+        je      1001            ; if not, skip along
+        call    2000            ; otherwise, let's do something!
+:1001
+        ipo     2,      ax      ; get heat
+        cmp     ax,     100     ; over 100?
+        ja      1002            ; if so, let's not bother scanning.
+
+ ;if enemy goto 1000
+        ipo     7       ax      ; scan again.
+        cmp     ax      1000    ; find anything?
+        jls     1000            ; if so, KILL! KILL!
+
+:1002
+        call    2000            ; veer off
+
+        ret                     ; Lost 'em... let's return...
+
+
+
+
+;Veer off...
+:2000
+
+ ;radnspin
+        gsb     4000
+
+ ;Delay 9   &  move 100
+        del     9               ; Delay 9
+        opo     11      100     ; Throttle to 100%
+
+ret
+
+
+
+
+; Cool-down subroutine...
+:8999
+
+ ;if heat>100 goto 8999
+        ipo     2       ax      ; ax=heat
+        cmp     ax      50      ; heat over 50?
+        jgr     8999            ; if so, keep checking it.
+                                ; (a quaint shutdown routine)
+ret
+
+
+
+
+;Hitcheck
+:50
+       ;read and compare armor
+        ipo     6       ax      ; get armor
+        cmp     ax      armor   ; has it changed?
+
+       ;if no damage then simply exit.
+        jeq     51              ; no damage.. let's go
+
+       ;if hit, then say so!
+        set     armor   ax      ; update armor variable
+        set     hit     1       ; register the hit.
+:51
+ret
+
+
+
+
+;Randspin
+:4000
+        ;Randspin
+        ipo     10      ax      ; Get random number
+        and     ax      0xFF    ; now it is 0-255.
+
+       ;Get location
+        int     5               ; EX,FX = X,Y
+
+       ;Scenario 1
+        cmp     ex      950     ; X>950?
+        jae     4001            ; If so, scenario1.
+
+       ;Scenario 2
+        cmp     ex      50      ; X<50?
+        jbe     4002            ; If so, scenario2.
+
+       ;Scenario 3
+        cmp     fx      950     ; Y>950?
+        jae     4003            ; If so, scenario3.
+
+       ;Scenario 4
+        cmp     fx      50      ; Y<50?
+        jbe     4004            ; If so, scenario4.
+
+       ;Last resort (not near a wall)
+        opo     14      ax      ; use random heading chosen above.
+
+        delay   10
+        opo     11      100     ; throttle to 100%
+
+ret
+;Scenario 1
+:4001
+        ipo     10,     ax      ; random number
+        and     ax      0x40    ; now it is 0-63.
+        add     ax      0xA0    ; now it is 160-223
+        call    5000            ; turn to that heading.
+        ret
+;Scenario 2
+:4002
+        ipo     10,     ax      ; random number
+        and     ax      0x40    ; now it is 0-63.
+        add     ax,     0x20    ; now it is 32-95.
+        call    5000            ; turn to that heading.
+        ret
+;Scenario 3
+:4003
+        ipo     10,     ax      ; random number
+        and     ax      0x40    ; now it is 0-63.
+        add     ax,     0E0h    ; now it is 224-287.
+        and     ax,     255     ; now it is 224-255 or 0-31.
+        call    5000            ; turn to that heading.
+        ret
+;Scenario 4
+:4004
+        ipo     10,     ax      ; random number
+        and     ax      0x40    ; now it is 0-63.
+        add     ax,     60h     ; now it is 96-159.
+        call    5000            ; turn to that heading.
+        ret
+
+
+;course-setting subroutine
+;set course to heading in AX.
+:5000
+        mov     bx,     @1      ; get current desired heading
+                                ; (not actual heading)
+        sub     ax,     bx      ; get number of degrees to turn.
+        opo     14,     ax      ; turn!
+:5001
+        ipo     3,      bx      ; bx = heading
+        cmp     bx,     @1      ; is heading equal to desired heading?
+        jne     5001            ; if not, wait until it is.
+        opo     11,     100     ; Throttle to 100%
+
+        ipo     6       armor   ; update armor variable.
+
+        ret
+
+
+; End of program!!

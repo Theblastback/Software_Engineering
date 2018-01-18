@@ -1,0 +1,23 @@
+The "turbo6" directory found here is a untouched copy of the Turbo Pascal 6.0 download available
+from the following link (at least at the time of this writing):
+
+http://library.thinkquest.org/27297/turbo6.zip
+
+We are not 100% sure as to the current license for this software, but according to the Oracle(R) 
+ThinkQuest Education Foundation, "This is Pascal 6 which is Freeware".  We are attempting to
+find more specific details and will update this document with more specifics as we determine them.
+
+-------
+
+The "atrobots" directory is a copy of the official AT-Robots 2.10 release from:
+
+http://www.necrobones.com/atrobots
+
+It's contents are licensed under the original modified BSD written by Ed T. Toten, III.
+Because this code is the base upon which SUNYAT-Robots is written, the SUNYAT-Robot authors have 
+modified this code to correct bugs and anomalies discovered since 1999, and modified the 
+license statements in the appropriate files to identify their contributions.  All these changes are
+a part of the revision history of this repository and are not meant to imply an updated official
+release of the original Necrobones product, although we have modified the version number as such so
+as not to confuse anyone running the modified executable.
+

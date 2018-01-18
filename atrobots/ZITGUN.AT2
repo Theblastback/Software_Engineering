@@ -1,0 +1,114 @@
+; Zit Gun, and uprated version of PeaShoot..  Ed T. Toton III   6/16/99
+;
+; This robot is just a slightly improved version of PeaShoot, not limited
+; to 32 lines of code.
+
+#config weapon=1    ; gives 1 point
+#config scanner=3   ; gives 2 points
+#config engine=4    ; consumes 2 points
+#config heatsinks=2 ; consumes a point
+#msg Watch your five! :)
+
+        mov     ax,     1
+        int     3               ; Keepshift on.
+!begin
+        mov     dx,     64      ; Set our scan arc to 64 degrees
+
+!start
+        opo     11,     100     ; Throttle to 100%
+        opo     17,     dx      ; Set arc to DX
+        ipo     7,      fx      ; Scan for enemy
+        cmp     fx      2000
+        ja      !decide         ; No one found? Decide what to do
+
+
+!track
+        ; Someone was found
+        mov     bx,     dx      ; BX = DX (dx is the scan width)
+
+        mov     ax,     @3      ; bx = scanwidth*accuracy
+        add     ax      1002    ;   This is achieved by calling
+        je      ax              ;   a routine chosen by the accuracy
+        jne     ax              ;   number, rather than actually do
+:1005                           ;   a multiplication, which is slow.
+
+        sar     bx,     1       ; bx = scanwidth*accuracy/2
+        opo     12,     bx      ; turn turret by that amount.
+
+        cmp     dx,     2       ; check scanwidth
+        jbe     !fire           ; width<=2? then fire, otherwise tighten
+        shr     dx,     1       ; tighten scanwidth
+
+!fire
+        ipo     2,      ax      ; Check our heat
+        cmp     ax      80      ; Too hot?
+        ja      !dontfire       ; If so, skip shooting.
+        opo     15,     @3      ; Fire!
+        ipo     2,      ax      ; Check our heat
+        cmp     ax      50      ; Too hot?
+        ja      !dontfire       ; If so, skip shooting.
+        opo     15,     @3      ; Fire!
+!dontfire
+
+        ; Set course towards target
+        mov     bx,     @1      ; get current desired heading
+                                ; (not actual heading)
+        ipo     3,      ax      ; Get actual heading
+        add     ax,     @2      ; And add to it our turret offset
+                                ; AX is now our new desired heading.
+
+        cmp     fx      150     ; Check our distance
+        jae     !turn           ; Too close? If not, then steer straight
+        add     ax,     40      ; if so, veer off
+!turn
+        add     ax      16      ; 16 degrees right of center
+        and     ax,     255     ; Fix ax into 0-255.
+        sub     ax,     bx      ; get number of degrees to turn.
+        opo     14,     ax      ; turn!
+
+        je      !start          ; start over
+        jne     !start
+
+
+;Decides what to do if no one found
+!decide
+        cmp     dx      64      ; Compare scanwidth to 64
+        jae     !flip           ; If above, then flip
+        shl     dx      1       ; otherwise, widen arc
+        je      !start          ; start over
+        jne     !start
+!flip
+        opo     12      128     ; rotate turret 128 degrees (180).
+        opo     14      8       ; Turn slightly
+        je      !start          ; start over
+        jne     !start
+
+
+; Hardcoded firing solutions
+:1000
+        shl     bx,     1       
+        mov     ax,     0
+        sub     ax,     bx
+        mov     bx,     ax      ; BX = 0-(BX*2)
+        jne     1005
+        je      1005
+:1001
+        mov     ax,     0
+        sub     ax,     bx
+        mov     bx,     ax      ; BX = 0-BX
+        jne     1005
+        je      1005
+:1002
+        mov     bx,     0       ; BX = 0
+        jne     1005
+        je      1005
+:1003
+        ; BX doesn't change
+        jne     1005
+        je      1005
+:1004
+        shl     bx,     1       ; BX = BX*2
+        jne     1005
+        je      1005
+
+
