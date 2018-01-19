@@ -64,8 +64,9 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Begin C Translation here
 // Unsure where libraries are included, so we'll have to change where to put any required library includes
 
-#include <stdbool.h> // Required for boolean types in C
-
+#include <stdbool.h>	// Required for boolean types in C
+#include <stdio.h>	// Required for file manipulation
+#include <stdlib.h>
 
 
 Program Advanced_T_Robots_2;
@@ -150,119 +151,146 @@ char max_robot_lines	= 8;
                              $AA, $55, $AA, $55);
 
 
+struct op_rec {
+	short op[max_op];
+};
+ 
+struct prog_type {
+	struct op_rec[max_code];
+}
 
-type
- op_rec         = record
-                   op:array[0..max_op] of integer;
-                  end;
- prog_type      = array[0..max_code] of op_rec;
- config_rec     = record
-                   scanner,weapon,armor,engine,heatsinks,shield,mines:integer;
-                  end;
- mine_rec       = record
-                   x,y:real;
-                   detect,yield:integer;
-                   detonate:boolean;
-                  end;
- robot_rec      = record
-                   {FIFI}
-                   is_locked:boolean;  {used to determine wether to allow debugger}
-                   mem_watch:integer;  {current base of memory view for debugger}
-                   {/FIFI}
-                   x,y,lx,ly,xv,yv,speed,shotstrength,damageadj,speedadj,meters:real;
-                   hd,thd,lhd,spd,tspd,armor,larmor,heat,lheat,ip,
-                   plen,scanarc,accuracy,shift,err,delay_left,robot_time_limit,
-                   max_time,time_left,lshift,arc_count,sonar_count,scanrange,
-                   last_damage,last_hit,transponder,shutdown,channel,
-                   lendarc,endarc,lstartarc,startarc,mines:integer;
-                   tx,ltx,ty,lty:array[1..max_robot_lines] of integer;
-                   wins,trials,kills,deaths,startkills,shots_fired,match_shots,
-                   hits,damage_total,cycles_lived,error_count:longint;
-                   config:config_rec;
-                   name:string[31];
-                   fn:string[255];
-                   shields_up,lshields,overburn,keepshift,cooling,won:boolean;
-                   code:prog_type;
-                   ram:array[0..max_ram] of integer;
-                   mine:array[0..max_mines] of mine_rec;
-                   errorlog:text;
-                  end;
- parsetype      = array[0..max_op] of string[16];
- robot_ptr      = ^robot_rec;
- missile_rec    = record
-                   x,y,lx,ly,mult,mspd:real;
-                   source,a,hd,rad,lrad,max_rad:integer;
-                  end;
+struct config_rec {
+	short scanner, weapon, armor, engine, heatsinks, shield, mines;
+}
 
-var
+struct mine_rec {
+	double x, y;
+	short detect, yield;
+	bool detonate;
+};
 
- {--robot variables--}
- num_robots:integer;
- robot:array[-2..max_robots+2] of robot_ptr; { a few extra pointers for luck.. :) }
- missile:array[0..max_missiles] of missile_rec;
+struct robot_rec {
+	// {FIFI}
+	bool is_ocked;	// {used to determine wether to allow debugger}
+	bool mem_watch;	// {current base of memory view for debugger}
+	// {/FIFI}
 
- {--compiler variables--}
- f:text;
- numvars,numlabels,maxcode,lock_pos,lock_dat:integer;
- varname:array[1..max_vars] of string[max_var_len];
- varloc:array[1..max_vars] of integer;
- labelname:array[1..max_vars] of string[max_var_len];
- labelnum:array[1..max_labels] of integer;
- show_source,compile_only:boolean;
- lock_code:string;
+	double x, y, lx, ly, xv, yv, speed, shotstrength, damageadj, speedadj, meters;
+	short hd, thd, lhd, spd, tspd, armor, larmor, heat, lheat, ip, plen, scanarc,
+		accuracy, shift, err, delay_left, robot_time_limit, max_time, time_left,
+		lshift, arc_count, sonar_count, scanrange, last_damage, last_hit, transponder,
+		shutdown, channel, lendarc, endarc, lstartarc, startarc, mines;
 
- {--simulator/graphics variables--}
- {FIFI}
- bout_over:boolean;     {made global from procedure bout}
- step_mode:integer;     {0=off, for (0<step_mode<=9) = #of game cycles per step}
- temp_mode:integer;     {stores previous step_mode for return to step}
- step_count:integer;    {step counter used as break flag}
- step_loop:boolean;     {break flag for stepping}
- {show_debugger:boolean;} {flag for viewing debugger panel vs. robot stats}
- {/FIFI}
- old_shields,insane_missiles,debug_info,windoze,no_gfx,
- logging_errors,timing,show_arcs:boolean;
- game_delay,time_slice,insanity,update_timer,max_gx,max_gy,stats_mode:integer;
- game_limit,game_cycle:longint;
- matches,played,executed:longint;
+	short tx[max_robot_lines+1], ltx[max_robot_lines+1], ty[max_robot_lines+1], lty[max_robot_lines+1];
 
- {--general settings--}
- quit,report,show_cnotice:boolean;
- kill_count,report_type:integer;
+	short wins, trials, kills, deaths, startkills, shots_fired, match_shots, hits, damage_total,
+		cycles_lived, error_count;
+
+	struct config_rec config;
+	char *name[31];
+	char fn[255];
+	bool shields_up, lshields, overburn, keepshift, cooling, won;
+	struct prog_type code;
+	short ram[max_ram];
+	struct mine_rec mine[max_mines];
+
+	FILE * errorlog; 
+};
+
+char *parsetype[16];
+struct robot_rec * robot_ptr	= robot_rec;
+struct missile_rec {
+	double x, y, lx, ly, mult, mspd;
+	short source, a, hd, rad, lrad, max_rad;
+};
 
 
+// {--robot variables--}
+short num_robots;
+struct robot_ptr robot:array[max_robots+4]; // { a few extra pointers for luck.. :) } EDIT: I SHIFTED THE ARRAY INDEXES. IT USED TO START AT -2, NOW IT STARTS AT 0 -MZ
+struct missile_rec missile[max_missiles];
 
-function operand(n,m:integer):string;
-var
- s:string;
-begin
- s:=cstr(n);
-     (*
-     Microcode:
-        0 = instruction, number, constant
-        1 = variable, memory access
-        2 = :label
-        3 = !label (unresolved)
-        4 = !label (resolved)
-       8h mask = inderect addressing (enclosed in [])
-     *)
- case m and 7 of
-  1:s:='@'+s;
-  2:s:=':'+s;
-  3:s:='$'+s;
-  4:s:='!'+s;
-  else s:=cstr(n);
- end;
- if m and 8>0 then s:='['+s+']';
- operand:=s;
-end;
+// {--compiler variables--}
+FILE * 	f;
+short	numvars, numlabels, maxcode, lock_pos, lock_dat;
+char	varname[max_var_len][max_vars];
+short	varloc[max_vars];
+char	labelname[max_var_len][max_vars];
+short	labelnum[max_labels];
+bool	show_source, compile_only;
+char *	lock_code;
 
-function mnemonic(n,m:integer):string;
-var
-s:string;
-begin
- s:=cstr(n);
- if m=0 then
+// {--simulator/graphics variables--}
+// {FIFI}
+bool	bout_over;	//	{made global from procedure bout}
+short	step_mode;	//	{0=off, for (0<step_mode<=9) = #of game cycles per step}
+short	temp_mode;	//	{stores previous step_mode for return to step}
+short 	step_count;	//	{step counter used as break flag}
+bool	step_loop;	//	{break flag for stepping}
+
+// bool show_debugger; {flag for viewing debugger panel vs. robot stats}
+// {/FIFI}
+
+bool	old_shields, insane_missiles, debug_info, windoze, no_gfx, logging_errors,
+	timing, show_arcs;
+short	game_delay, time_slice, insanity, update_timer, max_gx, max_gy, stats_mode;
+short	game_limit, game_cycle;
+short	matches, played, executed;
+
+// {--general settings--}
+bool	quit, report, show_cnotice;
+short	kill_count, report_type;
+
+
+
+char * operand(short n, short m) {
+	char *s;
+
+	// Unsure what this function does	
+	s:=cstr(n);
+     	/*
+     	Microcode:
+		0 = instruction, number, constant
+		1 = variable, memory access
+		2 = :label
+		3 = !label (unresolved)
+		4 = !label (resolved)
+		8h mask = inderect addressing (enclosed in [])
+     	*/
+	switch ( m & 7 ) {
+		case 1:
+			s:='@'+s;
+			break;
+
+		case 2:
+			s:=':'+s;
+			break;
+
+		case 3:
+			s:='$'+s;
+			break;
+
+		case 4:
+			s:='!'+s;
+			break;
+
+		default:
+			s:=cstr(n);
+	}
+
+	if ( (m & 8) > 0 ) then
+		s:='['+s+']';
+
+	return(s);
+}
+
+char * mnemonic(short n, short m) {
+
+	char *s;
+
+	s:=cstr(n);
+
+	if (m == 0) {
   case n of
    00:s:='NOP';
    01:s:='ADD';
@@ -312,9 +340,10 @@ begin
    45:s:='NEG';
    46:s:='JTL';
    else s:='XXX';
-  end else s:=operand(n,m);
- mnemonic:=s;
-end;
+  end 
+	} else s:=operand(n,m);
+	return (s);
+}
 
 procedure log_error(n,i:integer;ov:string);
 var
@@ -3583,6 +3612,8 @@ begin
  setscreen;
 end;
 
+
+// Main loop for game
 procedure main;
 var
  i,j,k,l,n,w:integer;
@@ -3632,8 +3663,12 @@ begin
  if report then write_report;
 end;
 
-begin
- init;
- main;
- shutdown;
-end.
+
+// Main function for entire program
+int main(int argc, char **argv) {
+	init();
+	main();
+	shutdown();
+
+	return EXIT_SUCCESS;
+}
