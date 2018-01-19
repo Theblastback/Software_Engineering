@@ -60,72 +60,95 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *)
 
 
+
+// Begin C Translation here
+// Unsure where libraries are included, so we'll have to change where to put any required library includes
+
+#include <stdbool.h> // Required for boolean types in C
+
+
+
 Program Advanced_T_Robots_2;
 
+// Compile with these files
 uses dos, crt, graph, egavga, filelib, myfile, atr2func;
 
 {’á} {err}
 
-const
- progname       ='AT-Robots';
- version        ='2.11';
- cnotice1       ='Copyright 1997 ''99, Ed T. Toton III';
- cnotice2       ='All Rights Reserved.';
- cnotice3       ='Copyright 2014, William "Amos" Confer';
- main_filename  ='ATR2';
- robot_ext      ='.AT2';
- locked_ext     ='.ATL';
- config_ext     ='.ATS';
- compile_ext    ='.CMP';
- report_ext     ='.REP';
+// Begin listing of global variables, or is this the beginning of the program?
 
+char progname[]		= "AT-Robots";
+char version[]		= "2.11";
+char cnotice1[]		="Copyright 1997 ''99, Ed T. Toton III";
+char cnotice2[]		= "All Rights Reserved.";
+char cnotice3[]		= "Copyright 2014, William "Amos" Confer";
+char main_filename[]	= "ATR2";
+char robot_ext[]	= ".AT2";
+char locked_ext		= ".ATL";
+char config_ext[]	= ".ATS";
+char compile_ext[]	= ".CMP";
+char report_ext[]	= ".REP";
+
+/* Original pascal code
  _T             =true;
  _F             =false;
  minint         =-32768; {maxint=32787 is alrady defined by turbo pascal}
 
- {debugging/compiler}
- show_code      =_F;
- compile_by_line=_F;
- max_var_len    =16;
- debugging_compiler=_F;
+Revised code underneath
+*/
 
- {robots}
- max_robots     =31;    {starts at 0, so total is max_robots+1}
- max_code       =1023;  {same here}
- max_op         =3;     {etc...}
- stack_size     =256;   
- stack_base     =768;
- max_ram        =1023;  {but this does start at 0 (odd #, 2^n-1)}
- max_vars       =256;
- max_labels     =256;
- acceleration   =4;
- turn_rate      =8;
- max_vel        =4;
- max_missiles   =1023;
- missile_spd    =32;
- hit_range      =14;
- blast_radius   =25;
- crash_range    =8;
- max_sonar      =250;
- com_queue      =512;
- max_queue      =255;
- max_config_points=12;
- max_mines      =63;
- mine_blast     =35;
+bool T		= TRUE;
+bool F		= FALSE;
+short minint	= -32768;
 
- {simulator & graphics}
- screen_scale   =0.46;
- screen_x       =5;
- screen_y       =5;
- robot_scale    =06;
- default_delay  =20;
- default_slice  =05;
- mine_circle    =trunc(mine_blast*screen_scale)+1;
- blast_circle   =trunc(blast_radius*screen_scale)+1;
- mis_radius     =trunc(hit_range/2)+1;
- max_robot_lines=8;
+
+
+// {debugging/compiler}
+char show_code		= F;
+char compile_by_line	= F;
+char max_var_len	= 16;
+char debugging_compiler = F;
+
+// {robots}
+char max_robots		= 31; 	// {starts at 0, so total is max_robots+1}
+short max_code		= 1023; // {same here}
+char max_op		= 3;	// {etc...}
+short stack_size	= 256;   
+short stack_base	= 768;
+short max_ram		= 1023; // {but this does start at 0 (odd #, 2^n-1)}
+short max_vars		= 256;
+short max_labels	= 256;
+char acceleration	= 4;
+char turn_rate		= 8;
+char max_vel		= 4;
+short max_missiles	= 1023;
+char missile_spd	= 32;
+char hit_range		= 14;
+char blast_radius	= 25;
+char crash_range	= 8;
+unsigned char max_sonar	= 250;
+short com_queue		= 512;
+unsigned char max_queue	= 255;
+char max_config_points	= 12;
+char max_mines		= 63;
+char mine_blast		= 35;
+
+// {simulator & graphics}
+float screen_scale	= 0.46;
+char screen_x		= 5;
+char screen_y		= 5;
+char robot_scale	= 6;
+char default_delay	= 20;
+char default_slice	= 5;
+short mine_circle	= (mine_blast * screen_scale) + 1;
+short blast_circle	= (blast_radius * screen_scale) + 1;
+short mis_radius	= (hit_range / 2) + 1;
+char max_robot_lines	= 8;
+
+// Screen overlay? 
  Gray50 : FillPatternType = ($AA, $55, $AA, $55,
                              $AA, $55, $AA, $55);
+
 
 
 type
