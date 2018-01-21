@@ -3614,54 +3614,77 @@ end;
 
 
 // Main loop for game
-procedure main;
-var
- i,j,k,l,n,w:integer;
-begin
- if graphix then begin_window;
- if matches>0 then
-  for i:=1 to matches do
-   bout;
- if not graphix then writeln;
- if quit then exit;
- if matches>1 then  {--Calculate overall statistics--}
-  begin
-   writeln; writeln;
-   graph_mode(false);
-   textcolor(15);
-   writeln('Bout complete! (',matches,' matches)');
-   writeln;
-   k:=0; w:=0;
-   for i:=0 to num_robots do
-    with robot[i]^ do
-     begin
-      if wins=w then begin inc(k); end;
-      if wins>w then begin k:=1; n:=i; w:=wins; end;
-     end;
-   writeln('Robot           Wins  Matches  Kills  Deaths    Shots');
-   writeln('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
-   for i:=0 to num_robots do
-    with robot[i]^ do
-     begin
-      textcolor(robot_color(i));
-      writeln(addfront(cstr(i+1),2)+' - '+addrear(fn,8)
-             +addfront(cstr(wins),7)+addfront(cstr(trials),8)
-             +addfront(cstr(kills),8)+addfront(cstr(deaths),8)
-             +addfront(cstr(shots_fired),9));
-     end;
-   textcolor(15);
-   writeln;
-   if k=1 then writeln('Robot #',n+1,' (',robot[n]^.fn,') wins the bout! (score: ',w,'/',matches,')')
-          else writeln('There is no clear victor!');
-   writeln;
-  end
- else if graphix then
-  begin {matches=1 also}
-   graph_mode(false);
-   show_statistics;
-  end;
- if report then write_report;
-end;
+void main() {
+	short i, j, k, l, n, w;
+
+	if ( graphix )
+		begin_window();
+
+	if (matches > 0) {
+		for (i=1; i <= matches; i++) {
+			bout; // Unknown function. Perhaps buffer out?
+		}
+	}
+
+	if ( !graphix )
+		writeln();
+
+	if ( quit() )
+		exit();
+
+	if (matches > 1) { // {--Calculate overall statistics--}
+		printf("\n"); printf("\n"); // Gotta keep the code one for one, unfortunately. I think this just prints to the line. Without parameters, perhaps it's just a new line?
+		graph_mode(FALSE);
+		textcolor(15); 		// Need to switch this function with something from SDL_ttf
+		fprintf(stdout, "Bout complete! (%hd matches)\n", matches);
+		printf("\n");
+
+		k = 0; w = 0;
+		for (i = 0; i <= num_robots; i++) {
+			if (robot[i] -> wins = w) then 
+				inc(k);
+
+			if (robot[i] -> wins > w) {
+				k = 1;
+				n = i;
+				w = wins;
+			}
+		}
+
+		printf("Robot           Wins  Matches  Kills  Deaths    Shots\n");
+		printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+
+		for (i = 0; i <= num_robots; i++) {
+		with robot[i]^ do
+			begin
+			textcolor(robot_color(i));
+
+			printf("addfront(cstr(i+1),2)+' - '+addrear(fn,8)
+			+addfront(cstr(wins),7)+addfront(cstr(trials),8)
+			+addfront(cstr(kills),8)+addfront(cstr(deaths),8)
+			+addfront(cstr(shots_fired),9)");
+			end;
+		}
+
+		textcolor(15); // Unknown function
+		printf("\n");
+		if (k = 1)
+			printf("Robot #%hd (%s) wins the bout! (score: %hd/%hd\n", (n+1), robot[n]->fn, w, matches);
+		else
+			printf("There is no clear victor!\n");
+
+		printf("\n");
+	}
+
+	else if ( graphix ) {
+		// {matches=1 also}
+		graph_mode(FALSE);
+		show_statistics();
+	}
+
+	if ( report )
+		write_report();
+}
 
 
 // Main function for entire program
