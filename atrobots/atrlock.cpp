@@ -3,7 +3,7 @@
 const int LOCKTYPE = 3;
 int main(int argc, char *argv[]){
     /*
-     * Variables - direct from the ATRLOCk program.
+     * Variables - direct from the ATRLOCK program.
      */
     char *fn1[], *fn2[], *f1[], *f2[], *s[], *s1[], *s2[], *lock_code[];
     int i, j, k, lock_pos, lock_dat, this_dat;
