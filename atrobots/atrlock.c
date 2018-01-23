@@ -27,7 +27,7 @@ static char *encode(char *result, char *s_) {
         lock_pos++;
         if (lock_pos > strlen(lock_code))
             lock_pos = 1;
-        if ((uchar)s[i] <= 31 || (s[i] & (~127)) != 0 && (s[i] & 255) <= 255)
+        if ((char)s[i] <= 31 || (s[i] & (~127)) != 0 && (s[i] & 255) <= 255)
             s[i] = ' ';
         this_dat = s[i] & 15;
         s[i] = (char)((s[i] ^ lock_code[lock_pos-1] ^ lock_dat) + 1);
