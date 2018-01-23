@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 const int LOCKTYPE = 3;
 
 /*
  * NOTE - functions in this file require parameters including the full text of the file.
  */
+
+using namespace std;
 
 int main(int argc, char *argv[]){
     /*
@@ -20,7 +23,7 @@ int main(int argc, char *argv[]){
  * Encode function
  * Purpose: Changes bits of characters in file effectively encoding them.
  */
-static char *encode(char *result, char *s_) {
+string encode(string s) {
     char s[256];
     long i, lim;
 
@@ -83,3 +86,4 @@ static char *prepare(char *result, char *s_, char *s1_) {
 
     return strcpy(result, s);
 }
+
