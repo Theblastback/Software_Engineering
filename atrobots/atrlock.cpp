@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 const int LOCKTYPE = 3;
+
+/*
+ * NOTE - functions in this file require parameters including the full text of the file.
+ */
+
 int main(int argc, char *argv[]){
     /*
      * Variables - direct from the ATRLOCK program.
