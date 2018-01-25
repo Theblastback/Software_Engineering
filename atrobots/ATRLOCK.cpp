@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <time.h>
 const int LOCKTYPE = 3;
 
 /*
@@ -16,6 +17,62 @@ int main(int argc, char *argv[]){
      */
     char *fn1[], *fn2[], *f1[], *f2[], *s[], *s1[], *s2[], *lock_code[];
     int i, j, k, lock_pos, lock_dat, this_dat;
+
+
+    /**
+    *   This is the rest of the main function that was written below in the pascal file.
+    **/
+
+    srand (time(NULL));
+    lock_pos = 0;
+    lock_dat = 0;
+    if (paramcount() < 1 || paramcount() > 2) {
+      sprintf("Usage: ATRLOCK <robot[.at2]> [locked[.atl]]");
+      exit();
+    }
+    *fn1[] = btrim(ucase(paramstr(1)));
+    if (*fn1[] == base_name(*fn1[])) {
+      *fn1[] = *fn1[] + ".AT2";
+    }
+    if(!file.is_open()){
+      sprintf("Robot ", *fn1[], " not found!");
+      exit;
+    }
+    if (paramcount == 2) {
+      *fn2[] = btrim(ucase(paramstr(2)));
+    } else {
+      *fn2[] = base_name(*fn1[]) + ".ATL";
+    }
+    if (*fn2[] == base_name(*fn2[])) {
+      *fn2[] = *fn2[] + ".ATL";
+    }
+    if (!valid(*fn2[]) {
+      sprintf("Output name ", *fn1[], " not valid");
+      exit;
+    }
+    if (*fn1[] == *fn2[]) {
+      sprintf("Filenames can not be the same!");
+      exit;
+    }
+    *fn1[].assign(*f1[]);
+    reset(*f1[]);
+    *fn2[].assign(*f2[]);
+    rewrite(*f2[]);
+
+    /**
+    * lock header
+    **/
+    f2write << ";------------------------------------------------------------------------------";
+    f2write << "; " no_path(base_name(*fn1[])), "Locked on ", date);
+    f2write << ";------------------------------------------------------------------------------";
+    lock_code = "";
+    k = rand() % 21 + 20;
+    for (int i = 1, i < k, i++) {
+        lock_code = lock_code + char(rand() % 32 + 65);
+    }
+    f2write << "#LOCK", locktype," ",lock_code;
+
+
 
 }
 
@@ -87,3 +144,18 @@ static char *prepare(char *result, char *s_, char *s1_) {
 
     return strcpy(result, s);
 }
+
+  /**
+  *   Write line function.
+  **/
+
+  void *write_line(char *s_, char *s1_) {
+      char s[256], s1[256];
+      strcpy(s, s_);
+      strcpy(s1, s1_);
+      s = prepare(s);
+      if strlen(s) > 0 {
+        s = encode(s);
+        writer << s;
+      }
+  }
