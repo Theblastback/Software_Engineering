@@ -7,6 +7,8 @@
 
 #include <string>
 #include <sys/stat.h>
+#include <cstdio>
+#include <cstdlib>
 
 string	textattr;
 string	workstr;
