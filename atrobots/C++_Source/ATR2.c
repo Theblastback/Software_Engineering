@@ -1,114 +1,42 @@
-{$G+}{$N+}{$E+}{$X+}{$D-}
-{$M 16384,0,655360}
-{                                                                           }
-{  AT-Robots 2,  Copyright 1997,'99, Ed T. Toton III, All Rights Reserved.  }
-{                                                                           }
-{    This Source code was not originally intended for general distribution. }
-{ It is not optimized for anything in particular. It is not even intended   }
-{ to be very clear or intelligible to anyone but myself. Nor is it designed }
-{ to be portable. It is being distributed under a variant of the BSD        }
-{ license (see below)                                                       }
-{                                                                           }
-{ Designed for Turbo Pascal 6.0                                             }
-{                                                                           }
 
-(* Code between {FIFI} and {/FIFI} tags were added by FiFi LaRoo. These
-   tags may eventually be removed (especially as they get modified in the
-   future), but are here for the time being to keep track of where the
-   changes were made.                                                      *)
+#include <cstdio>	// Required for file manipulation
+#include <cstdlib>
 
-(*
-Copyright (c) 1999, Ed T. Toton III. All rights reserved.
-
-Bug fixes and additional additions Copyright (c) 2014, William "Amos" Confer
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-
-   Redistributions of source code must retain the above copyright notice,
-   this list of conditions and the following disclaimer.
-
-   Redistributions in binary form must reproduce the above copyright notice, 
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
-   All advertising materials mentioning features or use of this software
-   must display the following acknowledgement:
-
-        This product includes software developed by Ed T. Toton III &
-        NecroBones Enterprises.
-
-   No modified or derivative copies or software may be distributed in the
-   guise of official or original releases/versions of this software. Such
-   works must contain acknowledgement that it is modified from the original.
-
-   Neither the name of the author nor the name of the business or
-   contributers may be used to endorse or promote products derived
-   from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND ANY 
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*)
-
-
-
-// Begin C Translation here
-// Unsure where libraries are included, so we'll have to change where to put any required library includes
-
-#include <stdbool.h>	// Required for boolean types in C
-#include <stdio.h>	// Required for file manipulation
-#include <stdlib.h>
+#include <fstream> // Other source includes may include this. If case, delete this
 
 
 Program Advanced_T_Robots_2;
 
 // Compile with these files
-uses dos, crt, graph, egavga, filelib, myfile, atr2func;
+// uses dos, crt, graph, egavga, filelib, myfile, atr2func;
 
 {’á} {err}
 
 // Begin listing of global variables, or is this the beginning of the program?
 
-char progname[]		= "AT-Robots";
-char version[]		= "2.11";
-char cnotice1[]		="Copyright 1997 ''99, Ed T. Toton III";
-char cnotice2[]		= "All Rights Reserved.";
-char cnotice3[]		= "Copyright 2014, William "Amos" Confer";
-char main_filename[]	= "ATR2";
-char robot_ext[]	= ".AT2";
-char locked_ext		= ".ATL";
-char config_ext[]	= ".ATS";
-char compile_ext[]	= ".CMP";
-char report_ext[]	= ".REP";
+string progname		= "AT-Robots";
+string version		= "2.11";
+string cnotice1		= "Copyright 1997 ''99, Ed T. Toton III";
+string cnotice2		= "All Rights Reserved.";
+string cnotice3		= "Copyright 2014, William "Amos" Confer";
+string main_filename	= "ATR2";
+string robot_ext	= ".AT2";
+string locked_ext		= ".ATL";
+string config_ext	= ".ATS";
+string compile_ext	= ".CMP";
+string report_ext	= ".REP";
 
-/* Original pascal code
- _T             =true;
- _F             =false;
- minint         =-32768; {maxint=32787 is alrady defined by turbo pascal}
-
-Revised code underneath
-*/
-
-bool T		= TRUE;
-bool F		= FALSE;
+bool T		= true;
+bool F		= false;
 short minint	= -32768;
 
 
 
 // {debugging/compiler}
-char show_code		= F;
-char compile_by_line	= F;
+bool show_code		= F;
+bool compile_by_line	= F;
 char max_var_len	= 16;
-char debugging_compiler = F;
+bool debugging_compiler = F;
 
 // {robots}
 char max_robots		= 31; 	// {starts at 0, so total is max_robots+1}
@@ -170,12 +98,11 @@ struct mine_rec {
 };
 
 struct robot_rec {
-	// {FIFI}
 	bool is_ocked;	// {used to determine wether to allow debugger}
 	bool mem_watch;	// {current base of memory view for debugger}
-	// {/FIFI}
 
 	double x, y, lx, ly, xv, yv, speed, shotstrength, damageadj, speedadj, meters;
+
 	short hd, thd, lhd, spd, tspd, armor, larmor, heat, lheat, ip, plen, scanarc,
 		accuracy, shift, err, delay_left, robot_time_limit, max_time, time_left,
 		lshift, arc_count, sonar_count, scanrange, last_damage, last_hit, transponder,
@@ -187,18 +114,19 @@ struct robot_rec {
 		cycles_lived, error_count;
 
 	struct config_rec config;
-	char *name[31];
-	char fn[255];
+	string name[31];	// Was char *name[31]
+	string fn;		// Was char[255]
 	bool shields_up, lshields, overburn, keepshift, cooling, won;
 	struct prog_type code;
 	short ram[max_ram];
 	struct mine_rec mine[max_mines];
 
-	FILE * errorlog; 
+	fstream errorlog;	// Was FILE * 
 };
 
-char *parsetype[16];
+string parsetype[16];
 struct robot_rec * robot_ptr	= robot_rec;
+
 struct missile_rec {
 	double x, y, lx, ly, mult, mspd;
 	short source, a, hd, rad, lrad, max_rad;
@@ -211,17 +139,16 @@ struct robot_ptr robot:array[max_robots+4]; // { a few extra pointers for luck..
 struct missile_rec missile[max_missiles];
 
 // {--compiler variables--}
-FILE * 	f;
+fstream	f;
 short	numvars, numlabels, maxcode, lock_pos, lock_dat;
 char	varname[max_var_len][max_vars];
 short	varloc[max_vars];
 char	labelname[max_var_len][max_vars];
 short	labelnum[max_labels];
 bool	show_source, compile_only;
-char *	lock_code;
+string	lock_code;
 
 // {--simulator/graphics variables--}
-// {FIFI}
 bool	bout_over;	//	{made global from procedure bout}
 short	step_mode;	//	{0=off, for (0<step_mode<=9) = #of game cycles per step}
 short	temp_mode;	//	{stores previous step_mode for return to step}
@@ -229,7 +156,6 @@ short 	step_count;	//	{step counter used as break flag}
 bool	step_loop;	//	{break flag for stepping}
 
 // bool show_debugger; {flag for viewing debugger panel vs. robot stats}
-// {/FIFI}
 
 bool	old_shields, insane_missiles, debug_info, windoze, no_gfx, logging_errors,
 	timing, show_arcs;
@@ -244,10 +170,10 @@ short	kill_count, report_type;
 
 
 char * operand(short n, short m) {
-	char *s;
+	string s;
 
-	// Unsure what this function does	
-	s:=cstr(n);
+	// cstr converts number to string	
+	s = cstr(n);
      	/*
      	Microcode:
 		0 = instruction, number, constant
@@ -259,27 +185,27 @@ char * operand(short n, short m) {
      	*/
 	switch ( m & 7 ) {
 		case 1:
-			s:='@'+s;
+			s = "@" + s;
 			break;
 
 		case 2:
-			s:=':'+s;
+			s = ":" + s;
 			break;
 
 		case 3:
-			s:='$'+s;
+			s = "$" + s;
 			break;
 
 		case 4:
-			s:='!'+s;
+			s = "!" + s;
 			break;
 
 		default:
-			s:=cstr(n);
+			s = cstr(n);
 	}
 
 	if ( (m & 8) > 0 ) then
-		s:='['+s+']';
+		s = "[" + s + "]";
 
 	return(s);
 }
@@ -3627,17 +3553,17 @@ void main() {
 	}
 
 	if ( !graphix )
-		writeln();
+		cout << endl;
 
 	if ( quit() )
 		exit();
 
 	if (matches > 1) { // {--Calculate overall statistics--}
-		printf("\n"); printf("\n"); // Gotta keep the code one for one, unfortunately. I think this just prints to the line. Without parameters, perhaps it's just a new line?
+		cout << endl << endl; // Gotta keep the code one for one, unfortunately. I think this just prints to the line. Without parameters, perhaps it's just a new line?
 		graph_mode(FALSE);
 		textcolor(15); 		// Need to switch this function with something from SDL_ttf
-		fprintf(stdout, "Bout complete! (%hd matches)\n", matches);
-		printf("\n");
+		cout << "Bout complete! (" << matches << " matches)" << endl;
+		cout << endl;
 
 		k = 0; w = 0;
 		for (i = 0; i <= num_robots; i++) {
@@ -3651,15 +3577,16 @@ void main() {
 			}
 		}
 
-		printf("Robot           Wins  Matches  Kills  Deaths    Shots\n");
-		printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+		cout << "Robot           Wins  Matches  Kills  Deaths    Shots" << endl;
+		cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
 
 		for (i = 0; i <= num_robots; i++) {
 		with robot[i]^ do
 			begin
 			textcolor(robot_color(i));
 
-			printf("addfront(cstr(i+1),2)+' - '+addrear(fn,8)
+			// addfront returns string
+			cout << "addfront(cstr(i+1),2)+' - '+addrear(fn,8)
 			+addfront(cstr(wins),7)+addfront(cstr(trials),8)
 			+addfront(cstr(kills),8)+addfront(cstr(deaths),8)
 			+addfront(cstr(shots_fired),9)");
@@ -3667,13 +3594,13 @@ void main() {
 		}
 
 		textcolor(15); // Unknown function
-		printf("\n");
+		cout << endl;
 		if (k = 1)
-			printf("Robot #%hd (%s) wins the bout! (score: %hd/%hd\n", (n+1), robot[n]->fn, w, matches);
+			cout << "Robot #" << (n+1) << " (" << robot[n] -> fn << " ) wins the bout! (score: " << w << "/" << matches << endl;
 		else
-			printf("There is no clear victor!\n");
+			cout << "There is no clear victor!" << endl;
 
-		printf("\n");
+		cout << endl;
 	}
 
 	else if ( graphix ) {
