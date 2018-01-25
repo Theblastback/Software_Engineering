@@ -34,7 +34,8 @@ void open_filein(string h, string fn) {
 	string w;
 
 	the_name = fn + "0";
-/*
+
+    /*
  asm				Beginning of assembly block
  				ds is data segment
 
@@ -48,7 +49,25 @@ void open_filein(string h, string fn) {
   pop   ds
   mov   w,      ax
  end;
+
+     Assembly in C++
+        Registries (The variables after instruction)
+        have a percent sign next to them. Other than that,
+        I think it's pretty straight forward.
+
+        https://www.codeproject.com/Articles/15971/Using-Inline-Assembly-in-C-C
+         - This article helps with it.
 */
+
+    __asm__("push %eds"
+            "mov  %dx,      seg the_name"
+            "mov  %ds,      %dx"
+            "mov  %dx,      offset the_name"
+            "inc  %dx"
+            "mov  %ax,      %3D00h;"
+            "int  %21h"
+            "pop  %ds"
+            "mov  w,       %ax");
 
  h:=w;
 }
@@ -58,16 +77,15 @@ var
  w:word;
 begin
  the_name:=fn+#0;
- asm
-  push  ds
-  mov   dx,     seg the_name
-  mov   ds,     dx
-  mov   dx,     offset the_name
-  inc   dx
-  mov   ax,     3D02h;
-  int   21h
-  pop   ds
-  mov   w,      ax
+    __asm__("push  %ds"
+            "mov   %dx,     seg the_name"
+            "mov   %ds,     %dx"
+            "mov   %dx,     offset the_name"
+            "inc   %dx"
+            "mov   %ax,     %3D02h;"
+            "int  %21h"
+            "pop   %ds"
+            "mov   w,      %ax");
  end;
  h:=w;
 end;
@@ -78,30 +96,28 @@ var
 begin
  the_name:=fn+#0;
  if exist(lstr(fn,length(fn)-1)) then
- asm
-  push  ds
-  mov   dx,     seg the_name
-  mov   ds,     dx
-  mov   dx,     offset the_name
-  inc   dx
-  mov   ax,     3D01h;
-  int   21h
-  pop   ds
-  mov   w,      ax
- end
+    __asm__("push  %ds"
+            "mov   %dx,     seg the_name"
+            "mov   %ds,     %dx"
+            "mov   %dx,     offset the_name"
+            "inc   %dx"
+            "mov   %ax,     %3D01h;"
+            "int   %21h"
+            "pop   %ds"
+            "mov   w,      %ax");
+
  else
- asm
-  push  ds
-  mov   dx,     seg the_name
-  mov   ds,     dx
-  mov   dx,     offset the_name
-  inc   dx
-  mov   cx,     20h
-  mov   ax,     3C00h;
-  int   21h
-  pop   ds
-  mov   w,      ax
- end;
+
+    __asm__("push  %ds"
+            "mov   %dx,     seg the_name"
+            "mov   %ds,     %dx"
+            "mov   %dx,     offset the_name"
+            "inc   %dx"
+            "mov   %cx,     %20h"
+            "mov   %ax,     %3C00h;"
+            "int   %21h"
+            "pop   %ds"
+            "mov   w,      %ax");
  h:=w;
 end;
 
@@ -110,18 +126,18 @@ var
  w:word;
 begin
  the_name:=fn+#0;
- asm
-  push  ds
-  mov   dx,     seg the_name
-  mov   ds,     dx
-  mov   dx,     offset the_name
-  inc   dx
-  mov   cx,     20h
-  mov   ax,     3C00h;
-  int   21h
-  pop   ds
-  mov   w,      ax
- end;
+
+    __asm__("push  %ds"
+            "mov   %dx,     seg the_name"
+            "mov   %ds,     %dx"
+            "mov   %dx,     offset the_name"
+            "inc   %dx"
+            "mov   %cx,     %20h"
+            "mov   %ax,     %3C00h;"
+            "int   %21h"
+            "pop   %ds"
+            "mov   w,      %ax");
+
  h:=w;
 end;
 
@@ -135,27 +151,27 @@ begin
  tseg:=seg(ploc^);
  tofs:=ofs(ploc^);
  ll:=len; w:=0;
- asm
-  push  ds
-  mov   bx,     h
-  mov   cx,     ll
-  mov   dx,     tseg
-  mov   ds,     dx
-  mov   dx,     tofs
-  mov   ax,     3F00h;
-  int   21h
-  jc    uh_oh
-  jmp   alright
-  uh_oh:
-  mov   w,      ax
-  alright:
-  pop   ds
-  cmp   ll,     ax
-  je    ok
-  mov   the_eof,1
-  ok:
-  mov   ll,     ax
- end;
+
+    __asm__("push  %ds"
+            "mov   %bx,     h"
+            "mov   %cx,     ll"
+            "mov   %dx,     tseg"
+            "mov   %ds,     %dx"
+            "mov   %dx,     tofs"
+            "mov   %ax,     %3F00h;"
+            "int   %21h"
+            "jc    uh_oh"
+            "jmp   alright"
+            "uh_oh:"
+            "mov   w,      %ax"
+            "alright:"
+            "pop   %ds"
+            "cmp   ll,     %ax"
+            "je    ok"
+            "mov   %the_eof, $1"
+            "ok:"
+            "mov   ll,     %ax");
+
  len:=ll;
  if w<>0 then begin writeln(' ****** ',w,' ****** '); {pausescr;} end;
 end;
@@ -168,18 +184,17 @@ begin
  tseg:=seg(ploc^);
  tofs:=ofs(ploc^);
  ll:=len;
- asm
-  push  ds
-  mov   bx,     h
-  mov   cx,     ll
-  mov   dx,     tseg
-  mov   ds,     dx
-  mov   dx,     tofs
-  mov   ax,     4000h;
-  int   21h
-  pop   ds
-  mov   ll,     ax
- end;
+    __asm__("push  ds"
+
+            "mov   %bx,     h"
+            "mov   %cx,     ll"
+            "mov   %dx,     tseg"
+            "mov   %ds,     %dx"
+            "mov   %dx,     tofs"
+            "mov   %ax,     %4000h;"
+            "int   %21h"
+            "pop   %ds"
+            "mov   ll,     %ax");
  len:=ll;
 end;
 
@@ -187,32 +202,30 @@ Procedure read_long(h:word; ploc:pointer; var len:word);
 var
  tseg,tofs,pp,w:word;
  ll:word;
-label ok,uh_oh,alright;
 begin
  tseg:=seg(ploc^);
  tofs:=ofs(ploc^);
  ll:=len; w:=0;
- asm
-  push  ds
-  mov   bx,     h
-  mov   cx,     ll
-  mov   dx,     tseg
-  mov   ds,     dx
-  mov   dx,     tofs
-  mov   ax,     3F00h;
-  int   21h
-  jc    uh_oh
-  jmp   alright
-  uh_oh:
-  mov   w,      ax
-  alright:
-  pop   ds
-  cmp   ll,     ax
-  je    ok
-  mov   the_eof,1
-  ok:
-  mov   ll,     ax
- end;
+
+  __asm__("push  %ds"
+          "mov   %bx,     h"
+          "mov   %cx,     ll"
+          "mov   %dx,     tseg"
+          "mov   %ds,     %dx"
+          "mov   %dx,     tofs"
+          "mov   %ax,     %3F00h;"
+          "int   %21h"
+          "jc    uh_oh"
+          "jmp   alright"
+          "uh_oh:"
+          "mov   %w,      %ax"
+          "alright:"
+          "pop   %ds"
+          "cmp   ll,     %ax"
+          "je    ok"
+          "mov   %the_eof,$1"
+          "ok:"
+          "mov   ll,     %ax"
  len:=ll;
  if w<>0 then begin writeln(' ****** ',w,' ****** '); {pausescr;} end;
 end;
@@ -225,27 +238,24 @@ begin
  tseg:=seg(ploc^);
  tofs:=ofs(ploc^);
  ll:=len;
- asm
-  push  ds
-  mov   bx,     h
-  mov   cx,     ll
-  mov   dx,     tseg
-  mov   ds,     dx
-  mov   dx,     tofs
-  mov   ax,     4000h;
-  int   21h
-  pop   ds
-  mov   ll,     ax
- end;
+    __asm__("push  %ds"
+            "mov   %bx,     h"
+            "mov   %cx,     ll"
+            "mov   %dx,     tseg"
+            "mov   %ds,     %dx"
+            "mov   %dx,     tofs"
+            "mov   %ax,     %4000h;"
+            "int   %21h"
+            "pop   %ds"
+            "mov   ll,     %ax");
  len:=ll;
 end;
 
 procedure close_file(h:word);
 begin
- asm
-  mov   ax,     3E00h
-  mov   bx,     h
-  int   21h
+    __asm__("mov   %ax,     %3E00h"
+            "mov   %bx,     h"
+            "int   %21h");
  end;
 end;
 
@@ -253,15 +263,14 @@ Procedure file_seek(h,d:word; m:byte; var p:word);
 var
  w:word;
 begin
- asm
-  mov   bx,     h
-  mov   cx,     0
-  mov   dx,     d
-  mov   al,     m
-  mov   ah,     42h
-  int   21h
-  mov   w,      ax
- end;
+
+    __asm__("mov   %bx,     h"
+            "mov   %cx,     %0"
+            "mov   %dx,     d"
+            "mov   %al,     m"
+            "mov   %ah,     %42h"
+            "int   %21h"
+            "mov   w,      %ax");
  p:=w;
 end;
 
@@ -271,16 +280,16 @@ var
 begin
  d1:=d shr 16;
  d2:=d and $FFFF;
- asm
-  mov   bx,     h
-  mov   cx,     d1
-  mov   dx,     d2
-  mov   al,     m
-  mov   ah,     42h
-  int   21h
-  mov   d1,      ax
-  mov   d2,      dx
- end;
+
+    __asm__("mov   %bx,     h"
+            "mov   %cx,     d1"
+            "mov   %dx,     d2"
+            "mov   %al,     m"
+            "mov   %ah,     %42h"
+            "int   %21h"
+            "mov   d1,      %ax"
+            "mov   d2,      %dx");
+
  p:=d2; p:=p shl 16;
  p:=p or d1;
 end;
