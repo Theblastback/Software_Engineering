@@ -28,7 +28,7 @@ int main(int argc, char *argv[]){
     s = '/0';
     do {
       instream.getline (f1, s);
-      s = btrim(s)
+      s = trim(s) //replace with our language equivalent
       if (s[1] ==  ' ; ') {
         sprintf (ucase (s));
         s = ' \0 ';
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]){
       //Read line!
       f1read >> *s1[];
       s = "\0";
-      *s1[] = btrim(ucase(s1));
+      *s1[] = trim(to_upper(s1));
 
       //Write line!
       f2write << s;
