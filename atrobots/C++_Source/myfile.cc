@@ -33,22 +33,9 @@ void rename_file(string fn, string fn2) {
 void open_filein(string h, string fn) {
 	string w;
 
-	the_name = fn + "0";
+	the_name = fn + "\0";
 
     /*
- asm		    Beginning of assembly block
- 				ds is data segment
-
-  push  ds			Push value of ds onto stack (save ds)
-  mov   dx,     seg the_name	Move value of the_name to dx (
-  mov   ds,     dx		Move value of dx to location of ds
-  mov   dx,     offset the_name
-  inc   dx
-  mov   ax,     3D00h;
-  int   21h
-  pop   ds
-  mov   w,      ax
- end;
 !!!!!!!!!!!!!!!!!!!!!
      Assembly in C++
         Registries (The variables after instruction)
@@ -70,80 +57,79 @@ void open_filein(string h, string fn) {
             "pop  %ds"
             "mov  w,       %ax");
 
- h:=w;
+	h = w;
 }
 
-Procedure open_fileboth(var h:word; fn:string);
-var
- w:word;
-begin
- the_name:=fn+#0;
-    __asm__("push  %ds"
-            "mov   %dx,     seg the_name"
-            "mov   %ds,     %dx"
-            "mov   %dx,     offset the_name"
-            "inc   %dx"
-            "mov   %ax,     %3D02h;"
-            "int  %21h"
-            "pop   %ds"
-            "mov   w,      %ax");
- end;
- h:=w;
-end;
+void open_fileboth(string h, string fn) {
+	string w;
 
-Procedure open_fileout(var h:word; fn:string);
-var
- w:word;
-begin
- the_name:=fn+#0;
- if exist(lstr(fn,length(fn)-1)) then
-    __asm__("push  %ds"
-            "mov   %dx,     seg the_name"
-            "mov   %ds,     %dx"
-            "mov   %dx,     offset the_name"
-            "inc   %dx"
-            "mov   %ax,     %3D01h;"
-            "int   %21h"
-            "pop   %ds"
-            "mov   w,      %ax");
+	the_name = fn + "\0";
 
- else
+	__asm__("push  %ds"
+		"mov   %dx,     seg the_name"
+		"mov   %ds,     %dx"
+		"mov   %dx,     offset the_name"
+		"inc   %dx"
+		"mov   %ax,     %3D02h;"
+		"int  %21h"
+		"pop   %ds"
+		"mov   w,      %ax");
 
-    __asm__("push  %ds"
-            "mov   %dx,     seg the_name"
-            "mov   %ds,     %dx"
-            "mov   %dx,     offset the_name"
-            "inc   %dx"
-            "mov   %cx,     %20h"
-            "mov   %ax,     %3C00h;"
-            "int   %21h"
-            "pop   %ds"
-            "mov   w,      %ax");
- h:=w;
-end;
+	h = w;
+}
 
-Procedure create_fileout(var h:word; fn:string);
-var
- w:word;
-begin
- the_name:=fn+#0;
+void open_fileout(string h, string fn) {
+	string w;
 
-    __asm__("push  %ds"
-            "mov   %dx,     seg the_name"
-            "mov   %ds,     %dx"
-            "mov   %dx,     offset the_name"
-            "inc   %dx"
-            "mov   %cx,     %20h"
-            "mov   %ax,     %3C00h;"
-            "int   %21h"
-            "pop   %ds"
-            "mov   w,      %ax");
+	the_name =fn + "\0";
 
- h:=w;
-end;
+	if ( exist( lstr(fn, fn.length()-1) ) ) {
+		__asm__("push  %ds"
+			"mov   %dx,     seg the_name"
+			"mov   %ds,     %dx"
+			"mov   %dx,     offset the_name"
+			"inc   %dx"
+			"mov   %ax,     %3D01h;"
+			"int   %21h"
+			"pop   %ds"
+			"mov   w,      %ax");
+
+	} else {
+		__asm__("push  %ds"
+			"mov   %dx,     seg the_name"
+			"mov   %ds,     %dx"
+			"mov   %dx,     offset the_name"
+			"inc   %dx"
+			"mov   %cx,     %20h"
+			"mov   %ax,     %3C00h;"
+			"int   %21h"
+			"pop   %ds"
+			"mov   w,      %ax");
+	}
+	h = w;
+}
+
+void create_fileout(string h; string fn);
+	string w;
+
+	the_name = fn + "\0";
+
+	__asm__("push  %ds"
+		"mov   %dx,     seg the_name"
+		"mov   %ds,     %dx"
+		"mov   %dx,     offset the_name"
+		"inc   %dx"
+		"mov   %cx,     %20h"
+		"mov   %ax,     %3C00h;"
+		"int   %21h"
+		"pop   %ds"
+		"mov   w,      %ax");
+
+	h = w;
+}
 
 
-Procedure read_file(h:word; ploc:pointer; var len:integer);
+void read_file( h:word; ploc:pointer; var len:integer);
 var
  tseg,tofs,pp,w:word;
  ll:integer;
