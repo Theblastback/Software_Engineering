@@ -10,8 +10,8 @@
 #include <cstdio>
 #include <cstdlib>
 
-string	textattr;
-string	workstr;
+unsigned short	textattr;
+string		workstr;
 
 #endif
 

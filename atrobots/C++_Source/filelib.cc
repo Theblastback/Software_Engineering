@@ -58,7 +58,6 @@ bool exist(string thisfile) {
 bool valid(string thisfile) {
 	fstream afile;
 	bool check;
-	string iocode;
 
 	if ( !exist(thisfile) ) {
 		afile.open(thisfile, std::fstream::out);

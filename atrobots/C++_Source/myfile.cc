@@ -30,8 +30,8 @@ void rename_file(string fn, string fn2) {
 	std::rename(f.c_str(), fn2.c_str());
 }
 
-void open_filein(string h, string fn) {
-	string w;
+void open_filein(unsigned short h, string fn) {
+	unsigned short w;
 
 	the_name = fn + "\0";
 
@@ -60,8 +60,8 @@ void open_filein(string h, string fn) {
 	h = w;
 }
 
-void open_fileboth(string h, string fn) {
-	string w;
+void open_fileboth(unsigned short h, string fn) {
+	unsigned short w;
 
 	the_name = fn + "\0";
 
@@ -78,8 +78,8 @@ void open_fileboth(string h, string fn) {
 	h = w;
 }
 
-void open_fileout(string h, string fn) {
-	string w;
+void open_fileout(unsigned short h, string fn) {
+	unsigned short w;
 
 	the_name =fn + "\0";
 
@@ -109,8 +109,8 @@ void open_fileout(string h, string fn) {
 	h = w;
 }
 
-void create_fileout(string h; string fn);
-	string w;
+void create_fileout(unsigned short h; string fn);
+	unsigned short w;
 
 	the_name = fn + "\0";
 
@@ -129,14 +129,13 @@ void create_fileout(string h; string fn);
 }
 
 
-void read_file( h:word; ploc:pointer; var len:integer);
-var
- tseg,tofs,pp,w:word;
- ll:integer;
-label ok,uh_oh,alright;
-begin
- tseg:=seg(ploc^);
- tofs:=ofs(ploc^);
+void read_file(unsigned short h, void * ploc, short len) {
+	unsigned short tseg, tofs, pp, w;
+	short ll;
+//	label ok, uh_oh, alright;
+
+	tseg = seg(ploc *);
+	tofs = ofs(ploc *);
  ll:=len; w:=0;
 
     __asm__("push  %ds"
@@ -162,6 +161,8 @@ begin
  len:=ll;
  if w<>0 then begin writeln(' ****** ',w,' ****** '); {pausescr;} end;
 end;
+
+// data type word == unsigned short
 
 Procedure write_file(h:word; ploc:pointer; var len:integer);
 var
