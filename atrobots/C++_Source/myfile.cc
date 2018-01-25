@@ -11,9 +11,9 @@ string lstr(string s1, short l) {
 
 short file_size(string fn) {
 	if ( !exist(fn) )
-		return(-1)
+		return(-1);
 
-	return(file_length(fn);
+	return(file_length(fn));
 }
 
 void delete_file(string fn) {
@@ -49,7 +49,7 @@ void open_filein(string h, string fn) {
   pop   ds
   mov   w,      ax
  end;
-
+!!!!!!!!!!!!!!!!!!!!!
      Assembly in C++
         Registries (The variables after instruction)
         have a percent sign next to them. Other than that,
@@ -57,6 +57,7 @@ void open_filein(string h, string fn) {
 
         https://www.codeproject.com/Articles/15971/Using-Inline-Assembly-in-C-C
          - This article helps with it.
+!!!!!!!!!!!!!!!!!!!!!
 */
 
     __asm__("push %eds"
