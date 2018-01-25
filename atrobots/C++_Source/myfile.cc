@@ -36,7 +36,7 @@ void open_filein(string h, string fn) {
 	the_name = fn + "0";
 
     /*
- asm				Beginning of assembly block
+ asm		    Beginning of assembly block
  				ds is data segment
 
   push  ds			Push value of ds onto stack (save ds)
