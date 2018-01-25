@@ -35,18 +35,6 @@ void open_filein(unsigned short h, string fn) {
 
 	the_name = fn + "\0";
 
-    /*
-!!!!!!!!!!!!!!!!!!!!!
-     Assembly in C++
-        Registries (The variables after instruction)
-        have a percent sign next to them. Other than that,
-        I think it's pretty straight forward.
-
-        https://www.codeproject.com/Articles/15971/Using-Inline-Assembly-in-C-C
-         - This article helps with it.
-!!!!!!!!!!!!!!!!!!!!!
-*/
-
     __asm__("push %eds"
             "mov  %dx,      seg the_name"
             "mov  %ds,      %dx"
