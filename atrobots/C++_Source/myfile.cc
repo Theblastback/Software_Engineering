@@ -9,7 +9,7 @@ string lstr(string s1, short l) {
 		return( copy(s1,1,l) );
 }
 
-short file_size(string fn) {
+int file_size(string fn) {
 	if ( !exist(fn) )
 		return(-1);
 
@@ -129,40 +129,42 @@ void create_fileout(unsigned short h; string fn);
 }
 
 
+// Original function was read_file(unsigned short h, void * ploc, short len)
+
 void read_file(unsigned short h, void * ploc, short len) {
 	unsigned short tseg, tofs, pp, w;
 	short ll;
-//	label ok, uh_oh, alright;
 
-	tseg = seg(ploc *);
-	tofs = ofs(ploc *);
- ll:=len; w:=0;
+	ll = len; w = 0;
 
-    __asm__("push  %ds"
-            "mov   %bx,     h"
-            "mov   %cx,     ll"
-            "mov   %dx,     tseg"
-            "mov   %ds,     %dx"
-            "mov   %dx,     tofs"
-            "mov   %ax,     %3F00h;"
-            "int   %21h"
-            "jc    uh_oh"
-            "jmp   alright"
-            "uh_oh:"
-            "mov   w,      %ax"
-            "alright:"
-            "pop   %ds"
-            "cmp   ll,     %ax"
-            "je    ok"
-            "mov   %the_eof, $1"
-            "ok:"
-            "mov   ll,     %ax");
+	__asm__("push  %ds"
+		"mov   %bx,     h"
+		"mov   %cx,     ll"
+		"mov   %dx,     tseg"
+		"mov   %ds,     %dx"
+		"mov   %dx,     tofs"
+		"mov   %ax,     %3F00h;"
+		"int   %21h"
+		"jc    uh_oh"
+		"jmp   alright"
+		"uh_oh:"
+		"mov   w,      %ax"
+		"alright:"
+		"pop   %ds"
+		"cmp   ll,     %ax"
+		"je    ok"
+		"mov   %the_eof, $1"
+		"ok:"
+		"mov   ll,     %ax");
 
- len:=ll;
- if w<>0 then begin writeln(' ****** ',w,' ****** '); {pausescr;} end;
-end;
+	len = ll;
+
+	if ( w != 0)
+		printf(" ****** " w " ****** \n");
+}
 
 // data type word == unsigned short
+// data type longint == int
 
 Procedure write_file(h:word; ploc:pointer; var len:integer);
 var
