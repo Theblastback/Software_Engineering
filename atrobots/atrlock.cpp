@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
+#include <string>
+
 
 const int LOCKTYPE = 3;
 
@@ -10,28 +12,31 @@ const int LOCKTYPE = 3;
  * NOTE - functions in this file require parameters including the full text of the file.
  */
 
+ using namespace std;
+
 int main(int argc, char *argv[]){
     /*
      * Variables - direct from the ATRLOCK program.
      */
-    char *fn1[], *fn2[], *f1[], *f2[], *s[], *s1[], *s2[], *lock_code[];
-    int i, j, k, lock_pos, lock_dat, this_dat;
+     string fn1, fn2, f1, f2;
+     char *s[256], *s1[256], *s2[256], *lock_code[256];
+     int i, j, k, lock_pos, lock_dat, this_dat;
 
-    srand (time(NULL));
+     srand (time(NULL));
 
-    instream f1read (f1);
-    ofstream f2write (f2);
-    ofstream f1write (f2);
+    ifstream f1read;
+    ofstream f2write;
+    ofstream f1write;
 
     /* copy comment header */
-    writer << ";------------------------------------------------------------------------------";
+    cout << ";------------------------------------------------------------------------------";
     s = '/0';
     do {
-      instream.getline (f1, s);
-      s = trim(s) //replace with our language equivalent
-      if (s[1] ==  ' ; ') {
+      f1read.getline (f1, s);
+      s = trim(s); //replace with our language equivalent
+      if (*s[1] ==  ';') {
         sprintf (ucase (s));
-        s = ' \0 ';
+        s = '\n';
       }
 
     } while( !eof(f1) and (s == '\0' )); //fix not eof
@@ -39,23 +44,23 @@ int main(int argc, char *argv[]){
 
     /* Decode lock-Code */
     for (int i = 0; i < lock_code.length(); i++) {
-      lock_code[i] = char(ord(lock_code[i] - 65); // lookup ord when possible)
+      lock_code[i] = char(ord(lock_code[i] - 65)); // lookup ord when possible)
     }
 
     printf("Encoding: ", *fn1, "...");
 
     //Encode robot
-    s= btrim(s);
+    s= trim(s);
 
     if (s.length() > 0) {
-      f2write << ucase(s);
+      f2write << toupper(s);
     }
 
     do {
       //Read line!
-      f1read >> *s1[];
+      f1read >> *s1;
       s = "\0";
-      *s1[] = trim(to_upper(s1));
+      *s1 = trim(toupper(s1));
 
       //Write line!
       f2write << s;
@@ -142,3 +147,44 @@ static char *prepare(char *result, char *s_, char *s1_) {
     return strcpy(result, s);
 }
 /* =Nick= */
+
+ /*
+  * Code from Stack Overflow User jotik
+  */
+ // trim from start (in place)
+ static inline void ltrim(std::string &s) {
+     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+         return !std::isspace(ch);
+     }));
+ }
+
+// trim from end (in place)
+ static inline void rtrim(std::string &s) {
+     s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+         return !std::isspace(ch);
+     }).base(), s.end());
+ }
+
+// trim from both ends (in place)
+ static inline void trim(std::string &s) {
+     ltrim(s);
+     rtrim(s);
+ }
+
+// trim from start (copying)
+ static inline std::string ltrim_copy(std::string s) {
+     ltrim(s);
+     return s;
+ }
+
+// trim from end (copying)
+ static inline std::string rtrim_copy(std::string s) {
+     rtrim(s);
+     return s;
+ }
+
+// trim from both ends (copying)
+ static inline std::string trim_copy(std::string s) {
+     trim(s);
+     return s;
+ }
