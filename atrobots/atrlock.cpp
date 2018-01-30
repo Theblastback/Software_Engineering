@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <fstream>
 #include <string>
+#include <iostream>
 
 
 const int LOCKTYPE = 3;
@@ -39,7 +40,7 @@ int main(int argc, char *argv[]){
         s = '\n';
       }
 
-    } while( !eof(f1) and (s == '\0' )); //fix not eof
+    } while( !feof(f1) and (s == '\0' )); //fix not eof
 
 
     /* Decode lock-Code */
@@ -47,7 +48,7 @@ int main(int argc, char *argv[]){
       lock_code[i] = char(ord(lock_code[i] - 65)); // lookup ord when possible)
     }
 
-    printf("Encoding: ", *fn1, "...");
+    printf("Encoding: ", fn1, "...");
 
     //Encode robot
     s= trim(s);
@@ -65,7 +66,7 @@ int main(int argc, char *argv[]){
       //Write line!
       f2write << s;
 
-    } while(!eof (f1)); //fix this too
+    } while(!feof (f1)); //fix this too
 
     sprintf ("Done. Used LOCK Format #", locktype, ".");
     sprintf ("Only ATR2 v2.08 or later can decode ");
@@ -151,6 +152,7 @@ static char *prepare(char *result, char *s_, char *s1_) {
  /*
   * Code from Stack Overflow User jotik
   */
+
  // trim from start (in place)
  static inline void ltrim(std::string &s) {
      s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
