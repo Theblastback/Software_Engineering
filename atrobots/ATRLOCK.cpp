@@ -1,14 +1,15 @@
- /* everything between =Nick= was written by Nick */
- /* =Nick= */
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <fstream>
-
+#include <string>
+#include <time.h>
 const int LOCKTYPE = 3;
 
 /*
  * NOTE - functions in this file require parameters including the full text of the file.
  */
+
+using namespace std;
 
 int main(int argc, char *argv[]){
     /*
@@ -17,68 +18,70 @@ int main(int argc, char *argv[]){
     char *fn1[], *fn2[], *f1[], *f2[], *s[], *s1[], *s2[], *lock_code[];
     int i, j, k, lock_pos, lock_dat, this_dat;
 
+
+    /**
+    *   This is the rest of the main function that was written below in the pascal file.
+    **/
+
     srand (time(NULL));
-
-    instream f1read (f1);
-    ofstream f2write (f2);
-    ofstream f1write (f2);
-
-    /* copy comment header */
-    writer << ";------------------------------------------------------------------------------";
-    s = '/0';
-    do {
-      instream.getline (f1, s);
-      s = trim(s) //replace with our language equivalent
-      if (s[1] ==  ' ; ') {
-        sprintf (ucase (s));
-        s = ' \0 ';
-      }
-
-    } while( !eof(f1) and (s == '\0' )); //fix not eof
-
-
-    /* Decode lock-Code */
-    for (int i = 0; i < lock_code.length(); i++) {
-      lock_code[i] = char(ord(lock_code[i] - 65); // lookup ord when possible)
+    lock_pos = 0;
+    lock_dat = 0;
+    if (paramcount() < 1 || paramcount() > 2) {
+      sprintf("Usage: ATRLOCK <robot[.at2]> [locked[.atl]]");
+      exit();
     }
-
-    printf("Encoding: ", *fn1, "...");
-
-    //Encode robot
-    s= btrim(s);
-
-    if (s.length() > 0) {
-      f2write << ucase(s);
+    *fn1[] = btrim(ucase(paramstr(1)));
+    if (*fn1[] == base_name(*fn1[])) {
+      *fn1[] = *fn1[] + ".AT2";
     }
+    if(!file.is_open()){
+      sprintf("Robot ", *fn1[], " not found!");
+      exit;
+    }
+    if (paramcount == 2) {
+      *fn2[] = btrim(ucase(paramstr(2)));
+    } else {
+      *fn2[] = base_name(*fn1[]) + ".ATL";
+    }
+    if (*fn2[] == base_name(*fn2[])) {
+      *fn2[] = *fn2[] + ".ATL";
+    }
+    if (!valid(*fn2[]) {
+      sprintf("Output name ", *fn1[], " not valid");
+      exit;
+    }
+    if (*fn1[] == *fn2[]) {
+      sprintf("Filenames can not be the same!");
+      exit;
+    }
+    *fn1[].assign(*f1[]);
+    reset(*f1[]);
+    *fn2[].assign(*f2[]);
+    rewrite(*f2[]);
 
-    do {
-      //Read line!
-      f1read >> *s1[];
-      s = "\0";
-      *s1[] = trim(to_upper(s1));
+    /**
+    * lock header
+    **/
+    f2write << ";------------------------------------------------------------------------------";
+    f2write << "; " no_path(base_name(*fn1[])), "Locked on ", date);
+    f2write << ";------------------------------------------------------------------------------";
+    lock_code = "";
+    k = rand() % 21 + 20;
+    for (int i = 1, i < k, i++) {
+        lock_code = lock_code + char(rand() % 32 + 65);
+    }
+    f2write << "#LOCK", locktype," ",lock_code;
 
-      //Write line!
-      f2write << s;
 
-    } while(!eof (f1)); //fix this too
-
-    sprintf ("Done. Used LOCK Format #", locktype, ".");
-    sprintf ("Only ATR2 v2.08 or later can decode ");
-    sprintf ("LOCKed robot saved as ", fn2 );
-
-    f1.close();
-    f2.close();
 
 }
-
-
 
 
 /*
  * Encode function
  * Purpose: Changes bits of characters in file effectively encoding them.
  */
-static char *encode(char *result, char *s_) {
+string encode(string s) {
     char s[256];
     long i, lim;
 
@@ -141,4 +144,18 @@ static char *prepare(char *result, char *s_, char *s1_) {
 
     return strcpy(result, s);
 }
-/* =Nick= */
+
+  /**
+  *   Write line function.
+  **/
+
+  void *write_line(char *s_, char *s1_) {
+      char s[256], s1[256];
+      strcpy(s, s_);
+      strcpy(s1, s1_);
+      s = prepare(s);
+      if strlen(s) > 0 {
+        s = encode(s);
+        writer << s;
+      }
+  }
