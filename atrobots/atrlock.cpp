@@ -126,7 +126,8 @@ const int LOCKTYPE = 3;
  }
 
  /**
- *   Write line function.
+ *   Write line function. - We should adapt this for strings and file io
+  *                             -- See below in main function for reference.
  **/
 
  void *write_line(char *s_, char *s1_) {
