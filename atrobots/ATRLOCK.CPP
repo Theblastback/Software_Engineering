@@ -19,62 +19,61 @@ int main(int argc, char *argv[]){
      * Variables - direct from the ATRLOCK program.
      */
 
-    char *s[], *s1[], *s2[], *lock_code[];
+    char *f1 [256], *f2 [256], *s[256], *s1[256], *s2[256], *lock_code[256];
     string fn1, fn2;
     char date [9];
     int i, j, k, lock_pos, lock_dat, this_dat;
 
     srand (time(NULL));
 
-    instream f1read (f1);
-
-    ofstream f2write (f2);
-    ofstream f1write (f2);
+    ifstream f1read;
+    ofstream f2write;
+    ofstream f1write;
 
     lock_pos = 0;
     lock_dat = 0;
     if (argc < 1 || argc > 2) {
-      sprintf("Usage: ATRLOCK <robot[.at2]> [locked[.atl]]");
-      exit();
+      printf("Usage: ATRLOCK robot.at2 to locked.atl");
+      exit(EXIT_FAILURE);
     }
-    fn1 = btrim(to_upper(paramstr(1)));
+    fn1 = btrim(toupper(argc));
     if (fn1 == base_name(fn1)) {
       fn1 = fn1 + ".AT2";
     }
-    if(!file.is_open()){
-      sprintf("Robot ", fn1, " not found!");
-      exit;
+    if(!f1read.is_open()){
+      printf("Robot %s not found!", fn1.c_str());
+      exit(EXIT_FAILURE);
     }
-    if (paramcount == 2) {
-      fn2 = trim(ucase(paramstr(2)));
+    if (argc == 2) {
+      fn2 = btrim(toupper(argc));
     } else {
       fn2 = base_name(fn1) + ".ATL";
     }
     if (fn2 == base_name(fn2)) {
       fn2 = fn2 + ".ATL";
     }
-    if (!valid(fn2) {
-      sprintf("Output name ", fn1, " not valid");
-      exit;
+    if (!valid(fn2)) {
+      printf("Output name %s not valid", fn1.c_str());
+      exit(EXIT_FAILURE);
     }
     if (fn1 == fn2) {
-      sprintf("Filenames can not be the same!");
-      exit;
+      printf("Filenames can not be the same!");
+      exit(EXIT_FAILURE);
     }
-    fn1.assign(*f1[]);
-    reset(*f1[]);
-    fn2.assign(*f2[]);
-    rewrite(*f2[]);
+    fn1.assign(*f1[]);//figure this out too
+    reset(*f1[]);  //find what this meanns in pascal
+    fn2.assign(*f2[]);//figure this out too
+    rewrite(*f2[]); //find what this means in pascal
 
     /* copy comment header */
-    writer << ";------------------------------------------------------------------------------";
-    s = '/0';
+  f2write << ";------------------------------------------------------------------------------";
+    *s = "\0";
     do {
-      instream.getline (f1, s);
-      s = btrim(s); //replace with our language equivalent
-      if (s[1] ==  ' ; ') {
-        sprintf (to_upper (s));
-        s = ' \0 ';
+      f1read.getline (f1, s); // getline for c++ ing f1read
+      s = btrim(s);
+      if (*s[1] ==  ' ; ') {
+        f2write << toupper(*s); //check
+        *s = " \0 ";
       }
 
     } while( !eof(f1) and (s == '\0' )); //fix not eof
@@ -85,9 +84,9 @@ int main(int argc, char *argv[]){
     _strdate (date);
 
     f2write << ";------------------------------------------------------------------------------";
-    f2write << "; " no_path(base_name(fn1)), "Locked on %s", date);
+    f2write << "; ", no_path(base_name(fn1)), "Locked on %s", date);
     f2write << ";------------------------------------------------------------------------------";
-    lock_code = "";
+    lock_code = "\0";
     k = rand() % 21 + 20;
     for (int i = 1, i < k, i++) {
         lock_code = lock_code + char(rand() % 32 + 65);
