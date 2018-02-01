@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
+#include <string>
+#include <time.h>
+
+using namespace std;
 
 const int LOCKTYPE = 3;
 
@@ -14,27 +18,81 @@ int main(int argc, char *argv[]){
     /*
      * Variables - direct from the ATRLOCK program.
      */
-    char *fn1[], *fn2[], *f1[], *f2[], *s[], *s1[], *s2[], *lock_code[];
+
+    char *s[], *s1[], *s2[], *lock_code[];
+    string fn1, fn2;
+    char date [9];
     int i, j, k, lock_pos, lock_dat, this_dat;
 
     srand (time(NULL));
 
     instream f1read (f1);
+
     ofstream f2write (f2);
     ofstream f1write (f2);
+
+    lock_pos = 0;
+    lock_dat = 0;
+    if (argc < 1 || argc > 2) {
+      sprintf("Usage: ATRLOCK <robot[.at2]> [locked[.atl]]");
+      exit();
+    }
+    fn1 = btrim(to_upper(paramstr(1)));
+    if (fn1 == base_name(fn1)) {
+      fn1 = fn1 + ".AT2";
+    }
+    if(!file.is_open()){
+      sprintf("Robot ", fn1, " not found!");
+      exit;
+    }
+    if (paramcount == 2) {
+      fn2 = trim(ucase(paramstr(2)));
+    } else {
+      fn2 = base_name(fn1) + ".ATL";
+    }
+    if (fn2 == base_name(fn2)) {
+      fn2 = fn2 + ".ATL";
+    }
+    if (!valid(fn2) {
+      sprintf("Output name ", fn1, " not valid");
+      exit;
+    }
+    if (fn1 == fn2) {
+      sprintf("Filenames can not be the same!");
+      exit;
+    }
+    fn1.assign(*f1[]);
+    reset(*f1[]);
+    fn2.assign(*f2[]);
+    rewrite(*f2[]);
 
     /* copy comment header */
     writer << ";------------------------------------------------------------------------------";
     s = '/0';
     do {
       instream.getline (f1, s);
-      s = trim(s) //replace with our language equivalent
+      s = btrim(s); //replace with our language equivalent
       if (s[1] ==  ' ; ') {
-        sprintf (ucase (s));
+        sprintf (to_upper (s));
         s = ' \0 ';
       }
 
     } while( !eof(f1) and (s == '\0' )); //fix not eof
+
+    /**
+    * lock header
+    **/
+    _strdate (date);
+
+    f2write << ";------------------------------------------------------------------------------";
+    f2write << "; " no_path(base_name(fn1)), "Locked on %s", date);
+    f2write << ";------------------------------------------------------------------------------";
+    lock_code = "";
+    k = rand() % 21 + 20;
+    for (int i = 1, i < k, i++) {
+        lock_code = lock_code + char(rand() % 32 + 65);
+    }
+    f2write << "#LOCK", locktype," ",lock_code;
 
 
     /* Decode lock-Code */
@@ -48,14 +106,14 @@ int main(int argc, char *argv[]){
     s= btrim(s);
 
     if (s.length() > 0) {
-      f2write << ucase(s);
+      f2write << to_upper(s);
     }
 
     do {
       //Read line!
       f1read >> *s1[];
       s = "\0";
-      *s1[] = trim(to_upper(s1));
+      *s1[] = btrim(to_upper(s1));
 
       //Write line!
       f2write << s;
@@ -71,8 +129,7 @@ int main(int argc, char *argv[]){
 
 }
 
-
-
+/* Nick */
 
 /*
  * Encode function
@@ -142,3 +199,36 @@ static char *prepare(char *result, char *s_, char *s1_) {
     return strcpy(result, s);
 }
 /* =Nick= */
+
+void *write_line(char *s_, char *s1_) {
+    char s[256], s1[256];
+    strcpy(s, s_);
+    strcpy(s1, s1_);
+    s = prepare(s);
+    if strlen(s) > 0 {
+      s = encode(s);
+      f2write << s;
+    }
+}
+
+
+string btrim (string s1){
+
+  s1 = ltrim(rtrim(s1));
+
+  return trimmed;
+}
+
+string ltrim (string s1){
+  int i;
+  while ( s1.length > 0 && s1.copy( s.length, 1) =  || s1.copy(s1.length, 1) == 8 || s1.copy(s1.length, 1) == 9){
+    s1 = s1.copy(1, s1.length -1);
+  }
+  return s1;
+}
+
+string rtrim (string s1, int i){
+
+
+  return s1;
+}
