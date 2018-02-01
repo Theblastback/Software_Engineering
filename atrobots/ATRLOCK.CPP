@@ -36,7 +36,7 @@ int main(int argc, char *argv[]){
      printf("Usage: ATRLOCK robot.at2 to locked.atl");
      exit(EXIT_FAILURE);
    }
-   fn1 = btrim(toupper(argv));
+   fn1 = btrim(toupper(argv[1]));
    if (fn1 == base_name(fn1)) {
      fn1 = fn1 + ".AT2";
    }
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]){
 
 
    /* Decode lock-Code */
-   for (int i = 0; i < lock_code.length(); i++) //length isn't working find fix
+   for (int i = 0; i < sizeof(lock_code); i++) //length isn't working find fix
        {
      lock_code[i] = char(ord(lock_code[i] - 65); // lookup ord when possible)
    }
@@ -228,8 +228,10 @@ string ltrim (string s1){
  return s1;
 }
 
-string rtrim (string s1, int i){
-
-
+string rtrim (string s1){
+  int i;
+  while ( s1.length > 0 && s1.copy( s.length, 1) =  || s1.copy(s1.length, 1) == 8 || s1.copy(s1.length, 1) == 9){
+    s1 = s1.copy(1, s1.length -1);
+  }
  return s1;
 }
