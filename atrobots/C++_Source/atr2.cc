@@ -1,10 +1,13 @@
 
 #include <cstdio>	// Required for file manipulation
 #include <cstdlib>
+#include <time.h>
 
 #include "Headers/filelib.h"
 #include "Headers/myfile.h"
 #include "Headers/at2func.h"
+
+
 
 // These probably aren't the correct headers, but these are needed to be included
 #include "SDL2"
@@ -1306,75 +1309,142 @@ void reset_hardware(short n) {
 	short i;
 	double d, dd;
 
-	for (i = 0; i <= max_robot_lines; i++)
+	for (i = 0; i <= max_robot_lines; i++) {
+		robot[n]->ltx[i] = 0;
+		robot[n]->tx[i] = 0;
+		robot[n]->lty[i] = 0;
+		robot[n]->ty[i] = 0;
+	}
 
+	do {
+		robot[n]->x = rand() % 1000;
+		robot[n]->y = rand() % 1000;
+		dd = 1000;
+
+		for (i = 0; i <= num_robots; i++) {
+			if ( robot[i]->x < 0 )
+				robot[i]->x = 0;
+			if ( robot[i]->x > 1000 )
+				robot[i]->x = 1000;
+			if ( robot[i]->y < 0 )
+				robot[i]->y = 0;
+			if ( robot[i]->y > 1000 )
+				robot[i]->y = 1000;
+			d = distance(robot[n]->x, robot[n]->y, robot[i]->x, robot[i]->y);
+			if ( (robot[i]->armor > 0) && (i != n) && (d < dd) )
+				dd = d;
+		}
+	} while ( dd > 32 );
+
+	for (i = 0; i <= max_mines; i++) {
+		mine[i]->x = -1;
+		mine[i]->y = -1;
+		mine[i]->yield = 0;
+		mine[i]->detonate = false;
+		mine[i]->detect = 0;
+	}
+	robot[n]->lx = -1;
+	robot[n]->ly = -1;
+	robot[n]->hd = rand() % 256;
+	robot[n]->lshift = robot[n]->shift+1;
+	robot[n]->spd = 0;
+	robot[n]->speed = 0;
+	robot[n]->cooling = false;
+	robot[n]-> armor = 100;
+	robot[n]->larmor = 0;
+	robot[n]->heat = 0;
+	robot[n]->lheat = 1;
+	robot[n]->match_shots = 0;
+	robot[n]->won = false;
+	robot[n]->last_damage = 0;
+	robot[n]->last_hit = 0;
+	robot[n]->transponder = n + 1;
+	robot[n]->meters = 0;
+	robot[n]->shutdown = 400;
+	robot[n]->shields_up = false;
+	robot[n]->channel = robot[n]->transponder;
+	robot[n]->startkills = robot[n]->kills;
+	robot_config(n)
 }
-procedure init_robot(n:integer);
-var
- i,j,k,l:integer;
-begin
- with robot[n]^ do
-  begin
-   wins = 0; trials = 0; kills = 0; deaths = 0; shots_fired = 0; match_shots = 0;
-   hits = 0; damage_total = 0; cycles_lived = 0; error_count = 0;
-   plen = 0; max_time = 0;
-   name = ''; fn = '';
-   speed = 0;
-   arc_count = 0;
-   sonar_count = 0;
-   robot_time_limit = 0;
-   scanrange = 1500;
-   shotstrength = 1;
-   damageadj = 1;
-   speedadj = 1;
-   mines = 0;
-   with config do
-    begin
-     scanner = 5;
-     weapon = 2;
-     armor = 2;
-     engine = 2;
-     heatsinks = 1;
-     shield = 0;
-     mines = 0;
-    end;
-   for i = 0 to max_ram do ram[i] = 0;
-   ram[71]  =  768;
-   for i = 0 to max_code do
-    for k = 0 to max_op do
-     code[i].op[k] = 0;
-   reset_hardware(n);
-   reset_software(n);
-  end;
-end;
+void init_robot(short n) {
+	short i, j, k, l;
 
-procedure create_robot(n:integer; filename:string);
-var
- i,j,k:integer;
-begin
- if maxavail<sizeof(robot_rec) then prog_error(9,base_name(no_path(filename)));
- new(robot[n]);
- with robot[n]^ do
-  begin
-   init_robot(n);
-   filename = ucase(btrim(filename));
-   if filename=base_name(filename) then
-    begin
-     if filename[1]='?' then filename = filename+locked_ext
-                        else filename = filename+robot_ext;
-    end;
-   if filename[1]='?' then filename = rstr(filename,length(filename)-1);
-   fn = base_name(no_path(filename));
-   compile(n,filename);
-   robot_config(n);
-   with config do
-    begin
-     k = scanner+armor+weapon+engine+heatsinks+shield+mines;
-     if (k)>max_config_points then
-        prog_error(21,cstr(k)+'/'+cstr(max_config_points));
-    end;
-  end;
-end;
+	robot[n]->wins = 0;
+	robot[n]->trials = 0;
+	robot[n]->kills = 0;
+	robot[n]->deaths = 0;
+	robot[n]->shots_fired = 0;
+	robot[n]->match_shots = 0;
+	robot[n]->hits = 0;
+	robot[n]->damage_total = 0;
+	robot[n]->cycles_lived = 0
+	robot[n]->error_count = 0;
+	robot[n]->plen = 0;
+	robot[n]->max_time = 0;
+	robot[n]->name = "";
+	robot[n]->fn = "";
+	robot[n]->speed = 0;
+	robot[n]->arc_count = 0;
+	robot[n]->sonar_count = 0
+	robot[n]->robot_time_limit = 0;
+	robot[n]->scanrange = 1500;
+	robot[n]->shotstrength = 1;
+	robot[n]->damageadj = 1;
+	robot[n]->speedadj = 1;
+	robot[n]->mines = 0;
+
+	robot[n]->config.scanner = 5;
+	robot[n]->config.weapon = 2;
+	robot[n]->config.armor = 2;
+	robot[n]->config.engine = 2;
+	robot[n]->config.heatsinks = 1
+	robot[n]->config.shield = 0
+	robot[n]->config.mines = 0;
+	
+	for (i = 0; i <= max_ram; i++)
+		robot[n]->ram[i] = 0;
+	robot[n]->ram[71] = 768;
+
+	for (i = 0; i <= max_code; i++)
+		for(k = 0; k <= max_op; k++)
+			robot[n]->code[i].op[k] = 0;
+
+	reset_hardware(n);
+	reset_software(n);
+}
+
+void create_robot(short n, string filename) {
+	short i, j, k;
+
+//	if ( maxavail < sizeof(struct robot_rec) )
+//		prog_error(9, base_name(no_path(filename)));
+
+	robot[n] = (struct robot_rec *) malloc(sizeof(struct robot_rec));
+	robot[n]-> config = (struct config_rec) malloc(sizeof(struct config_rec));
+	robot[n]-> mine = (struct mine_rec) malloc(sizeof(struct mine_rec));
+
+	init_robot(n);
+	robot[n]->filename = ucase(btrim(robot[n]->filename));
+	if ( robot[n]->filename == base_name(robot[n]->filename) )
+		if ( robot[n]->filename[0] == '?' )
+			robot[n]->filename = robot[n]->filename + locked_ext;
+		else
+			robot[n]->filename = robot[n]->filename + robot_ext;
+
+	if ( robot[n]->filename[0] == '?' )
+		robot[n]->filename = rstr( robot[n]->filename, robot[n]->filename.length()-1);
+
+	robot[n]->fn = base_name(no_path( robot[n]->filename));
+
+//	compile(n, robot[n]->filename);    Pretty sure compile loads in all of the file stuff from the atr robots
+	robot_config(n);	
+
+	k -=robot[n]->config.scanner + robot[n]->config.armor + robot[n]->config.weapon + robot[n]->config.engine +
+		robot[n]->config.heatsinks + robot[n]->config.shield + robot[n]->config.mines;
+
+//	if ( k > max_config_points )
+//		prog_error(21, cstr(k) + "/" + cstr(max_config_points));
+}
 
 void shutdown() {
 	short i, j, k;
@@ -1397,15 +1467,17 @@ void shutdown() {
 
 	textcolor(7);
 	cout << endl;
-	if (logging_errors)
+/*	if (logging_errors)
 		for (i = 0; i <= num_robots; i++) {
 		cout << "Robot error-log created: " << base_name(robot[i] -> fn) + ".ERR");
 		if (robot[i] -> errorlog.good())
 			robot[i] -> errorlog.close();
 		}
+*/
 	exit(EXIT_SUCCESS);
 }
 
+/*
 procedure delete_compile_report;
 begin
  if exist(main_filename+compile_ext) then
@@ -1503,9 +1575,11 @@ begin
    else prog_error(10,'');
  if not found then prog_error(8,s);
 end;
-
+*/
 
 void init() {
+	srand( time(NULL) );
+
 	short i;
 	if ( debugging_compiler | compile_by_line | show_code ) {
 		fprintf(stderr, "!!! Warning !!! Compiler Debugging enabled !!!\n")
@@ -1663,7 +1737,9 @@ void init() {
 	}
 }
 
-procedure draw_robot(n:integer);
+/*
+
+void draw_robot(short n);
 var
  i,t:integer;
  xx,yy:real;
@@ -2711,18 +2787,21 @@ begin
   end else gameover = false;
 end;
 
-procedure toggle_graphix;
-begin
- graph_mode(not graphix);
- if not graphix then
-  begin
-   textcolor(7);
-   writeln('Match ',played,'/',matches,', Battle in progress...');
-   writeln;
-  end
- else setscreen;
-end;
+*/
 
+void toggle_graphix() {
+	graph_mode(!graphix);
+
+	if (!graphix) {
+//		textcolor(7);
+		cout << "Match " << played << "/" << matches << ", Battle in progress..." << endl;
+		cout << endl;
+	}
+	else
+		setscreen();
+}
+
+/*
 function invalid_microcode(n,ip:integer):boolean;
 var
  invalid:boolean;
@@ -3494,35 +3573,35 @@ begin
   with robot[n]^ do
    begin inc(wins); won = true; end;
 end;
+*/
 
-procedure init_bout;
-var
- i,j,k:integer;
-begin
- game_cycle = 0;
- for i = 0 to max_missiles do
-  with missile[i] do
-   begin a = 0; source = -1; x = 0; y = 0; lx = 0; ly = 0; mult = 1; end;
- for i = 0 to num_robots do
-  with robot[i]^ do
-   begin
-    {FIFI}
-    mem_watch = 128;
-    {/FIFI}
-    reset_hardware(i);
-    reset_software(i);
-   end;
- if graphix then setscreen;
- {FIFI}
- if graphix and (step_mode>0) then init_debug_window;
- {/FIFI}
- if not graphix then
-  begin
-   textcolor(7);
-   {writeln(#13+'Match ',played,'/',matches,', Battle in progress...');
-   writeln;}
-  end;
-end;
+void init_bout() {
+	short i, j, k;
+
+	game_cycle = 0;
+	for (i = 0; i <= max_missiles; i++) {
+		missile[i]->a = 0;
+		missile[i]->source = -1;
+		missile[i]->x = 0;
+		missile[]->y = 0;
+		missile[]->lx = 0;
+		missile[]->ly = 0;
+		missile[]->mult = 1
+	}
+
+	for (i = 0; i <= num_robots; i++) {
+		robot[i]->mem_watch = 128;
+		reset_hardware(i);
+		reset_software(i);
+	}
+
+	if ( graphix )
+		screenset();
+
+//	if (graphix && (stepmode > 0 )
+//		init_debug_window();
+
+}
 
 void bout() {
 	short i, j, k;
@@ -3756,6 +3835,7 @@ void bout() {
 	show_statistics();
 )
 
+/*
 procedure write_report;
 var
  i,j,k:integer;
@@ -3777,6 +3857,7 @@ begin
    end;
  close(f);
 end;
+*/
 
 void begin_window {
 	string s;
@@ -3793,41 +3874,22 @@ void begin_window {
 	box(100,150,539,200);	// Located in atr2func
 	hole(105,155,534,195);	// Located in atr2func
 
-//	setfillpattern(gray50,1); // Not sure how to fill this in
+	SDL_SetRenderDrawColor(0xac, 0xac, 0ac, 0xff); // gray
 	bar(105,155,534,195);
 
 	setcolor(15);
 	s = 'Press any key to begin!';
 
+	outtextxy(320, 172, s);
 
-	// Create surface of text
-	SDL_Surface *tmp_surf = TTF_RenderText_Solid(main_font, s.c_str(), main_color);
-	SDL_Texture *tmp_text = SDL_CreateTextureFromSurface(main_renderer, tmp_surf);
-	SDL_DestroySurface(tmp_surf);
-
-	// Grab length and width of text
-	SDL_QueryTexture(tmp_text, NULL, NULL, &temp_w, &temp_h);
-
-	SDL_Rect * temp_rect = (SDL_Rect *) malloc(sizeof(SDL_Rect));
-	temp_rect -> x = 320 - ((s.length() << 3) >> 1);
-	temp_rect -> y = 172;
-	temp_rect -> w = temp_w;
-	temp_rect -> h = temp_h;
-
-	SDL_RenderCopy(main_renderer, tmp_text, NULL, temp_rect);
-	SDL_RenderPresent();
-
-	SDL_DestroyTexture(tmp_text);
-	free(temp_rext);
+	setscreen();
 
 	readkey();
-
-// setscreen; setscreen refreshes the screen
 }
 
 
 // Main loop for game
-void main() {
+void actual_main() {
 	short i, j, k, l, n, w;
 
 	if ( graphix )
@@ -3927,101 +3989,10 @@ void flushkey() {
 	keypressed = 0;
 }
 
-void setcolor(int color) {
-	switch (color) {
-	case 0: // Black
-		mask_color(0, 0, 0, 255);
-		break;
-
-	case 1: // blue
-
-	case 2: // green
-
-	case 3: // cyan
-
-	case 4: // red
-
-	case 5: // magenta
-
-	case 6: // brown
-
-	case 7: // light gray
-
-	case 8: // dark gray
-
-	case 9: // light blue
-
-	case 10: // light green
-
-	case 11: // light cyan
-
-	case 12: // light red
-
-	case 13: // light magenta
-
-	case 14: // yellow
-
-	case 15: // white
-
-	}
-}
-
-
-void mask_color(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha) {
-	text_color -> r = red;
-	text_color -> g = green;
-	text_color -> b = blue;
-	text_color -> a = alpha;
-}
-
-
-void outtextxy(int x_coor, int y_coor, string sent) {
-	// Create surface of text
-	SDL_Surface *tmp_surf = TTF_RenderText_Solid(main_font, sent.c_str(), main_color);
-	SDL_Texture *tmp_text = SDL_CreateTextureFromSurface(main_renderer, tmp_surf);
-	SDL_DestroySurface(tmp_surf);
-
-	// Grab length and width of text
-	SDL_QueryTexture(tmp_text, NULL, NULL, &temp_w, &temp_h);
-
-	SDL_Rect * temp_rect = (SDL_Rect *) malloc(sizeof(SDL_Rect));
-	temp_rect -> x = x_coor;
-	temp_rect -> y = y_coor;
-	temp_rect -> w = temp_w;
-	temp_rect -> h = temp_h;
-
-	SDL_RenderCopy(main_renderer, tmp_text, NULL, temp_rect);
-
-	SDL_DestroyTexture(tmp_text);
-	free(temp_rext);
-}
-
-void bar(int X, int Y, int W, int H) {
-	SDL_Rect *tmp = (SDL_Rect *) malloc(sizeof(SDL_Rect));
-
-	if ( !tmp ) // If unsuccessful malloc, abandon operation
-		return;
-
-	tmp -> x = X;
-	tmp -> y = Y;
-	tmp -> w = W;
-	tmp -> h = H;
-
-	SDL_RenderFillRect(main_renderer, tmp);
-	free(tmp);
-}
-
-void set_viewport(int X, int Y, int W, int H) {
-	viewport -> x = X;
-	viewport -> y = Y;
-	viewport -> w = W;
-	viewport -> h = H;
-}
-
-// Main function for entire program
+// Main function
 int main(int argc, char **argv) {
 	init();
-	main();
+	actual_main();
 	shutdown();
 
 	return EXIT_SUCCESS;
