@@ -326,6 +326,8 @@ bool graph_check(short n) {
 }
 
 void robot_graph(short n) {
+	int rgb;
+
 	switch (stats_mode) {
 		case 1:
 			set_viewport(480, 4+n*35, 635, 37+n*35);
@@ -344,55 +346,84 @@ void robot_graph(short n) {
 			max_gx = 155;
 			max_gy = 66;
 	}
-	
-	setfillstyle(1,robot_color(n));
-	setcolor(robot_color(n));
+	rgb = robot_color(n);
+	SDL_SetRenderDrawColor((rgb>>24), ((rgb<<8)>>24), ((rgb<<16)>>24), 0xff);	
+	setcolor_render(robot_color(n));
 }
 
-procedure update_armor(n:integer);
-begin
- if graph_check(n) {FIFI} and (step_mode<=0) {/FIFI} then
- with robot[n]^ do
-  begin
-   robot_graph(n);
-   if armor>0 then
-    case stats_mode of
-     1:bar(30,13,29+armor,18);
-     2:bar(88,03,87+(armor shr 2),08);
-     else bar(30,25,29+armor,30);
-    end;
-   setfillstyle(1,8);
-   if armor<100 then
-    case stats_mode of
-     1:bar(30+armor,13,129,18);
-     2:bar(88+(armor shr 2),03,111,08);
-     else bar(30+armor,25,129,30);
-    end;
-  end;
-end;
+void update_armor(short n) {
+	if (graph_check(n) && (step_mode<=0) ) {
+	robot_graph(n);
+	if (robot[n] -> armor > 0) {
+		switch (stats_mode) {
+     		case 1:
+			bar(30, 13, 29 + robot[n]->armor, 18);
+			break;
 
-procedure update_heat(n:integer);
-begin
- if graph_check(n) {FIFI} and (step_mode<=0) {/FIFI} then
- with robot[n]^ do
-  begin
-   robot_graph(n);
-   if heat>5 then
-    case stats_mode of
-     1:bar(030,23,029+(heat div 5),28);
-     2:bar(127,03,126+(heat div 20),08);
-     else bar(30,35,29+(heat div 5),40);
-    end;
-   setfillstyle(1,8);
-   if heat<500 then
-    case stats_mode of
-     1:bar(030+(heat div 5),23,129,28);
-     2:bar(127+(heat div 20),03,151,08);
-     else bar(30+(heat div 5),35,129,40);
-    end;
-  end;
-end;
+		case 2:
+			bar(88, 3, 87 + (robot[n]->armor >> 2), 8);
+			break;
 
+		default:
+			bar(30, 25, 29 + robot[n]->armor, 30);
+		}
+	}
+
+	setcolor(8);
+	SDL_SetRenderDrawColor(120, 120, 120, 120);
+
+	if ( armor < 100 )
+		switch (stats_mode) {
+     		case 1:
+			bar(30 + robot[n]->armor, 13, 129, 18);
+			break;
+
+		case 2:
+			bar(88+(robot[n]->armor >> 2), 3 , 111, 8);
+			break;
+
+		default:
+			bar( 30 + robot[n]->armor, 25, 129, 30);
+		}
+	}
+}
+
+void update_heat(short n) {
+	if (graph_check(n) && (step_mode <= 0)) {
+		robot_graph(n);
+		if (robot[n]->heat > 5)
+			switch (stats_mode)
+			case 1:
+				bar(30, 23, 29 + (robot[n]->heat / 5), 28);
+				break;
+
+			case 2:
+				bar(127, 3, 126+(robot[n]->heat / 20), 8);
+				break;
+
+			default:
+				bar(30, 35, 29+(robot[n]->heat / 5), 40);
+			}
+
+		SDL_SetRenderDrawColor(120, 120, 120, 255);
+
+		if (robot[n]->heat < 500)
+			switch (stats_mode) {
+			case 1:
+				bar(30+(robot[n]->heat / 5), 23, 129, 28);
+				break;
+
+			case 2:
+				bar(127+(robot[n]->heat / 20), 3, 151, 8);
+				break;
+
+			default:
+				bar(30+(robot[n]->heat / 5), 35, 129, 40);
+			}
+	}
+}
+
+/*
 procedure robot_error(n,i:integer;ov:string);
 begin
  if graph_check(n) {FIFI} and (step_mode<=0) {/FIFI} then
@@ -411,38 +442,30 @@ begin
    inc(error_count);
   end;
 end;
+*/
 
-procedure update_lives(n:integer);
-begin
- if graph_check(n) and (stats_mode=0) {FIFI} and (step_mode<=0) {/FIFI} then
- with robot[n]^ do
-  begin
-   robot_graph(n);
-   setcolor(robot_color(n)-8);
-   setfillstyle(1,0);
-   bar(011,46,130,53);
-   outtextxy(011,46,'K:');
-   outtextxy(029,46,zero_pad(kills,4));
-   outtextxy(080,46,'D:');
-   outtextxy(098,46,zero_pad(deaths,4));
-  end;
-end;
+void update_lives(short n) {
+	if (graph_check(n) && (stats_mode = 0) && (step_mode <= 0) ) {
+		robot_graph(n);
+		setcolor_render(robot_color(n)-8);
+		SDL_SetRenderDrawColor(0x0, 0x0, 0x0, 0xff); // Black
+
+		bar(11, 46, 130, 53);
+		outtextxy(11, 46,"K:");
+		outtextxy(29, 46, zero_pad(robot[n]->kills,4));
+		outtextxy(80, 46,"D:");
+		outtextxy(98, 46, zero_pad(robot[n]->deaths,4));
+	}
+}
 
 void update_cycle_window ();
 	if (!graphix)
 		cout << #13+ << "match " << played << "/" << matches << " Cycle: " << zero_pad(game_cycle,9);
 	else {
-		SDL_SetWindowSize(main_window, 635, 474);		
+		set_viewport(480, 440, 635, 474);		
 		SDL_SetRenderDrawColor(0x0, 0x0, 0x0, 0xff); // Solid fill, black
 
-		SDL_Rect *tmp_rect = (SDL_Rect *) malloc (sizeof(SDL_Rect));
-		tmp_rect -> x = 59;
-		tmp_rect -> y = 2;
-		tmp_rect -> w = 154;
-		tmp_rect -> h = 10;
-
-		SDL_RenderFillRect(main_renderer, tmp_rect);
-		free(tmp_rect);
+		bar(59, 2, 154, 10);
 
 		setcolor(7);
 		outtextxy(75,03,zero_pad(game_cycle,9));
@@ -457,8 +480,7 @@ void setscreen() {
 	if (!graphix)
 		return;
 
-	viewport -> x = 0;
-	viewport -> y = 0;
+	set_viewport(0, 0, 639, 479);
 
 	box(0,0,639,479);
 
@@ -482,19 +504,19 @@ void setscreen() {
 	}
 
 	// main arena
-	hole(4,4,475,475);
+	hole(4, 4, 475, 475);
 
 	// cycle window
 	set_viewport(480, 430, 635, 475);
 
-	hole(0 + viewport->x, 0 + viewport->y, 155, 45);
+	hole(0, 0, 155, 45);
 
 	setcolor(7);
 
-	outtextxy(3 + viewport->x, 3 + viewport->y, "FreeMem: " + cstr(memavail));
-	outtextxy(3 + viewport->x, 13 + viewport->y, "Cycle:   ");
-	outtextxy(3 + viewport->x, 23 + viewport->y, "Limit:   " + zero_pad(game_limit,9));
-	outtextxy(3 + viewport->x, 33 + viewport->y, "Match:   "+cstr(played)+'/'+cstr(matches));
+	outtextxy(3, 3, "FreeMem: " + cstr(memavail));
+	outtextxy(3, 13, "Cycle:   ");
+	outtextxy(3, 23, "Limit:   " + zero_pad(game_limit,9));
+	outtextxy(3, 33, "Match:   "+cstr(played)+'/'+cstr(matches));
 
 	update_cycle_window();
 
@@ -502,37 +524,37 @@ void setscreen() {
 	for (i = 0; i <= max_robots; i++) {
 		if (i < max_shown) {
     			robot_graph(i);
-    			hole(0 + viewport->x, 0 + viewport->y, max_gx, max_gy);
+    			hole(0  , 0  , max_gx, max_gy);
     			if (i <= num_robots) {
       				setcolor(robot_color(i));
-      				outtextxy(3 + viewport->x, 2 + viewport->y, base_name(no_path(robot[i]->fn)));
+      				outtextxy(3  , 2  , base_name(no_path(robot[i]->fn)));
       				switch (stats_mode)
        					case 1:
-          					outtextxy(3 + viewport->x, 12 + viewport->y," A:");
-          					outtextxy(3 + viewport->x, 22 + viewport->y," H:");
+          					outtextxy(3  , 12  ," A:");
+          					outtextxy(3  , 22  ," H:");
 						break;
          				
        					case 2:
           					setcolor(robot[i]->robot_color(i) & 7);
-          					outtextxy(80 + viewport->x, 2 + viewport->y,"A");
-          					outtextxy(118 + viewport->x, 2 + viewport->y,"H");
+          					outtextxy(80  , 2  ,"A");
+          					outtextxy(118  , 2  ,"H");
          					break;
 
        					default:
-          					outtextxy(3 + viewport->x, 24 + viewport->y, " A:");
-          					outtextxy(3 + viewport->x, 34 + viewport->y, " H:");
+          					outtextxy(3  , 24  , " A:");
+          					outtextxy(3  , 34  , " H:");
 				}
       				setcolor(robot[i]->robot_color(i));
       				if (stats_mode <= 1) {
-			        	outtextxy(80 + viewport->x, 2 + viewport -> y, "Wins:");
-        				outtextxy(122 + viewport->x, 2 + viewport->y, zero_pad(wins,4));
+			        	outtextxy(80  , 2  , "Wins:");
+        				outtextxy(122  , 2  , zero_pad(wins,4));
 				}
       				if (stats_mode = 0) {
-        				outtextxy(3 + viewport->x, 56 + viewport->y, " Error:");
+        				outtextxy(3  , 56  , " Error:");
         				setcolor(robot[i]->robot_color(i) & 7);
-        				outtextxy(3 + viewport->x, 12 + viewport->y, robot[i]->name);
+        				outtextxy(3  , 12  , robot[i]->name);
         				setcolor(8);
-        				outtextxy(66 + viewport->x, 56 + viewport->y, "None");
+        				outtextxy(66  , 56  , "None");
 				}
       				robot[i] -> lx = 1000 - robot[i] -> x;
 				robot[i] -> ly = 1000 - robot[i] -> y;
@@ -541,7 +563,7 @@ void setscreen() {
       				robot[i] -> update_lives(i);
     			} else {
 				SDL_SetRenderDrawColor(0x80, 0x80, 0x80, 0xff); // Gray50
-				bar(1 + viewport->x, 1 + viewport->y, max_gx-1, max_gy-1);
+				bar(1  , 1  , max_gx-1, max_gy-1);
 			}
 		}
 	}
@@ -602,7 +624,7 @@ begin
  writeln;
  halt;
 end;
-*/
+
 
 procedure print_code(n,p:integer);
 var
@@ -619,7 +641,7 @@ begin
   end;
 end;
 
-/*
+
 procedure parse1(n,p:integer; s:parsetype);
 var
  i,j,k,opcode,microcode:integer;
@@ -871,9 +893,9 @@ void check_plen(short plen) {
 	if (plen > maxcode) then
 		prog_error(16, #13#10+'Maximum program length exceeded, (Limit: '+cstr(maxcode+1)+' compiled lines)');
 }
-*/
 
-/*
+
+
 procedure compile(n:integer;filename:string);
 var
  pp:parsetype;
@@ -1136,9 +1158,8 @@ end;
 */
 
 
-procedure robot_config(n:integer);
-var
- i,j,k:integer;
+void robot_config(short n) {
+	short i, j, k;
 begin
  with robot[n]^ do
   begin
@@ -1495,8 +1516,8 @@ void init() {
 	kill_count = 0;
 	maxcode = max_code;
 	
-	make_tables;
-	randomize;
+	make_tables();
+	randomize();
 	num_robots = -1;
 	game_limit = 100000;
 	game_cycle = 0;
@@ -1518,7 +1539,7 @@ void init() {
 	reg_num = ~0U;
 	check_registration();
 
-	writeln;
+	cout << endl;
 	// textcolor(3); Cyan text
 	fprintf(stdout, "progname, %f \n", version); // unsure what type of variable version is
 	fprintf(stdout, "%d\n", cnotice1);
@@ -1533,7 +1554,7 @@ void init() {
 
 	// textcolor(7); Set text color to light gray
 
-	writeln();
+	cout << endl;
 
 	delete_compile_report();
 

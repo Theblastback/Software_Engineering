@@ -14,9 +14,13 @@ SDL_Rect	*viewport;
 SDL_Renderer	*main_renderer;
 
 extern void 	setcolor(int);
-extern void	sercolor_render(int);
+extern void	setcolor_render(int);
+extern int	color2code(int);
 extern void 	outtextxy(int, int, string);
 extern void 	bar(int, int, int, int);
+
+extern short	cut_view_x(short); // Viewport would cut images off. This is needed to simulate that
+extern short	cut_view_y(short);
 
 extern void 	set_viewport(int, int, int, int);
 extern void 	textxy(short, short, string);

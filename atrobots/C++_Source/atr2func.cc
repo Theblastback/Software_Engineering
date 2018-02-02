@@ -75,8 +75,6 @@ void setcolor(int color) {
 	main_color.g = (k << 8) >> 24;
 	main_color.b = (k << 16) >> 24;
 	main_color.a = 0xff;
-
-	SDL_SetRenderDrawColor((k>>24), ((k<<8)>>24), ((k<<16)>>24), 0xff);
 }
 
 void setcolor_render(int k) {
@@ -84,10 +82,80 @@ void setcolor_render(int k) {
 	main_color.g = (k << 8) >> 24;
 	main_color.b = (k << 16) >> 24;
 	main_color.a = 0xff;
-
-	SDL_SetRenderDrawColor((k>>24), ((k<<8)>>24), ((k<<16)>>24), 0xff);
 }
 
+int color2code(int) {
+	int k;
+
+	switch (color) {
+	case 0: // Black
+		mask_color(0, 0, 0, 255);
+		break;
+
+	case 1: // blue
+		k = (160 << 8);
+		break;
+
+	case 2: // green
+		k = (173 << 16);
+		break;
+
+	case 3: // cyan
+		k = (174 << 16) | (174 << 8);
+		break;
+
+	case 4: // red
+		k = (175 << 24);
+		break;
+
+	case 5: // magenta
+		k = (173 << 24) | (173 << 8);
+		break;
+
+	case 6: // brown
+		k = (174 << 24) | (87 << 16);
+		break;
+
+	case 7: // light gray
+		k = (0xac0xacac << 8);
+		break;
+
+
+	case 8: // dark gray
+		k = (120 << 24) | (120 << 16) | (120 << 8); // I fudged this value. I don't know what the true color is -MZ
+
+
+	case 9: // light blue
+		k = (86 << 24) | (86 << 16) | (255 << 8);
+		break;
+
+	case 10: // light green
+		k = (86 << 24) | (255 << 16) | (86 << 8);
+		break;
+
+	case 11: // light cyan
+		k = (87 << 24) | (255 << 16) | (255 << 8);
+		break;
+
+	case 12: // light red
+		k = (193 << 24) | (64 << 16) | (64 << 8);
+		break;
+
+	case 13: // light magenta
+		k = (255 << 24) | (56 << 16) | (255 << 8);
+		break;
+
+	case 14: // yellow
+		k = (255 << 24) | (255 << 16) | (87 << 8);
+		break;
+
+	case 15: // white
+		k = (0xffffff << 8);
+		break;
+	}
+
+	return k;
+}
 
 void outtextxy(int x_coor, int y_coor, string sent) {
 	// Create surface of text
@@ -99,10 +167,10 @@ void outtextxy(int x_coor, int y_coor, string sent) {
 	SDL_QueryTexture(tmp_text, NULL, NULL, &temp_w, &temp_h);
 
 	SDL_Rect * temp_rect = (SDL_Rect *) malloc(sizeof(SDL_Rect));
-	temp_rect -> x = x_coor;
-	temp_rect -> y = y_coor;
-	temp_rect -> w = temp_w;
-	temp_rect -> h = temp_h;
+	temp_rect -> x = x_coor + viewport->x;
+	temp_rect -> y = y_coor + viewport->y;
+	temp_rect -> w = cut_view_x(temp_w);
+	temp_rect -> h = cut_view_y(temp_h);
 
 	SDL_RenderCopy(main_renderer, tmp_text, NULL, temp_rect);
 
@@ -116,10 +184,10 @@ void bar(int X, int Y, int W, int H) {
 	if ( !tmp ) // If unsuccessful malloc, abandon operation
 		return;
 
-	tmp -> x = X;
-	tmp -> y = Y;
-	tmp -> w = W;
-	tmp -> h = H;
+	tmp -> x = X + viewport->x;
+	tmp -> y = Y + viewport->y;
+	tmp -> w = cut_view_x(W);
+	tmp -> h = cut_view_y(H);
 
 	SDL_RenderFillRect(main_renderer, tmp);
 	free(tmp);
@@ -166,6 +234,7 @@ string zero_pads(string s, short l) {
 void set_viewport(short x1, short y1, short x2, short y2) {
 	if (!graphix)
 		return;
+	// Values w and h are not width and height, but rather end of x coor and end of y coor
 
 	viewport -> x = x1;
 	viewport -> y = y1;
@@ -277,8 +346,8 @@ void box(short x1, short y1, short x2, short y2) {
 	SDL_SetRenderDrawColor(main_renderer, 0xac, 0xac, 0xac);
 	setcolor(7);
 
-	SDL_RenderDrawLine(x1+1, y2, x2, y2);
-	SDL_RenderDrawLine(x2, y1+1, x2, y2);
+	SDL_RenderDrawLine(x1+1 + viewport->x, y2 + viewport->y, cut_view_x(x2), cut_view_y(y2));
+	SDL_RenderDrawLine(x2 + viewport->x, y1+1 + viewport->y, cut_view_x(x2), cut_view_y(y2));
 }	
 
 void hole(short x1, short y1, short x2, short y2) {
@@ -305,16 +374,16 @@ void hole(short x1, short y1, short x2, short y2) {
 	bar(x1, x2, y1, y2);
 
 	setcolor_render(8);
-	SDL_RenderDrawLine(x1, y1, x2-1, y1);
-	SDL_RenderDrawLine(x1, y1, x1, y2-1);
+	SDL_RenderDrawLine(x1 + viewport->x, y1 + viewport->y, cut_view_x(x2-1), cut_view_y(y1));
+	SDL_RenderDrawLine(x1 + viewport->x, y1 + viewport->y, cut_view_x(x1), cut_view_y(y2-1));
 
 	setcolor(15);
-	SDL_RenderDrawLine(x1+1, y2, x2, y2);
-	SDL_RenderDrawLine(x2, y1+1, x2, y2);
+	SDL_RenderDrawLine(x1+1 + viewport->x, y2 + viewport->y, cut_view_x(x2), cut_view_y(y2));
+	SDL_RenderDrawLine(x2 + viewport->x, y1+1 + viewport->y, cut_view_x(x2), cut_view_y(y2));
 
 	setcolor(7);
-	SDL_RenderDrawPoint(main_renderer, x1, y2);
-	SDL_RenderDrawPoint(main_renderer, x2, y1);
+	SDL_RenderDrawPoint(main_renderer, x1 + viewport->x, y2 + viewport->y);
+	SDL_RenderDrawPoint(main_renderer, x2 + viewport->x, y1 + viewport->y);
 
 	setcolor(15);
 }
@@ -370,4 +439,19 @@ short find_anglei(double xx, double yy, double tx, double ty):integer;
 	i = i & 255;
 
 	return i;
+}
+
+short cut_view_x(short X) {
+	short value;
+	if ( (value = viewport->x + X) >= viewport->w )
+		value = viewport->w;
+
+	return value;
+}
+
+short cut_view_y(short Y) {
+	short value ( (value = viewport->y + Y) >= viewport -> y )
+		value = viewport -> y;
+
+	return value;
 }
