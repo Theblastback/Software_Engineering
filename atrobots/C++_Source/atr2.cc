@@ -72,7 +72,6 @@ short mis_radius	= (hit_range / 2) + 1;
 char max_robot_lines	= 8;
 
 // To compensate for the viewport
-SDL_Rect *viewport;
 
 // Global SDL related items
 SDL_Window	*main_window;
