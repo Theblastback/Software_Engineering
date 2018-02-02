@@ -3,14 +3,18 @@
 
 #include "filelib.h"
 #include "myfile.h"
+#include <math.h>
 
 // Incorrect sdl2 headers, please replace them with appropriate ones
 #include "SDL2.h"
 #include "SDL2_ttf.h"
 
+SDL_Color	main_color;
+SDL_Rect	*viewport;
+SDL_Renderer	*main_renderer;
 
 extern void 	setcolor(int);
-extern void 	mask_color(unsigned char, unsigned char, unsigned char, unsigned char);
+extern void	sercolor_render(int);
 extern void 	outtextxy(int, int, string);
 extern void 	bar(int, int, int, int);
 
@@ -22,7 +26,7 @@ extern string 	zero_pads(string, short);
 extern void	set_viewport(short, short, short, short);
 extern void	main_viewport();
 extern void	make_tables();
-extern short	robot_color(short);
+extern int	robot_color(short);
 extern void	box(short, short, short, short);
 extern void	hole(short, short, short, short);
 extern double	distance(double, double, double, double);

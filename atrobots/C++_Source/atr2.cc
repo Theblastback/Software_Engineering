@@ -344,7 +344,7 @@ void robot_graph(short n) {
 			max_gx = 155;
 			max_gy = 66;
 	}
-	SDL_SetRenderDrawColor(
+	
 	setfillstyle(1,robot_color(n));
 	setcolor(robot_color(n));
 }
