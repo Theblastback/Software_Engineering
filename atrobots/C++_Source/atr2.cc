@@ -1,21 +1,3 @@
-/* Set color colors
-black 	= 0
-blue 	= 1
-green	= 2
-cyan 	= 3
-red 	= 4
-magenta = 5
-brown 	= 6
-light gray	= 7
-dark gray	= 8
-light blue	= 9
-light green	= 10
-light cyan	= 11
-light red	= 12
-light magenta 	= 13
-yellow 	= 14
-white 	= 15
-/*
 
 #include <cstdio>	// Required for file manipulation
 #include <cstdlib>
@@ -89,12 +71,16 @@ short blast_circle	= (blast_radius * screen_scale) + 1;
 short mis_radius	= (hit_range / 2) + 1;
 char max_robot_lines	= 8;
 
+// To compensate for the viewport
+SDL_Rect *viewport;
 
 // Global SDL related items
 SDL_Window	*main_window;
 SDL_Renderer	*main_renderer;
 SDL_Color	*text_color;
 Uint8		*keyboard_state;
+unsigned char	keypressed;
+
 
 TTF_Font	*main_font;
 
@@ -162,7 +148,7 @@ struct missile_rec {
 
 // {--robot variables--}
 short num_robots;
-struct robot_ptr robot:array[max_robots+4]; // { a few extra pointers for luck.. :) } EDIT: I SHIFTED THE ARRAY INDEXES. IT USED TO START AT -2, NOW IT STARTS AT 0 -MZ
+struct robot_ptr robot[max_robots+4]; // { a few extra pointers for luck.. :) } EDIT: I SHIFTED THE ARRAY INDEXES. IT USED TO START AT -2, NOW IT STARTS AT 0 -MZ
 struct missile_rec missile[max_missiles];
 
 // {--compiler variables--}
@@ -330,25 +316,39 @@ short max_shown {
 	}
 }
 
-function graph_check(n:integer):boolean;
-var
- ok:boolean;
-begin
- ok = true;
- if (not graphix) or (n<0) or (n>num_robots) or (n>=max_shown) then ok = false;
- graph_check = ok;
-end;
+bool graph_check(short n) {
+	bool ok;
+	ok = true;
 
-procedure robot_graph(n:integer);
-begin
- case stats_mode of
-  1:begin viewport(480,4+n*35,635,37+n*35); max_gx = 155; max_gy = 33; end;
-  2:begin viewport(480,4+n*13,635,15+n*13); max_gx = 155; max_gy = 11; end;
-  else begin viewport(480,4+n*70,635,70+n*70); max_gx = 155; max_gy = 66; end;
- end;
- setfillstyle(1,robot_color(n));
- setcolor(robot_color(n));
-end;
+	if ( !graphix || (n<0) || (n > num_robots) || (n >= max_shown) )
+		ok = false;
+
+	return ok;
+}
+
+void robot_graph(short n) {
+	switch (stats_mode) {
+		case 1:
+			set_viewport(480, 4+n*35, 635, 37+n*35);
+			max_gx = 155;
+			max_gy = 33;
+			break;
+
+		case 2:
+			set_viewport(480, 4+n*13, 635, 15+n*13);
+			max_gx = 155;
+			max_gy = 11;
+			break;
+
+		default:
+			set_viewport(480, 4+n*70, 635, 70+n*70);
+			max_gx = 155;
+			max_gy = 66;
+	}
+	SDL_SetRenderDrawColor(
+	setfillstyle(1,robot_color(n));
+	setcolor(robot_color(n));
+}
 
 procedure update_armor(n:integer);
 begin
@@ -429,120 +429,138 @@ begin
   end;
 end;
 
-procedure update_cycle_window;
-begin
- if not graphix then
-  begin
-   write(#13+'Match ',played,'/',matches,', Cycle: ',zero_pad(game_cycle,9));
-  end
- else
-  begin
-   viewport(480,440,635,475);
-   setfillstyle(1,0);
-   bar(59,2,154,10);
-   setcolor(7);
-   outtextxy(75,03,zero_pad(game_cycle,9));
-  end;
-end;
+void update_cycle_window ();
+	if (!graphix)
+		cout << #13+ << "match " << played << "/" << matches << " Cycle: " << zero_pad(game_cycle,9);
+	else {
+		SDL_SetWindowSize(main_window, 635, 474);		
+		SDL_SetRenderDrawColor(0x0, 0x0, 0x0, 0xff); // Solid fill, black
 
-procedure setscreen;
-var
- i:integer;
-begin
- if not graphix then exit;
- viewport(0,0,639,479);
- box(0,0,639,479);
+		SDL_Rect *tmp_rect = (SDL_Rect *) malloc (sizeof(SDL_Rect));
+		tmp_rect -> x = 59;
+		tmp_rect -> y = 2;
+		tmp_rect -> w = 154;
+		tmp_rect -> h = 10;
 
- stats_mode = 0;
- case num_robots of
-  0..5:stats_mode = 0;
-  6..11:stats_mode = 1;
-  12..max_robots:stats_mode = 2;
-  else stats_mode = 0;
- end;
+		SDL_RenderFillRect(main_renderer, tmp_rect);
+		free(tmp_rect);
 
- {--main arena--}
- hole(4,4,475,475);
+		setcolor(7);
+		outtextxy(75,03,zero_pad(game_cycle,9));
 
- {--cycle window--}
- viewport(480,430,635,475);
- hole(0,0,155,45);
- setcolor(7);
- outtextxy(3,03,'FreeMem: '+cstr(memavail));
- outtextxy(3,13,'Cycle:   ');
- outtextxy(3,23,'Limit:   '+zero_pad(game_limit,9));
- outtextxy(3,33,'Match:   '+cstr(played)+'/'+cstr(matches));
- update_cycle_window;
+		SDL_RenderPresent();
+	}
+}
 
- {--robot windows--}
- for i = 0 to max_robots do
-  if i<max_shown then with robot[i]^ do
-   begin
-    robot_graph(i);
-    hole(0,0,max_gx,max_gy);
-    if i<=num_robots then
-     begin
-      setcolor(robot_color(i));
-      outtextxy(003,02,base_name(no_path(fn)));
-      case stats_mode of
-       1:begin
-          outtextxy(003,12,' A:');
-          outtextxy(003,22,' H:');
-         end;
-       2:begin
-          setcolor(robot_color(i) and 7);
-          outtextxy(080,02,'A');
-          outtextxy(118,02,'H');
-         end;
-       else begin
-          outtextxy(003,24,' A:');
-          outtextxy(003,34,' H:');
-         end;
-      end;
-      setcolor(robot_color(i));
-      if stats_mode<=1 then
-       begin
-        outtextxy(080,02,'Wins:');
-        outtextxy(122,02,zero_pad(wins,4));
-       end;
-      if stats_mode=0 then
-       begin
-        outtextxy(003,56,' Error:');
-        setcolor(robot_color(i) and 7);
-        outtextxy(003,12,name);
-        setcolor(8);
-        outtextxy(66,56,'None');
-       end;
-      lx = 1000-x; ly = 1000-y;
-      update_armor(i);
-      update_heat(i);
-      update_lives(i);
-     end
-    else
-     begin
-      setfillpattern(gray50,8);
-      bar(1,1,max_gx-1,max_gy-1);
-     end;
-   end;
-end;
+void setscreen() {
+	short i;
 
-procedure graph_mode(on:boolean);
-begin
- if on and (not graphix) then
-  begin
-   Graph_VGA;
-   cleardevice;
-   setscreen;
-   graphix = true;
-  end
- else
-  if (not on) and graphix then
-   begin
-    closegraph;
-    graphix = false;
-   end;
-end;
+	if (!graphix)
+		return;
 
+	viewport -> x = 0;
+	viewport -> y = 0;
+
+	box(0,0,639,479);
+
+	stats_mode = 0;
+
+	switch (num_robots) {
+	case 0 ... 5:
+		stats_mode = 0;
+		break;
+
+	case 6 ... 11:
+		stats_mode = 1;
+		break;
+
+	case 12 ... max_robots:
+		stats_mode = 2;
+		break;
+
+	default:
+		stats_mode = 0;
+	}
+
+	// main arena
+	hole(4,4,475,475);
+
+	// cycle window
+	set_viewport(480, 430, 635, 475);
+
+	hole(0 + viewport->x, 0 + viewport->y, 155, 45);
+
+	setcolor(7);
+
+	outtextxy(3 + viewport->x, 3 + viewport->y, "FreeMem: " + cstr(memavail));
+	outtextxy(3 + viewport->x, 13 + viewport->y, "Cycle:   ");
+	outtextxy(3 + viewport->x, 23 + viewport->y, "Limit:   " + zero_pad(game_limit,9));
+	outtextxy(3 + viewport->x, 33 + viewport->y, "Match:   "+cstr(played)+'/'+cstr(matches));
+
+	update_cycle_window();
+
+	// robot windows
+	for (i = 0; i <= max_robots; i++) {
+		if (i < max_shown) {
+    			robot_graph(i);
+    			hole(0 + viewport->x, 0 + viewport->y, max_gx, max_gy);
+    			if (i <= num_robots) {
+      				setcolor(robot_color(i));
+      				outtextxy(3 + viewport->x, 2 + viewport->y, base_name(no_path(robot[i]->fn)));
+      				switch (stats_mode)
+       					case 1:
+          					outtextxy(3 + viewport->x, 12 + viewport->y," A:");
+          					outtextxy(3 + viewport->x, 22 + viewport->y," H:");
+						break;
+         				
+       					case 2:
+          					setcolor(robot[i]->robot_color(i) & 7);
+          					outtextxy(80 + viewport->x, 2 + viewport->y,"A");
+          					outtextxy(118 + viewport->x, 2 + viewport->y,"H");
+         					break;
+
+       					default:
+          					outtextxy(3 + viewport->x, 24 + viewport->y, " A:");
+          					outtextxy(3 + viewport->x, 34 + viewport->y, " H:");
+				}
+      				setcolor(robot[i]->robot_color(i));
+      				if (stats_mode <= 1) {
+			        	outtextxy(80 + viewport->x, 2 + viewport -> y, "Wins:");
+        				outtextxy(122 + viewport->x, 2 + viewport->y, zero_pad(wins,4));
+				}
+      				if (stats_mode = 0) {
+        				outtextxy(3 + viewport->x, 56 + viewport->y, " Error:");
+        				setcolor(robot[i]->robot_color(i) & 7);
+        				outtextxy(3 + viewport->x, 12 + viewport->y, robot[i]->name);
+        				setcolor(8);
+        				outtextxy(66 + viewport->x, 56 + viewport->y, "None");
+				}
+      				robot[i] -> lx = 1000 - robot[i] -> x;
+				robot[i] -> ly = 1000 - robot[i] -> y;
+      				robot[i] -> update_armor(i);
+      				robot[i] -> update_heat(i);
+      				robot[i] -> update_lives(i);
+    			} else {
+				SDL_SetRenderDrawColor(0x80, 0x80, 0x80, 0xff); // Gray50
+				bar(1 + viewport->x, 1 + viewport->y, max_gx-1, max_gy-1);
+			}
+		}
+	}
+}
+
+void graph_mode(bool on);
+	if (on && ( (bool)!graphix)) {
+		Graph_VGA();
+		cleardevice();
+		setscreen();
+		graphix = true;
+	} else
+		if ( !on && (bool)graphix)
+			closegraph();
+			graphix = false;
+}
+
+/*
 procedure prog_error(n:integer; ss:string);
 var
  s:string;
@@ -585,6 +603,7 @@ begin
  writeln;
  halt;
 end;
+*/
 
 procedure print_code(n,p:integer);
 var
@@ -601,6 +620,7 @@ begin
   end;
 end;
 
+/*
 procedure parse1(n,p:integer; s:parsetype);
 var
  i,j,k,opcode,microcode:integer;
@@ -848,13 +868,13 @@ begin
  if compile_by_line then readkey;
 end;
 
-procedure check_plen(plen:integer);
-begin
-  if plen>maxcode then
-     prog_error(16,#13#10+'Maximum program length exceeded, (Limit: '+
-                           cstr(maxcode+1)+' compiled lines)');
-end;
+void check_plen(short plen) {
+	if (plen > maxcode) then
+		prog_error(16, #13#10+'Maximum program length exceeded, (Limit: '+cstr(maxcode+1)+' compiled lines)');
+}
+*/
 
+/*
 procedure compile(n:integer;filename:string);
 var
  pp:parsetype;
@@ -1114,6 +1134,8 @@ begin
   end;
  textcolor(7);
 end;
+*/
+
 
 procedure robot_config(n:integer);
 var
@@ -1299,33 +1321,35 @@ begin
   end;
 end;
 
-procedure shutdown;
-var
-  i,j,k:integer;
-begin
- graph_mode(false);
- if show_cnotice then
-  begin
-   textcolor(3);
-   write  (progname,' ',version,' ');
-   writeln(cnotice1);
-   writeln(cnotice2);
-   writeln(cnotice3);
-  end;
- textcolor(7);
- if not registered then begin textcolor(4); writeln('Unregistered version'); end
-                   else writeln('Registered to: ',reg_name);
- textcolor(7);
- writeln;
- if logging_errors then
-  for i = 0 to num_robots do
-   with robot[i]^ do
-    begin
-     writeln('Robot error-log created: ',base_name(fn)+'.ERR');
-     close(errorlog);
-    end;
- halt;
-end;
+void shutdown() {
+	short i, j, k;
+
+	graph_mode(false);
+	if (show_cnotice) {
+		// textcolor(3);
+		cout << progname << " " << version << " ");
+		cout << cnotice1 << endl;
+		cout << cnotice2 << endl;
+		cout << cnotice3 << endl;
+	}
+
+	textcolor(7);
+	if (!registered)
+		textcolor(4);
+		cout << "Unregistered version << endl;
+	else
+		cout << "Registered to: " << reg_name << endl;
+
+	textcolor(7);
+	cout << endl;
+	if (logging_errors)
+		for (i = 0; i <= num_robots; i++) {
+		cout << "Robot error-log created: " << base_name(robot[i] -> fn) + ".ERR");
+		if (robot[i] -> errorlog.good())
+			robot[i] -> errorlog.close();
+		}
+	exit(EXIT_SUCCESS);
+}
 
 procedure delete_compile_report;
 begin
@@ -1444,6 +1468,9 @@ void init() {
 		fprintf(stderr, "ERROR: Could not initialize TTF.\n%s\n", TTF_GetError());
 		exit(EXIT_FAILURE);
 	}
+
+	viewport = (SDL_Rect *) malloc(sizeof(SDL_Rect));
+
 	
 	step_mode = 0; // stepping disabled
 	logging_errors = false;
@@ -1501,13 +1528,13 @@ void init() {
 
 	if (!registered ) {
 		// textcolor(4); Red text
-		writeln('Unregistered version\n");
+		cout << "Unregistered version\n";
 	} else
-		fprintf(stdout, "Registered to: %s\n" ,reg_name);
+		cout << "Registered to: " << reg_name << endl;
 
 	// textcolor(7); Set text color to light gray
 
-	writeln;
+	writeln();
 
 	delete_compile_report();
 
@@ -1521,11 +1548,10 @@ void init() {
 
 	if (logging_errors) {
 		for (i = 0; i <= num_robots; i++) {
-		with robot[i]^ do
-			if (errorlog.good())
-				errorlog.close;
+			if (robot[i] -> errorlog.good())
+				robot[i] -> errorlog.close;
 
-			errorlog.open(base_name(fn)+".ERR", fstream::out);
+			robot[i] -> errorlog.open(base_name(robot[i] -> fn)+".ERR", fstream::out);
 		}
 	}
 
@@ -3449,8 +3475,8 @@ void bout() {
 	short timer;
 	short n; // loop count for mem_watch
 
-	if (!quit)
-		exit(EXIT_SUCCESS);
+	if (quit)
+		return;
 
 	played++;
 
@@ -3471,85 +3497,209 @@ void bout() {
 	do {
 		game_cycle++;
 		for (i = 0; i <= num_robots; i++) {
-   if robot[i]^.armor>0 then do_robot(i);
-  for i = 0 to max_missiles do
-   if missile[i].a>0 then do_missile(i);
-  for i = 0 to num_robots do
-   for k = 0 to max_mines do
-    if robot[i]^.mine[k].yield>0 then do_mine(i,k);
+			if (robot[i] -> armor > 0)
+				do_robot(i);
 
-  if graphix and timing then time_delay(game_delay);
+		for (i = 0; i <= max_missiles; i++) 
+			if (missile[i].a > 0)
+				do_missile(i);
 
-  if keypressed then c = upcase(readkey) else c = #255;
-  case c of
-   {FIFI}
-   'X': if not robot[0]^.is_locked then
-         begin
-          if not graphix then toggle_graphix;
-          if robot[0]^.armor>0 then
-           begin
-            if temp_mode>0 then step_mode = temp_mode else step_mode = 1;
-            step_count = -1;
-            init_debug_window;
-           end;
-         end;
-   {/FIFI}
-   '+','=':if game_delay<100 then
-            case game_delay of
-              000..004:game_delay = 005;
-              005..009:game_delay = 010;
-              010..014:game_delay = 015;
-              015..019:game_delay = 020;
-              020..029:game_delay = 030;
-              030..039:game_delay = 040;
-              040..049:game_delay = 050;
-              050..059:game_delay = 060;
-              060..074:game_delay = 075;
-              075..100:game_delay = 100;
-            end;
-   '-','_':if game_delay>0 then
-            case game_delay of
-              000..005:game_delay = 000;
-              006..010:game_delay = 005;
-              011..015:game_delay = 010;
-              016..020:game_delay = 015;
-              021..030:game_delay = 020;
-              031..040:game_delay = 030;
-              041..050:game_delay = 040;
-              051..060:game_delay = 050;
-              061..075:game_delay = 060;
-              076..100:game_delay = 075;
-            end;
-   'G':toggle_graphix;
-   else process_keypress(c);
-  end; flushkey;
-  if game_delay<0 then game_delay = 0;
-  if game_delay>100 then game_delay = 100;
-  case game_delay of
-   000..001:k = 100;
-   002..005:k = 50;
-   006..010:k = 25;
-   011..025:k = 20;
-   026..040:k = 10;
-   041..070:k = 5;
-   071..maxint:k = 1;
-   else k = 10;
-  end;
-  if not graphix then k = 100;
-  if graphix then
-   begin
-    if ((game_cycle mod k)=0) or (game_cycle=10) then update_cycle_window;
-   end else begin
-    if (update_timer<>mem[0:$46C] shr 1) then update_cycle_window;
-    update_timer = mem[0:$46C] shr 1;
-   end;
- } while (!quit || !gameover || !bout_over);
+		for (i = 0; i <= num_robots; i++)
+			for (k = 0; k <= max_mines; k++)
+				if (robot[i] -> mine[k].yield > 0)
+					do_mine(i,k);
 
- update_cycle_window;
- {if (not graphix) then writeln;}
- score_robots;
- show_statistics;
-end;
+		if (graphix && timing) 
+			SDL_Delay(game_delay);
+
+ 
+		if ( keypressed )
+			c = readkey
+		else 
+			c = 255;
+
+		switch (c) {
+
+		case 'X': 
+			if ( !robot[0] -> is_locked )
+				if ( !graphix)
+					toggle_graphix();
+
+				if ( robot[0] -> armor > 0 )
+					if ( temp_mode > 0)
+						step_mode = temp_mode
+					else
+						step_mode = 1;
+
+					step_count = -1;
+					init_debug_window();
+				}
+			}
+			break;
+
+		case '+':
+		case '=':
+			if ( game_delay < 100 )
+				switch (game_delay) { // This range notation for this switch case is only supported in gcc and clang
+				case 0 ... 4:
+					game_delay = 5;
+					break;
+
+				case 5 ... 9:
+					game_delay = 10;
+					break;
+
+				case 10 ... 14:
+					game_delay = 15;
+					break;
+
+				case 15 ... 19:
+					game_delay = 20;
+					break;
+
+				case 20 ... 29:
+					game_delay = 30;
+					break;
+
+				case 30 ... 39:
+					game_delay = 40;
+					break;
+
+				case 40 ... 49:
+					game_delay = 50;
+					break;
+
+				case 50 ... 59:
+					game_delay = 60;
+					break;
+
+				case 60 ... 74:
+					game_delay = 75;
+					break;
+
+				case 75 ... 100:
+					game_delay = 100;
+					break;
+				}
+			break;
+
+		case '-':
+		case '_':
+			if (game_delay > 0)
+				switch (game_delay){ 
+				case 0 ... 5:
+					game_delay = 0;
+					break;
+
+				case 6 ... 10:
+					game_delay = 5;
+					break;
+
+				case 11 ... 15:
+					game_delay = 10;
+					break;
+
+				case 16 ... 20:
+					game_delay = 15;
+					break;
+
+				case 21 ... 30:
+					game_delay = 20;
+					break;
+
+				case 31 ... 40:
+					game_delay = 30;
+					break;
+
+				case 41 ... 50:
+					game_delay = 40;
+					break;
+
+				case 51 ... 60:
+					game_delay = 50;
+					break;
+
+				case 61 ... 75:
+					game_delay = 60;
+					break;
+
+				case 76 ... 100:
+					game_delay = 75;
+					break;
+				}
+			break;
+
+		case 'G':
+			toggle_graphix();
+			break;
+
+		default:
+			process_keypress(c);
+		}
+
+		flushkey();
+
+		if (game_delay < 0)
+			game_delay = 0;
+
+		if (game_delay > 100)
+			game_delay = 100;
+ 
+		switch (game_delay) {
+		case 0 ... 1:
+			k = 100;
+			break;
+
+		case 2 ... 5:
+			k = 50;
+			break;
+
+		case 2 6 ... 10:
+			k = 25;
+			break;
+	
+		case 11 ... 25:
+			k = 20;
+			break;
+
+		case 26 ... 40:
+			k = 10;
+			break;
+
+		case 41 ... 70:
+			k = 5;
+			break;
+
+		case 71 ... maxint:
+			k = 1;
+			break;
+
+		default:
+			k = 10;
+		}
+
+		if ( !graphix)
+			k = 100;
+
+		if (graphix) {
+			if ( ((game_cycle % k) == 0) || ( game_cycle == 10) )
+			update_cycle_window();
+		} else {
+/*			if ( update_timer != (mem[0:$46C] >> 1) )
+				update_cycle_window();
+
+			update_timer = mem[0:$46C] >> 1;
+	mem[0:$46C] is a direct memory access. The important thing is that update timer gets set to the raw memory access.
+
+
+*/		}
+	} while (!quit || !gameover || !bout_over);
+
+	update_cycle_window();
+
+	score_robots();
+	show_statistics();
+)
 
 procedure write_report;
 var
@@ -3588,16 +3738,19 @@ void begin_window {
 	box(100,150,539,200);	// Located in atr2func
 	hole(105,155,534,195);	// Located in atr2func
 
-	setfillpattern(gray50,1); // Not sure how to fill this in
+//	setfillpattern(gray50,1); // Not sure how to fill this in
 	bar(105,155,534,195);
 
-//	setcolor(15); set color to white
+	setcolor(15);
 	s = 'Press any key to begin!';
 
-	SDL_Surface *tmp_surf = TTF_RenderText_Solid(main_font, s, main_color);
+
+	// Create surface of text
+	SDL_Surface *tmp_surf = TTF_RenderText_Solid(main_font, s.c_str(), main_color);
 	SDL_Texture *tmp_text = SDL_CreateTextureFromSurface(main_renderer, tmp_surf);
 	SDL_DestroySurface(tmp_surf);
 
+	// Grab length and width of text
 	SDL_QueryTexture(tmp_text, NULL, NULL, &temp_w, &temp_h);
 
 	SDL_Rect * temp_rect = (SDL_Rect *) malloc(sizeof(SDL_Rect));
@@ -3627,7 +3780,7 @@ void main() {
 
 	if (matches > 0) {
 		for (i=1; i <= matches; i++) {
-			bout; // Unknown function. Perhaps buffer out?
+			bout(); // Main battle function
 		}
 	}
 
@@ -3640,7 +3793,7 @@ void main() {
 	if (matches > 1) { // {--Calculate overall statistics--}
 		cout << endl << endl; // Gotta keep the code one for one, unfortunately. I think this just prints to the line. Without parameters, perhaps it's just a new line?
 		graph_mode(FALSE);
-		textcolor(15); 		// Need to switch this function with something from SDL_ttf
+		// textcolor(15); 		// Need to switch this function with something from SDL_ttf
 		cout << "Bout complete! (" << matches << " matches)" << endl;
 		cout << endl;
 
@@ -3665,14 +3818,12 @@ void main() {
 			textcolor(robot_color(i));
 
 			// addfront returns string
-			cout << "addfront(cstr(i+1),2)+' - '+addrear(fn,8)
-			+addfront(cstr(wins),7)+addfront(cstr(trials),8)
-			+addfront(cstr(kills),8)+addfront(cstr(deaths),8)
-			+addfront(cstr(shots_fired),9)");
+			cout << addfront(cstr(i+1),2) << " - " << addrear(robot[i]->fn,8) << addfront(cstr(robot[i] -> wins),7) << addfront(cstr(robot[i] -> trials),8) <<
+			addfront(cstr(robot[i] -> kills),8)addfront(cstr(robot[i] -> deaths),8) << addfront(cstr(robot[i]shots_fired),9)");
 			end;
 		}
 
-		textcolor(15); // Unknown function
+		// textcolor(15);
 		cout << endl;
 		if (k = 1)
 			cout << "Robot #" << (n+1) << " (" << robot[n] -> fn << " ) wins the bout! (score: " << w << "/" << matches << endl;
@@ -3693,12 +3844,123 @@ void main() {
 }
 
 void readkey() {
-	SDL_Event *e;
+	SDL_Event e;
+	short	index = 0;
 
-	while(!SDL_PollEvent(e))
+
+	Beginning:
+	while(1) {
+		SDL_PollEvent(&e);
+		if ( e.type == SDL_KEYDOWN )
+			break;
+
 		SDL_Delay(1);
+	}
 
 	keyboard_state = SDL_GetKeyboardState(NULL);
+
+	while ((keyboard_state[index] ^ index) && (index < 30))
+		index++;
+
+	if (index == 30)
+		goto Beginning;
+
+	keypressed = index + 62;
+}
+
+void flushkey() {
+	keypressed = 0;
+}
+
+void setcolor(int color) {
+	switch (color) {
+	case 0: // Black
+		mask_color(0, 0, 0, 255);
+		break;
+
+	case 1: // blue
+
+	case 2: // green
+
+	case 3: // cyan
+
+	case 4: // red
+
+	case 5: // magenta
+
+	case 6: // brown
+
+	case 7: // light gray
+
+	case 8: // dark gray
+
+	case 9: // light blue
+
+	case 10: // light green
+
+	case 11: // light cyan
+
+	case 12: // light red
+
+	case 13: // light magenta
+
+	case 14: // yellow
+
+	case 15: // white
+
+	}
+}
+
+
+void mask_color(unsigned char red, unsigned char green, unsigned char blue, unsigned char alpha) {
+	text_color -> r = red;
+	text_color -> g = green;
+	text_color -> b = blue;
+	text_color -> a = alpha;
+}
+
+
+void outtextxy(int x_coor, int y_coor, string sent) {
+	// Create surface of text
+	SDL_Surface *tmp_surf = TTF_RenderText_Solid(main_font, sent.c_str(), main_color);
+	SDL_Texture *tmp_text = SDL_CreateTextureFromSurface(main_renderer, tmp_surf);
+	SDL_DestroySurface(tmp_surf);
+
+	// Grab length and width of text
+	SDL_QueryTexture(tmp_text, NULL, NULL, &temp_w, &temp_h);
+
+	SDL_Rect * temp_rect = (SDL_Rect *) malloc(sizeof(SDL_Rect));
+	temp_rect -> x = x_coor;
+	temp_rect -> y = y_coor;
+	temp_rect -> w = temp_w;
+	temp_rect -> h = temp_h;
+
+	SDL_RenderCopy(main_renderer, tmp_text, NULL, temp_rect);
+
+	SDL_DestroyTexture(tmp_text);
+	free(temp_rext);
+}
+
+void bar(int X, int Y, int W, int H) {
+	SDL_Rect *tmp = (SDL_Rect *) malloc(sizeof(SDL_Rect));
+
+	if ( !tmp ) // If unsuccessful malloc, abandon operation
+		return;
+
+	tmp -> x = X;
+	tmp -> y = Y;
+	tmp -> w = W;
+	tmp -> h = H;
+
+	SDL_RenderFillRect(main_renderer, tmp);
+	free(tmp);
+}
+
+void set_viewport(int X, int Y, int W, int H) {
+	viewport -> x = X;
+	viewport -> y = Y;
+	viewport -> w = W;
+	viewport -> h = H;
 }
 
 // Main function for entire program
