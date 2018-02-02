@@ -364,17 +364,17 @@ int main(int argc, char *argv[]){
       bool neg;
       neg = false;
       s = btrim(ucase(s));
-      if (s='') {
+      if (s=='') {
         k = 0;
       } else {
-        if (s[1]='-') {
+        if (s[1]=='-') {
           neg = true;
           s = rstr(s,s.length-1);
           k=0;
         }
-        if (lstr(s,2)='0X') {
+        if (lstr(s,2)=='0X') {
           k = hex2int(rstr(s,s.length-2));
-        } else if (rstr(s,1)='H') {
+        } else if (rstr(s,1)=='H') {
           k = hex2int(lstr(s,s.length-1));
         } else{
           k = value(s);
@@ -394,11 +394,11 @@ int main(int argc, char *argv[]){
       int i,j,k,v,z;
       double q=0;
       v = abs(round(tx-xx));
-      if (v=0) {
-        if (tx=xx && ty>yy) {
+      if (v==0) {
+        if (tx==xx && ty>yy) {
           q = pi;
         }
-        if (tx=xx && ty<yy) {
+        if (tx==xx && ty<yy) {
           q = 0;
         }
       }else{
