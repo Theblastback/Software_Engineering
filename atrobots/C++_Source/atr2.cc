@@ -1013,7 +1013,7 @@ begin
                 end
                else if (s2='CONFIG') then
                 begin
-                 if (lstr(s3,8)='SCANNER=') then config.scanner = 
+                 if (lstr(s3,8)='SCANNER=') then 0config.scanner = 
                      value(rstr(s3,length(s3)-8))
                  else if (lstr(s3,7)='SHIELD=') then config.shield = 
                          value(rstr(s3,length(s3)-7))
@@ -1160,120 +1160,155 @@ end;
 
 void robot_config(short n) {
 	short i, j, k;
-begin
  with robot[n]^ do
-  begin
-   case config.scanner of
-    5:scanrange = 1500;
-    4:scanrange = 1000;
-    3:scanrange = 700;
-    2:scanrange = 500;
-    1:scanrange = 350;
-    else scanrange = 250;
-   end;
-   case config.weapon of
-    5:shotstrength = 1.5;
-    4:shotstrength = 1.35;
-    3:shotstrength = 1.2;
-    2:shotstrength = 1;
-    1:shotstrength = 0.8;
-    else shotstrength = 0.5;
-   end;
-   case config.armor of
-    5:begin damageadj = 0.66; speedadj = 0.66; end;
-    4:begin damageadj = 0.77; speedadj = 0.75; end;
-    3:begin damageadj = 0.83; speedadj = 0.85; end;
-    2:begin damageadj = 1; speedadj = 1; end;
-    1:begin damageadj = 1.5; speedadj = 1.2; end;
-    else begin damageadj = 2; speedadj = 1.33; end;
-   end;
-   case config.engine of
-    5:speedadj = speedadj*1.5;
-    4:speedadj = speedadj*1.35;
-    3:speedadj = speedadj*1.2;
-    2:speedadj = speedadj*1;
-    1:speedadj = speedadj*0.8;
-    else speedadj = speedadj*0.5;
-   end;
-   {heatsinks are handled seperately}
-   case config.mines of
-    5:mines = 24;
-    4:mines = 16;
-    3:mines = 10;
-    2:mines = 6;
-    1:mines = 4;
-    else begin mines = 2; config.mines = 0; end;
-   end;
-   shields_up = false;
-   if (config.shield<3) or (config.shield>5) then config.shield = 0;
-   if (config.heatsinks<0) or (config.heatsinks>5) then config.heatsinks = 0;
-  end;
-end;
+	switch (robot[n]->config.scanner) {
+	case 5:
+		robot[n]->scanrange = 1500;
+		break;
 
-procedure reset_software(n:integer);
-var
- i:integer;
-begin
- with robot[n]^ do
-  begin
-   for i = 0 to max_ram do ram[i] = 0;
-   ram[71]  =  768;
-   thd = hd;  tspd = 0;
-   scanarc = 8; shift = 0; err = 0;
-   overburn = false; keepshift = false;
-   ip = 0; accuracy = 0;
-   meters = 0;
-   delay_left = 0; time_left = 0;
-   shields_up = false;
-  end;
-end;
+	case 4:
+		robot[n]->scanrange = 1000;
+		break;
 
-procedure reset_hardware(n:integer);
-var
- i:integer;
- d,dd:real;
-begin
- with robot[n]^ do
-  begin
-   for i = 1 to max_robot_lines do
-    begin ltx[i] = 0; tx[i] = 0; lty[i] = 0; ty[i] = 0; end;
-   repeat
-    x = random(1000); y = random(1000);
-    dd = 1000;
-    for i = 0 to num_robots do
-     begin
-      if robot[i]^.x<0 then robot[i]^.x = 0;
-      if robot[i]^.x>1000 then robot[i]^.x = 1000;
-      if robot[i]^.y<0 then robot[i]^.y = 0;
-      if robot[i]^.y>1000 then robot[i]^.y = 1000;
-      d = distance(x,y,robot[i]^.x,robot[i]^.y);
-      if (robot[i]^.armor>0) and (i<>n) and (d<dd) then dd = d;
-     end;
-   until dd>32;
-   for i = 0 to max_mines do
-    with mine[i] do
-     begin x = -1; y = -1; yield = 0; detonate = false; detect = 0; end;
-   lx = -1; ly = -1;
-   hd = random(256); shift = 0;
-   lhd = hd+1; lshift = shift+1;
-   spd = 0; speed = 0;
-   cooling = false;
-   armor = 100; larmor = 0;
-   heat = 0; lheat = 1;
-   match_shots = 0;
-   won = false;
-   last_damage = 0;
-   last_hit = 0;
-   transponder = n+1;
-   meters = 0;
-   shutdown = 400;
-   shields_up = false;
-   channel = transponder;
-   startkills = kills;
-   robot_config(n);
-  end;
-end;
+	case 3:
+		robot[n]->scanrange = 700;
+		break;
 
+	case 2:
+		robot[n]->scanrange = 500;
+		break;
+
+	case 1:
+		robot[n]->scanrange = 350;
+		break;
+	default:
+		robot[n]->scanrange = 250;
+	}
+
+	switch (robot[n]->config.weapon) {
+	case 5:
+		robot[n]->shotstrength = 1.5;
+		break;
+	case 4:
+		robot[n]->shotstrength = 1.35;
+		break;
+	case 3:
+		robot[n]->shotstrength = 1.2;
+		break;
+	case 2:
+		robot[n]->shotstrength = 1;
+		break;
+	case 1:
+		robot[n]->shotstrength = 0.8;
+		break;
+	default:
+		robot[n]->shotstrength = 0.5;
+	}
+	
+	switch (robot[n]->config.armor) {
+	case 5:
+		robot[n]->damageadj = 0.66;
+		robot[n]->speedadj = 0.66;
+		break;
+	case 4:
+		robot[n]->damageadj = 0.77;
+		robot[n]->speedadj = 0.75;
+		break;
+	case 3:
+		robot[n]->damageadj = 0.83;
+		robot[n]->speedadj = 0.85;
+		break;
+	case 2:
+		robot[n]->damageadj = 1;
+		robot[n]->speedadj = 1;
+		break;
+	case 1:
+		robot[n]->damageadj = 1.5;
+		robot[n]->speedadj = 1.2;
+		break;
+	default:
+		robot[n]->damageadj = 2;
+		robot[n]->speedadj = 1.33;
+	}
+
+	switch (robot[n]->config.engine) {
+	case 5:
+		robot[n]->speedadj *= 1.5;
+		brea;
+	case 4:
+		robot[n]->speedadj *= 1.35;
+		break;
+	case 3:
+		robot[n]->speedadj *= 1.2;
+		break;
+	case 2:
+		robot[n]->speedadj *= 1;
+		break;
+	case 1:
+		robot[n]->speedadj *= 0.8;
+		break;
+	default:
+		robot[n]->speedadj *= 0.5;
+	}
+
+	// heatsinks are handled seperately
+	switch (robot[n]->config.mines) {
+		case 5:
+			robot[n]->mines = 24;
+			break;
+		case 4:
+			robot[n]->mines = 16;
+			break;
+		case 3:
+			robot[n]->mines = 10;
+			break;
+		case 2:
+			robot[n]->mines = 6;
+			break;
+		case 1:
+			robot[n]->mines = 4;
+			break;
+		default:
+			robot[n]->mines = 2;
+			robot[n]->config.mines = 0;
+	}
+
+	robot[n]->shields_up = false;
+	if ( (robot[n]->config.shield < 3) || (robot[n]->config.shield > 5) )
+		robot[n]->config.shield = 0;
+
+	if ( (robot[n]->config.heatsinks < 0) || (robot[n]->config.heatsinks > 5)
+		robot[n]->config.heatsinks = 0;
+}
+
+void reset_software(short n) {
+	short i;
+	for (i = 0; i <= max_ram; i++) {
+		robot[n]->ram[i] = 0;
+		robot[n]->ram[71] = 768;
+		robot[n]->thd = robot[n]->hd;
+		robot[n]->tspd = 0;
+		robot[n]->scanrc = 8;
+		robot[n]->shift = 0;
+		robot[n]->err = 0;
+		robot[n]->overburn = false;
+		robot[n]->keepshift = false;
+		robot[n]->ip = 0;
+		robot[n]->accuacy = 0;
+		robot[n]->meters = 0
+		robot[n]->delay_left = 0;
+		robot[n]->time_left = 0;
+		robot[n]->shields_up = false;
+	}
+}
+
+void reset_hardware(short n) {
+	short i;
+	double d, dd;
+
+	for (i = 0; i <= max_robot_lines; i++)
+
+}
 procedure init_robot(n:integer);
 var
  i,j,k,l:integer;
