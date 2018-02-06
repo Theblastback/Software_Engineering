@@ -1,16 +1,11 @@
-/* everything between =Nick= was written by Nick */
-/* =Nick= */
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <fstream>
-#include <string.h>
 #include <string>
 #include <time.h>
 #include <iostream>
 #include <algorithm>
 #include <cctype>
-#include <ctype.h>
-
 
 using namespace std;
 
@@ -20,23 +15,26 @@ const int LOCKTYPE = 3;
 * NOTE - functions in this file require parameters including the full text of the file.
 */
 // trim from start (in place)
- static inline void ltrim(string &s) {
+ static inline void ltrim(string s) {
      s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
          return !std::isspace(ch);
      }));
  }
 
 // trim from end (in place)
- static inline void rtrim(string &s) {
+ static inline void rtrim(string s) {
      s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
          return !std::isspace(ch);
      }).base(), s.end());
  }
 
 // trim from both ends (in place)
- static inline void trim(string &s) {
+ static inline string trim(string s) {
      ltrim(s);
      rtrim(s);
+     string value(s);
+
+     return value;
  }
 
 // trim from start (copying)
@@ -46,13 +44,13 @@ const int LOCKTYPE = 3;
  }
 
 // trim from end (copying)
- static inline std::string rtrim_copy(string s) {
+ static inline std::string rtrim_copy(std::string &s) {
      rtrim(s);
      return s;
  }
 
 // trim from both ends (copying)
- static inline std::string trim_copy(string s) {
+ static inline std::string trim_copy(std::string &s) {
      trim(s);
      return s;
  }
@@ -86,7 +84,7 @@ const int LOCKTYPE = 3;
  }
 
  string to_Uppercase (string s){
-    transform(s.begin(), s.end(), s.begin(), ::toupper);
+    transform(s.begin(), s.end(), s.begin(), (int (*)(int))std::toupper);
 
     return s;
  }
@@ -105,7 +103,7 @@ const int LOCKTYPE = 3;
      int lock_dat = 0;
      size_t lim;
 
-     if (lock_code == "") {
+     if (lock_code.compare("") ) {
          lim = s.length();
          for (i = 0; i < lim; i++) {
              lock_pos++;
@@ -128,12 +126,12 @@ const int LOCKTYPE = 3;
      int i, j, k, l;
      string s2;
 
-     if(s1.length() == 0 || strcmp(&s1[1], ";")){
+     if( (s1.length() == 0) || (s1[1] == ';')){
          s1 = "";
      }else{
          k = 0;
          for(i = s1.length(); i--; i >=1){
-             if(strcmp(&s1[i],";")){
+             if( s1[i] == ';' ){
                  k = i;
              }
          }
@@ -142,24 +140,21 @@ const int LOCKTYPE = 3;
          }
      }
      s2 = "";
-     for(i = 1; i <= s1.length(); i++){
-         string arr[] = {" ", "#8", "#9", "#10", ","};
-         size_t arrSize = sizeof(arr) / sizeof(int);
-         int *end = arr + arrSize;
-        // find the value 0:
-         int *result = std::find(arr, end, s1);
-         if (result = end) {
-             s2 = s1+s1[i];
-         }else{
-             if(s2 != ""){
-                 s = s+s2+" ";
-                 s2 = "";
-             }
-         }
+     char arr[] = {' ', '\b', '\v', '\n', ','};
 
-     }
-     if(s2 != "")
-         s = s+s2;
+     for(i = 1; i <= s1.length(); i++)
+          for ( k = 0; k < 5; k++)
+               if ( s1[i] != arr[k] )
+                    s2 = s2 + s1[i];
+	       else
+		    if ( s2.compare("") ) { // If s2 does not equal nothing, then
+		         s = s + s2 + " ";
+		         s2 = "";
+		    }
+
+
+     if ( s2.compare("") )
+          s = s + s2;
      return s;
  }
 
@@ -169,11 +164,13 @@ const int LOCKTYPE = 3;
   *
  **/
 
- void write_line(string s, string s1, ofstream f2write, string lock_code) {
-     s = prepare(s, s1);
-     if(s.length() > 0){
-         s = encode(s, lock_code);
-         f2write << s;
+ void write_line(string s, string s1, filebuf * f2write, string lock_code) {
+     if ( f2write -> is_open() ) {
+          s = prepare(s, s1);
+          if(s.length() > 0){
+              s = encode(s, lock_code);
+              f2write -> sputn(s.c_str(), s.length());
+          }
      }
  }
 
@@ -182,7 +179,7 @@ const int LOCKTYPE = 3;
 	string s1;
 
 	k = 1;
-	while ( (k <= name.length()) && (name[k].compare(".")) ) {
+	while ( (k <= name.length()) && (name[k] == '.') ) {
 		s1 = s1 + name[k];
 		k++;
 	}
@@ -193,7 +190,7 @@ const int LOCKTYPE = 3;
 
      k = -1;
      for (i = fn.length(); i >= 0; i--)
-         if ((!fn.compare("\ ") || !fn[i].compare(":")) && (k < i))
+         if ((!fn.compare("\\") || (fn[i] != ':')) && (k < i))
              k = i;
      if (k != -1)
          return (rstr(fn, fn.length() - k));
@@ -205,7 +202,7 @@ const int LOCKTYPE = 3;
      fstream afile;
      bool	return_value;
 
-     afile.open(thisfile, std::fstream::in);
+     afile.open(thisfile, ::fstream::in);
      if ( (return_value = afile.good()) )
          afile.close();
 
@@ -218,10 +215,10 @@ const int LOCKTYPE = 3;
      string iocode;
 
      if (!exist(thisfile) ) {
-         afile.open(thisfile, std::fstream::out);
+         afile.open(thisfile, ::fstream::out);
          afile.close();
 
-         std::remove(thisfile);
+         std::remove(thisfile.c_str());
          return(false);
      } else
          return(true);
@@ -231,11 +228,8 @@ int main(int argc, char *argv[]){
    /*
     * Variables - direct from the ATRLOCK program.
     */
-    //char *f1 [256], *f2 [256], *s[256], *s1[256], *s2[256], *lock_code[256];
-   string fn1, fn2,f1,f2,s,s1,s2, lock_code;
-   string arg(argv[1]);
-   string arg2(argv[2]);
-   //char date [9];
+   string fn1,fn2,f1,f2,s,s1,s2, lock_code;
+
    int i, j, k, lock_pos, lock_dat, this_dat;
    time_t now = time(0);
 
@@ -247,13 +241,17 @@ int main(int argc, char *argv[]){
    lock_pos = 0;
    lock_dat = 0;
 
-   if(argc < 1 || argc > 2){
+   if(argc < 1 || argc > 3){
        cout << "Usage: ATRLOCK <robot[.at2]> [locked[.atl]]";
        return EXIT_FAILURE;
    }
 
-   fn1 = strcpy(trim(toupper(argc)));
-   if(fn1 == base_name(fn1)){
+   string arg(argv[1]);
+   string arg2(argv[2]);
+
+   fn1 = trim(to_Uppercase(arg));
+
+   if( !fn1.compare(base_name(fn1)) ){
        fn1 = fn1 + ".AT2";
    }
    if(f1read.is_open()) {
@@ -262,7 +260,7 @@ int main(int argc, char *argv[]){
    }
 
    if(argc == 2) {
-       fn2 = trim(to_Uppercase(fn2));
+       fn2 = trim(to_Uppercase(arg2));
    }else {
        fn2 = base_name(fn1 + ".ATL");
    }
@@ -273,10 +271,12 @@ int main(int argc, char *argv[]){
        cout << "Output name ", fn2, " not valid!";
        return EXIT_FAILURE;
    }
-   if(fn1 == fn2) {
+   if( !fn1.compare(fn2)) {
        cout << "Filenames cannot be the same!";
        return EXIT_FAILURE;
    }
+
+
    f1read.open(fn1.c_str());
    f2write.open(fn2.c_str());
 
@@ -320,7 +320,7 @@ int main(int argc, char *argv[]){
    //Encode robot
    s = trim(s);
    if((s.length()) > 0){
-       write_line("", to_Uppercase(s1), f2write, lock_code);
+       write_line("", to_Uppercase(s1), f2write.rdbuf(), lock_code);
    }
    while(!f1read.eof()){
        if (f1read.is_open()) {
@@ -329,13 +329,12 @@ int main(int argc, char *argv[]){
            }
            f1read.close();
        }
-       write_line(s, s1, f1write, lock_code);
+       write_line(s, s1, f1write.rdbuf(), lock_code);
    }
   printf ("Done. Used LOCK Format #", LOCKTYPE, ".");
   printf ("Only ATR2 v2.08 or later can decode ");
-  printf ("Locked robot saved as ", fn2 );
+  printf ("Locked robot saved as %s", fn2.c_str());
 
-  f1.close();
-  f2.close();
-
+  f2write.close();
+return 0;
 }
