@@ -1,6 +1,8 @@
 #include "Headers/filelib.h"
 
-string addfront(string b, short l) {
+using namespace std;
+
+string addfront(string b, unsigned short l) {
 	// Find new length of font
 	while (b.length() < l)
 		b = " " + b;
@@ -8,7 +10,7 @@ string addfront(string b, short l) {
 	return(b);
 }
 
-string addrear(string b, short l) {
+string addrear(string b, unsigned short l) {
 	while ( b.length() < l)
 		b = b + " ";
 
@@ -30,15 +32,15 @@ string copy(string name, short start, short end) {
 	return(tmp);
 }
 
-string lstr( string s1, short l) {
+string lstr( string s1, unsigned short l) {
 	if (s1.length() <= l)
 		return(s1);
 	else
-		lstr( (copy(s1,1,l) );
+		return( copy(s1,1,l) );
 }
 
-string rstr(string s1, short l) {
-	if (s1.length() <= l) 
+string rstr(string s1, unsigned short l) {
+	if (s1.length() <= l)
 		return(s1);
 	else
 		return( copy(s1, (s1.length()-l)+1 ,l) );
@@ -57,70 +59,69 @@ bool exist(string thisfile) {
 
 bool valid(string thisfile) {
 	fstream afile;
-	bool check;
 
 	if ( !exist(thisfile) ) {
 		afile.open(thisfile, std::fstream::out);
 		afile.close();
 
-		std::remove(thisfile);
+		std::remove(thisfile.c_str());
 		return(false);
 	} else
 		return(true);
 }
 
-string name_form( string name ) {
-	short k;
+std::string name_form( string name ) {
+	unsigned short k;
 	string s1, s2;
 
-	k:=1;
+	k = 1;
 	if ( name.compare(".")  || name.compare("..") ) {
 		return(addrear(name,12));
 	}
 
-	while ( k <= name.length() ) and ( !name[k].compare(".")) ) {
+	while ( (k <= name.length()) && (name[k] != '.') ) {
 		s1 = s1 + name[k];
 		k++;
 	}
 
 	if ( k < name.length() ) {
 		k++;
-		while ( (k <= name.length()) && ( name[k].compare(".") ) {
-			s2:=s2+name[k];
-			k++;
-		}
-	}
-	return( (addrear(s1,9)+addrear(s2,3) );
-}
-
-string exten(string name ) {
-	short k;
-	string s1, s2;
-
-	k:=1;
-
-	while ( (k <= name.length()) && (name[k].compare(".") ) {
-		s1 = s1 + name[k];
-		k++;
-	}
-
-	if ( k < name.length() ) {
-		k++;
-		while ( (k <= name.length()) && (name[k].compare(".") ) {
+		while ( (k <= name.length()) &&  (name[k] != '.') ) {
 			s2 = s2 + name[k];
 			k++;
 		}
 	}
-	return(addrear(s2,3));
+	return( addrear(s1,9)+addrear(s2,3) );
+}
+
+string exten(string name ) {
+	unsigned short k;
+	string s1, s2;
+
+	k = 1;
+
+	while ( (k <= name.length()) && (name[k] != '.') ) {
+		s1 = s1 + name[k];
+		k++;
+	}
+
+	if ( k < name.length() ) {
+		k++;
+		while ( (k <= name.length()) && (name[k] != '.') ) {
+			s2 = s2 + name[k];
+			k++;
+		}
+	}
+	return( addrear(s2,3) );
 }
 
 
 string base_name(string name) {
-	short k;
+	unsigned short k;
 	string s1;
 
-	k:=1;
-	while ( (k <= name.length()) && (name[k].compare(".")) ) {
+	k = 1;
+	while ( (k <= name.length()) && (name[k] != '.') ) {
 		s1 = s1 + name[k];
 		k++;
 	}
@@ -134,25 +135,25 @@ string attribs(unsigned char b) {
 
 	// Check for readonly status
 	if ( b & 0x1 )
-		s1 = s1 + "R"
+		s1 = s1 + "R";
 	else
 		s1 = s1 + ".";
 
 	// Check for hidden status
 	if ( b and 0x2 )
-		s1 = s1 + "H"
+		s1 = s1 + "H";
 	else
 		s1 = s1 + ".";
 
 	// Check if file is system file
 	if ( b and 0x4 )
-		s1 = s1 + "S"
+		s1 = s1 + "S";
 	else
 		s1 = s1 + ".";
 
 	// Check if file is archive
 	if ( b and 0x20 )
-		s1 = s1 + "A"
+		s1 = s1 + "A";
 	else
 		s1 = s1 + ".";
 
@@ -160,39 +161,45 @@ string attribs(unsigned char b) {
 }
 
 string path(string fn) {
-	short i, k;
+	unsigned short i, k;
 
 	k = -1;
 
 	// In pascal, strings start at index of 1, but in c they start at 0
 	for ( i = fn.length(); i >= 0; i--)
-		if ( (!fn[i].compare("\") || !fn[i].compare(":")) && ( k < i ) )
+		if ( ((fn[i] !=  '\\') || (fn[i] == ':')) && ( k < i ) )
 			k = i;
 
 
 	if ( k != -1 )
-		return( lstr(fn,k) )
+		return( lstr(fn,k) );
 	else
 		return("");
 }
 
 string no_path(string fn) {
-	short i, k;
+	unsigned short i, k;
 
 	k = -1;
 	for ( i = fn.length(); i >= 0; i--)
-	if ( (!fn[i].compare("\") || !fn[i].compare(":")) && (k<i) )
-		k:=i;
+		if ( ((fn[i] != '\\' ) || (fn[i] == ':')) && (k<i) )
+			k = i;
 
 	if ( k != -1 )
-		return( rstr(fn,length(fn)-k )
+		return( rstr(fn, fn.length()-k) );
 	else
 		return(fn);
 }
 
 short file_length(string fn) {
 	struct stat buf;
+
 	int buf_ret = stat(fn.c_str(), &buf);
 
-	return(buf_ret == 0 ? buf.st_size() : 0);
+	if ( buf_ret == 0 )
+		buf_ret = buf.st_size;
+	else
+		buf_ret = 0;
+
+	return(buf_ret);
 }

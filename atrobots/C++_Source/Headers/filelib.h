@@ -3,17 +3,17 @@
 
 #define BELL	7
 #define ESC	27
-#define f10	0x44
+#define F10	0x44
 
+#include <fstream>
 #include <string>
 #include <sys/stat.h>
 #include <cstdio>
 #include <cstdlib>
 
-using namespace std;
 
 unsigned short	textattr;
-string		workstr;
+std::string		workstr;
 
 
 /* wtf is this for?
@@ -25,19 +25,22 @@ string		workstr;
   endy  : byte = 80;
 */
 
-extern string addfront(string, short);
-extern string addrear(string, short);
-extern string copy(string, short, short);
-extern string lstr( string, short);
-extern string rstr(string, short);
-extern bool exist(string);
-extern bool valid(string);
-extern string name_form(string);
-extern string exten(string name);
-extern string base_name(string);
-extern string attribs(unsigned char);
-extern string path(string fn) {
-extern string no_path(string);
-extern short file_length(string);
+
+extern std::string addfront(std::string, unsigned short);
+extern std::string addrear(std::string, unsigned short);
+extern std::string copy(std::string, unsigned short, unsigned short);
+extern std::string lstr( std::string, unsigned short);
+extern std::string rstr(std::string, unsigned short);
+extern bool exist(std::string);
+extern bool valid(std::string);
+extern std::string name_form(std::string);
+extern std::string exten(std::string name);
+extern std::string base_name(std::string);
+extern std::string attribs(unsigned char);
+extern std::string path(std::string fn);
+extern std::string no_path(std::string);
+extern short file_length(std::string);
+
+
 
 #endif
