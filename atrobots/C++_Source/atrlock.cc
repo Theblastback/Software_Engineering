@@ -59,7 +59,7 @@ const int LOCKTYPE = 3;
      return s;
  }
 
- string copy(string name, short start, short end) {
+ string copy(string name, unsigned short start, unsigned short end) {
      string tmp;
 
      start--;
@@ -73,14 +73,14 @@ const int LOCKTYPE = 3;
      return(tmp);
  }
 
- string lstr(string s1, short l) {
+ string lstr(string s1, unsigned short l) {
      if ( s1.length() <= l )
          return(s1);
      else
          return(copy(s1,1,l) );
  }
 
- string rstr(string s1, short l) {
+ string rstr(string s1, unsigned short l) {
      if (s1.length() <= l)
          return(s1);
      else
@@ -101,10 +101,10 @@ const int LOCKTYPE = 3;
  * Purpose: Changes bits of characters in file effectively encoding them.
  */
  string encode(string s, string lock_code) {
-     long i;
-     int lock_pos = 0;
-     int this_dat = 0;
-     int lock_dat = 0;
+     unsigned long i;
+     unsigned int lock_pos = 0;
+     unsigned int this_dat = 0;
+     unsigned int lock_dat = 0;
      size_t lim;
 
      if (lock_code.compare("") ) {
@@ -113,7 +113,7 @@ const int LOCKTYPE = 3;
              lock_pos++;
              if (lock_pos > lock_code.length())
                  lock_pos = 1;
-             if ((char) s[i] <= 31 || (s[i] & (~127)) != 0 && ((s[i] & 255) <= 255))
+             if ((char) s[i] <= 31 || (((s[i] & (~127)) != 0) && ((s[i] & 255) <= 255)))
                  s[i] = ' ';
              this_dat = s[i] & 15;
              s[i] = (char) ((s[i] ^ lock_code[lock_pos - 1] ^ lock_dat) + 1);
@@ -127,14 +127,14 @@ const int LOCKTYPE = 3;
  * Prepares files to be encoded.
  */
  string prepare(string s, string s1) {
-     int i, j, k, l;
+     unsigned int i, k;
      string s2;
 
      if( (s1.length() == 0) || (s1[1] == ';')){
          s1 = "";
      }else{
          k = 0;
-         for(i = s1.length(); i--; i >=1){
+         for(i = s1.length();i >= 1; i-- ){
              if( s1[i] == ';' ){
                  k = i;
              }
@@ -179,7 +179,7 @@ const int LOCKTYPE = 3;
  }
 
  string base_name(string name) {
-	short k;
+	unsigned short k;
 	string s1;
 
 	k = 1;
@@ -215,7 +215,6 @@ const int LOCKTYPE = 3;
 
  bool valid(string thisfile) {
      fstream afile;
-     bool check;
      string iocode;
 
      if (!exist(thisfile) ) {
@@ -235,7 +234,7 @@ int main(int argc, char *argv[]){
     //char *f1 [256], *f2 [256], *s[256], *s1[256], *s2[256], *lock_code[256];
    string fn1, fn2,f1,f2,s,s1,s2, lock_code;
    //char date [9];
-   int i, j, k, lock_pos, lock_dat, this_dat;
+   unsigned int i, k;
    time_t now = time(0);
 
    srand (time(NULL));
@@ -243,8 +242,6 @@ int main(int argc, char *argv[]){
    ifstream f1read;
    ofstream f2write;
    ofstream f1write;
-   lock_pos = 0;
-   lock_dat = 0;
 
    if(argc < 1 || argc > 3){
        cout << "Usage: ATRLOCK <robot[.at2]> [locked[.atl]]";
@@ -260,7 +257,7 @@ int main(int argc, char *argv[]){
        fn1 = fn1 + ".AT2";
    }
    if(f1read.is_open()) {
-       cout << "Robot ", fn1, " not found!";
+       cout << "Robot " << fn1 << " not found!";
        return EXIT_FAILURE;
    }
 
@@ -273,7 +270,7 @@ int main(int argc, char *argv[]){
        fn2 = fn2 + ".ATL";
    }
    if(!valid(fn2)) {
-       cout << "Output name ", fn2, " not valid!";
+       cout << "Output name " << fn2 << " not valid!";
        return EXIT_FAILURE;
    }
    if( !fn1.compare(fn2)) {
@@ -303,19 +300,19 @@ int main(int argc, char *argv[]){
    **/
 
    f2write << ";------------------------------------------------------------------------------";
-   f2write << "; ", no_path(base_name(fn1)), "Locked on ", ctime(&now);
+   f2write << "; " << no_path(base_name(fn1)) << "Locked on " << ctime(&now);
    f2write << ";------------------------------------------------------------------------------";
    lock_code = "";
    k = rand() % 21 + 20;
-   for (int i = 1; i < k; i++)
+   for (i = 1; i < k; i++)
    {
        lock_code = lock_code + char(rand() % 32 + 65);
    }
-   f2write << "#LOCK", LOCKTYPE ," ",lock_code;
+   f2write << "#LOCK" << LOCKTYPE << " " << lock_code;
 
 
    /* Decode lock-Code */
-   for (int i = 0; i < sizeof(lock_code); i++) //length isn't working find fix
+   for (i = 0; i < sizeof(lock_code); i++) //length isn't working find fix
        {
      lock_code[i] = char(lock_code[i] - 65); // lookup ord when possible)
    }
@@ -330,15 +327,15 @@ int main(int argc, char *argv[]){
    while(!f1read.eof()){
        if (f1read.is_open()) {
            while (getline(f1read,s1)) {
-               cout << s1 << '\n';
+               cout << s1 << endl;
            }
            f1read.close();
        }
        write_line(s, s1, f1write.rdbuf(), lock_code);
    }
-  printf ("Done. Used LOCK Format #", LOCKTYPE, ".");
-  printf ("Only ATR2 v2.08 or later can decode ");
-  printf ("Locked robot saved as ", fn2 );
+  cout << "Done. Used LOCK Format #" << LOCKTYPE << ".";
+  cout << "Only ATR2 v2.08 or later can decode ";
+  cout << "Locked robot saved as " << fn2;
 
   f2write.close();
 
