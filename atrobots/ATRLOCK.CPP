@@ -1,42 +1,45 @@
+
 /* everything between =Nick= was written by Nick */
 /* =Nick= */
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <fstream>
-#include <string.h>
 #include <string>
 #include <time.h>
 #include <iostream>
 #include <algorithm>
 #include <cctype>
-#include <ctype.h>
 
 
 using namespace std;
 
 const int LOCKTYPE = 3;
 
+
 /*
 * NOTE - functions in this file require parameters including the full text of the file.
 */
 // trim from start (in place)
- static inline void ltrim(string &s) {
+ static inline void ltrim(string s) {
      s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
          return !std::isspace(ch);
      }));
  }
 
 // trim from end (in place)
- static inline void rtrim(string &s) {
+ static inline void rtrim(string s) {
      s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
          return !std::isspace(ch);
      }).base(), s.end());
  }
 
 // trim from both ends (in place)
- static inline void trim(string &s) {
+ static inline string trim(string s) {
      ltrim(s);
      rtrim(s);
+     string value(s);
+
+     return value;
  }
 
 // trim from start (copying)
@@ -57,7 +60,7 @@ const int LOCKTYPE = 3;
      return s;
  }
 
- string copy(string name, short start, short end) {
+ string copy(string name, unsigned short start, unsigned short end) {
      string tmp;
 
      start--;
@@ -71,14 +74,14 @@ const int LOCKTYPE = 3;
      return(tmp);
  }
 
- string lstr(string s1, short l) {
+ string lstr(string s1, unsigned short l) {
      if ( s1.length() <= l )
          return(s1);
      else
          return(copy(s1,1,l) );
  }
 
- string rstr(string s1, short l) {
+ string rstr(string s1, unsigned short l) {
      if (s1.length() <= l)
          return(s1);
      else
@@ -86,7 +89,7 @@ const int LOCKTYPE = 3;
  }
 
  string to_Uppercase (string s){
-    transform(s.begin(), s.end(), s.begin(), ::toupper);
+    transform(s.begin(), s.end(), s.begin(), (int (*)(int))std::toupper);
 
     return s;
  }
@@ -99,19 +102,19 @@ const int LOCKTYPE = 3;
  * Purpose: Changes bits of characters in file effectively encoding them.
  */
  string encode(string s, string lock_code) {
-     long i;
-     int lock_pos = 0;
-     int this_dat = 0;
-     int lock_dat = 0;
+     unsigned long i;
+     unsigned int lock_pos = 0;
+     unsigned int this_dat = 0;
+     unsigned int lock_dat = 0;
      size_t lim;
 
-     if (lock_code == "") {
+     if (lock_code.compare("") ) {
          lim = s.length();
          for (i = 0; i < lim; i++) {
              lock_pos++;
              if (lock_pos > lock_code.length())
                  lock_pos = 1;
-             if ((char) s[i] <= 31 || (s[i] & (~127)) != 0 && ((s[i] & 255) <= 255))
+             if ((char) s[i] <= 31 || (((s[i] & (~127)) != 0) && ((s[i] & 255) <= 255)))
                  s[i] = ' ';
              this_dat = s[i] & 15;
              s[i] = (char) ((s[i] ^ lock_code[lock_pos - 1] ^ lock_dat) + 1);
@@ -125,15 +128,15 @@ const int LOCKTYPE = 3;
  * Prepares files to be encoded.
  */
  string prepare(string s, string s1) {
-     int i, j, k, l;
+     unsigned int i, k;
      string s2;
 
-     if(s1.length() == 0 || strcmp(&s1[1], ";")){
+     if( (s1.length() == 0) || (s1[1] == ';')){
          s1 = "";
      }else{
          k = 0;
-         for(i = s1.length(); i--; i >=1){
-             if(strcmp(&s1[i],";")){
+         for(i = s1.length();i >= 1; i-- ){
+             if( s1[i] == ';' ){
                  k = i;
              }
          }
@@ -142,24 +145,21 @@ const int LOCKTYPE = 3;
          }
      }
      s2 = "";
-     for(i = 1; i <= s1.length(); i++){
-         string arr[] = {" ", "#8", "#9", "#10", ","};
-         size_t arrSize = sizeof(arr) / sizeof(int);
-         int *end = arr + arrSize;
-        // find the value 0:
-         int *result = std::find(arr, end, s1);
-         if (result = end) {
-             s2 = s1+s1[i];
-         }else{
-             if(s2 != ""){
-                 s = s+s2+" ";
-                 s2 = "";
-             }
-         }
+     char arr[] = {' ', '\b', '\v', '\n', ','};
 
-     }
-     if(s2 != "")
-         s = s+s2;
+     for(i = 1; i <= s1.length(); i++)
+          for ( k = 0; k < 5; k++)
+               if ( s1[i] != arr[k] )
+                    s2 = s2 + s1[i];
+	       else
+		    if ( s2.compare("") ) { // If s2 does not equal nothing, then
+		         s = s + s2 + " ";
+		         s2 = "";
+		    }
+
+
+     if ( s2.compare("") )
+          s = s + s2;
      return s;
  }
 
@@ -169,20 +169,22 @@ const int LOCKTYPE = 3;
   *
  **/
 
- void write_line(string s, string s1, ofstream f2write, string lock_code) {
-     s = prepare(s, s1);
-     if(s.length() > 0){
-         s = encode(s, lock_code);
-         f2write << s;
+ void write_line(string s, string s1, filebuf * f2write, string lock_code) {
+     if ( f2write -> is_open() ) {
+          s = prepare(s, s1);
+          if(s.length() > 0){
+              s = encode(s, lock_code);
+              f2write -> sputn(s.c_str(), s.length());
+          }
      }
  }
 
  string base_name(string name) {
-	short k;
+	unsigned short k;
 	string s1;
 
 	k = 1;
-	while ( (k <= name.length()) && (name[k].compare(".")) ) {
+	while ( (k <= name.length()) && (name[k] == '.') ) {
 		s1 = s1 + name[k];
 		k++;
 	}
@@ -193,7 +195,7 @@ const int LOCKTYPE = 3;
 
      k = -1;
      for (i = fn.length(); i >= 0; i--)
-         if ((!fn.compare("\ ") || !fn[i].compare(":")) && (k < i))
+         if ((!fn.compare("\\") || (fn[i] != ':')) && (k < i))
              k = i;
      if (k != -1)
          return (rstr(fn, fn.length() - k));
@@ -214,14 +216,13 @@ const int LOCKTYPE = 3;
 
  bool valid(string thisfile) {
      fstream afile;
-     bool check;
      string iocode;
 
      if (!exist(thisfile) ) {
          afile.open(thisfile, std::fstream::out);
          afile.close();
 
-         std::remove(thisfile);
+         std::remove(thisfile.c_str());
          return(false);
      } else
          return(true);
@@ -233,10 +234,8 @@ int main(int argc, char *argv[]){
     */
     //char *f1 [256], *f2 [256], *s[256], *s1[256], *s2[256], *lock_code[256];
    string fn1, fn2,f1,f2,s,s1,s2, lock_code;
-   string arg(argv[1]);
-   string arg2(argv[2]);
    //char date [9];
-   int i, j, k, lock_pos, lock_dat, this_dat;
+   unsigned int i, k;
    time_t now = time(0);
 
    srand (time(NULL));
@@ -244,25 +243,27 @@ int main(int argc, char *argv[]){
    ifstream f1read;
    ofstream f2write;
    ofstream f1write;
-   lock_pos = 0;
-   lock_dat = 0;
 
-   if(argc < 1 || argc > 2){
+   if(argc < 1 || argc > 3){
        cout << "Usage: ATRLOCK <robot[.at2]> [locked[.atl]]";
        return EXIT_FAILURE;
    }
 
-   fn1 = strcpy(trim(toupper(argc)));
-   if(fn1 == base_name(fn1)){
+   string arg(argv[1]);
+   string arg2(argv[2]);
+
+   fn1 = trim(to_Uppercase(arg));
+
+   if( !fn1.compare(base_name(fn1)) ){
        fn1 = fn1 + ".AT2";
    }
    if(f1read.is_open()) {
-       cout << "Robot ", fn1, " not found!";
+       cout << "Robot " << fn1 << " not found!";
        return EXIT_FAILURE;
    }
 
    if(argc == 2) {
-       fn2 = trim(to_Uppercase(fn2));
+       fn2 = trim(to_Uppercase(arg2));
    }else {
        fn2 = base_name(fn1 + ".ATL");
    }
@@ -270,13 +271,15 @@ int main(int argc, char *argv[]){
        fn2 = fn2 + ".ATL";
    }
    if(!valid(fn2)) {
-       cout << "Output name ", fn2, " not valid!";
+       cout << "Output name " << fn2 << " not valid!";
        return EXIT_FAILURE;
    }
-   if(fn1 == fn2) {
+   if( !fn1.compare(fn2)) {
        cout << "Filenames cannot be the same!";
        return EXIT_FAILURE;
    }
+
+
    f1read.open(fn1.c_str());
    f2write.open(fn2.c_str());
 
@@ -298,19 +301,19 @@ int main(int argc, char *argv[]){
    **/
 
    f2write << ";------------------------------------------------------------------------------";
-   f2write << "; ", no_path(base_name(fn1)), "Locked on ", ctime(&now);
+   f2write << "; " << no_path(base_name(fn1)) << "Locked on " << ctime(&now);
    f2write << ";------------------------------------------------------------------------------";
    lock_code = "";
    k = rand() % 21 + 20;
-   for (int i = 1; i < k; i++)
+   for (i = 1; i < k; i++)
    {
        lock_code = lock_code + char(rand() % 32 + 65);
    }
-   f2write << "#LOCK", LOCKTYPE ," ",lock_code;
+   f2write << "#LOCK" << LOCKTYPE << " " << lock_code;
 
 
    /* Decode lock-Code */
-   for (int i = 0; i < sizeof(lock_code); i++) //length isn't working find fix
+   for (i = 0; i < sizeof(lock_code); i++) //length isn't working find fix
        {
      lock_code[i] = char(lock_code[i] - 65); // lookup ord when possible)
    }
@@ -320,22 +323,21 @@ int main(int argc, char *argv[]){
    //Encode robot
    s = trim(s);
    if((s.length()) > 0){
-       write_line("", to_Uppercase(s1), f2write, lock_code);
+       write_line("", to_Uppercase(s1), f2write.rdbuf(), lock_code);
    }
    while(!f1read.eof()){
        if (f1read.is_open()) {
            while (getline(f1read,s1)) {
-               cout << s1 << '\n';
+               cout << s1 << endl;
            }
            f1read.close();
        }
-       write_line(s, s1, f1write, lock_code);
+       write_line(s, s1, f1write.rdbuf(), lock_code);
    }
-  printf ("Done. Used LOCK Format #", LOCKTYPE, ".");
-  printf ("Only ATR2 v2.08 or later can decode ");
-  printf ("Locked robot saved as ", fn2 );
+  cout << "Done. Used LOCK Format #" << LOCKTYPE << ".";
+  cout << "Only ATR2 v2.08 or later can decode ";
+  cout << "Locked robot saved as " << fn2;
 
-  f1.close();
-  f2.close();
+  f2write.close();
 
 }
