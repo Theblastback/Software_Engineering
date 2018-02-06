@@ -60,186 +60,237 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *)
 
 
+
+// Begin C Translation here
+// Unsure where libraries are included, so we'll have to change where to put any required library includes
+
+#include <stdbool.h>	// Required for boolean types in C
+#include <stdio.h>	// Required for file manipulation
+#include <stdlib.h>
+
+
 Program Advanced_T_Robots_2;
 
+// Compile with these files
 uses dos, crt, graph, egavga, filelib, myfile, atr2func;
 
 {’á} {err}
 
-const
- progname       ='AT-Robots';
- version        ='2.11';
- cnotice1       ='Copyright 1997 ''99, Ed T. Toton III';
- cnotice2       ='All Rights Reserved.';
- cnotice3       ='Copyright 2014, William "Amos" Confer';
- main_filename  ='ATR2';
- robot_ext      ='.AT2';
- locked_ext     ='.ATL';
- config_ext     ='.ATS';
- compile_ext    ='.CMP';
- report_ext     ='.REP';
+// Begin listing of global variables, or is this the beginning of the program?
 
+char progname[]		= "AT-Robots";
+char version[]		= "2.11";
+char cnotice1[]		="Copyright 1997 ''99, Ed T. Toton III";
+char cnotice2[]		= "All Rights Reserved.";
+char cnotice3[]		= "Copyright 2014, William "Amos" Confer";
+char main_filename[]	= "ATR2";
+char robot_ext[]	= ".AT2";
+char locked_ext		= ".ATL";
+char config_ext[]	= ".ATS";
+char compile_ext[]	= ".CMP";
+char report_ext[]	= ".REP";
+
+/* Original pascal code
  _T             =true;
  _F             =false;
  minint         =-32768; {maxint=32787 is alrady defined by turbo pascal}
 
- {debugging/compiler}
- show_code      =_F;
- compile_by_line=_F;
- max_var_len    =16;
- debugging_compiler=_F;
+Revised code underneath
+*/
 
- {robots}
- max_robots     =31;    {starts at 0, so total is max_robots+1}
- max_code       =1023;  {same here}
- max_op         =3;     {etc...}
- stack_size     =256;   
- stack_base     =768;
- max_ram        =1023;  {but this does start at 0 (odd #, 2^n-1)}
- max_vars       =256;
- max_labels     =256;
- acceleration   =4;
- turn_rate      =8;
- max_vel        =4;
- max_missiles   =1023;
- missile_spd    =32;
- hit_range      =14;
- blast_radius   =25;
- crash_range    =8;
- max_sonar      =250;
- com_queue      =512;
- max_queue      =255;
- max_config_points=12;
- max_mines      =63;
- mine_blast     =35;
+bool T		= TRUE;
+bool F		= FALSE;
+short minint	= -32768;
 
- {simulator & graphics}
- screen_scale   =0.46;
- screen_x       =5;
- screen_y       =5;
- robot_scale    =06;
- default_delay  =20;
- default_slice  =05;
- mine_circle    =trunc(mine_blast*screen_scale)+1;
- blast_circle   =trunc(blast_radius*screen_scale)+1;
- mis_radius     =trunc(hit_range/2)+1;
- max_robot_lines=8;
+
+
+// {debugging/compiler}
+char show_code		= F;
+char compile_by_line	= F;
+char max_var_len	= 16;
+char debugging_compiler = F;
+
+// {robots}
+char max_robots		= 31; 	// {starts at 0, so total is max_robots+1}
+short max_code		= 1023; // {same here}
+char max_op		= 3;	// {etc...}
+short stack_size	= 256;   
+short stack_base	= 768;
+short max_ram		= 1023; // {but this does start at 0 (odd #, 2^n-1)}
+short max_vars		= 256;
+short max_labels	= 256;
+char acceleration	= 4;
+char turn_rate		= 8;
+char max_vel		= 4;
+short max_missiles	= 1023;
+char missile_spd	= 32;
+char hit_range		= 14;
+char blast_radius	= 25;
+char crash_range	= 8;
+unsigned char max_sonar	= 250;
+short com_queue		= 512;
+unsigned char max_queue	= 255;
+char max_config_points	= 12;
+char max_mines		= 63;
+char mine_blast		= 35;
+
+// {simulator & graphics}
+float screen_scale	= 0.46;
+char screen_x		= 5;
+char screen_y		= 5;
+char robot_scale	= 6;
+char default_delay	= 20;
+char default_slice	= 5;
+short mine_circle	= (mine_blast * screen_scale) + 1;
+short blast_circle	= (blast_radius * screen_scale) + 1;
+short mis_radius	= (hit_range / 2) + 1;
+char max_robot_lines	= 8;
+
+// Screen overlay? 
  Gray50 : FillPatternType = ($AA, $55, $AA, $55,
                              $AA, $55, $AA, $55);
 
 
-type
- op_rec         = record
-                   op:array[0..max_op] of integer;
-                  end;
- prog_type      = array[0..max_code] of op_rec;
- config_rec     = record
-                   scanner,weapon,armor,engine,heatsinks,shield,mines:integer;
-                  end;
- mine_rec       = record
-                   x,y:real;
-                   detect,yield:integer;
-                   detonate:boolean;
-                  end;
- robot_rec      = record
-                   {FIFI}
-                   is_locked:boolean;  {used to determine wether to allow debugger}
-                   mem_watch:integer;  {current base of memory view for debugger}
-                   {/FIFI}
-                   x,y,lx,ly,xv,yv,speed,shotstrength,damageadj,speedadj,meters:real;
-                   hd,thd,lhd,spd,tspd,armor,larmor,heat,lheat,ip,
-                   plen,scanarc,accuracy,shift,err,delay_left,robot_time_limit,
-                   max_time,time_left,lshift,arc_count,sonar_count,scanrange,
-                   last_damage,last_hit,transponder,shutdown,channel,
-                   lendarc,endarc,lstartarc,startarc,mines:integer;
-                   tx,ltx,ty,lty:array[1..max_robot_lines] of integer;
-                   wins,trials,kills,deaths,startkills,shots_fired,match_shots,
-                   hits,damage_total,cycles_lived,error_count:longint;
-                   config:config_rec;
-                   name:string[31];
-                   fn:string[255];
-                   shields_up,lshields,overburn,keepshift,cooling,won:boolean;
-                   code:prog_type;
-                   ram:array[0..max_ram] of integer;
-                   mine:array[0..max_mines] of mine_rec;
-                   errorlog:text;
-                  end;
- parsetype      = array[0..max_op] of string[16];
- robot_ptr      = ^robot_rec;
- missile_rec    = record
-                   x,y,lx,ly,mult,mspd:real;
-                   source,a,hd,rad,lrad,max_rad:integer;
-                  end;
+struct op_rec {
+	short op[max_op];
+};
+ 
+struct prog_type {
+	struct op_rec[max_code];
+}
 
-var
+struct config_rec {
+	short scanner, weapon, armor, engine, heatsinks, shield, mines;
+}
 
- {--robot variables--}
- num_robots:integer;
- robot:array[-2..max_robots+2] of robot_ptr; { a few extra pointers for luck.. :) }
- missile:array[0..max_missiles] of missile_rec;
+struct mine_rec {
+	double x, y;
+	short detect, yield;
+	bool detonate;
+};
 
- {--compiler variables--}
- f:text;
- numvars,numlabels,maxcode,lock_pos,lock_dat:integer;
- varname:array[1..max_vars] of string[max_var_len];
- varloc:array[1..max_vars] of integer;
- labelname:array[1..max_vars] of string[max_var_len];
- labelnum:array[1..max_labels] of integer;
- show_source,compile_only:boolean;
- lock_code:string;
+struct robot_rec {
+	// {FIFI}
+	bool is_ocked;	// {used to determine wether to allow debugger}
+	bool mem_watch;	// {current base of memory view for debugger}
+	// {/FIFI}
 
- {--simulator/graphics variables--}
- {FIFI}
- bout_over:boolean;     {made global from procedure bout}
- step_mode:integer;     {0=off, for (0<step_mode<=9) = #of game cycles per step}
- temp_mode:integer;     {stores previous step_mode for return to step}
- step_count:integer;    {step counter used as break flag}
- step_loop:boolean;     {break flag for stepping}
- {show_debugger:boolean;} {flag for viewing debugger panel vs. robot stats}
- {/FIFI}
- old_shields,insane_missiles,debug_info,windoze,no_gfx,
- logging_errors,timing,show_arcs:boolean;
- game_delay,time_slice,insanity,update_timer,max_gx,max_gy,stats_mode:integer;
- game_limit,game_cycle:longint;
- matches,played,executed:longint;
+	double x, y, lx, ly, xv, yv, speed, shotstrength, damageadj, speedadj, meters;
+	short hd, thd, lhd, spd, tspd, armor, larmor, heat, lheat, ip, plen, scanarc,
+		accuracy, shift, err, delay_left, robot_time_limit, max_time, time_left,
+		lshift, arc_count, sonar_count, scanrange, last_damage, last_hit, transponder,
+		shutdown, channel, lendarc, endarc, lstartarc, startarc, mines;
 
- {--general settings--}
- quit,report,show_cnotice:boolean;
- kill_count,report_type:integer;
+	short tx[max_robot_lines+1], ltx[max_robot_lines+1], ty[max_robot_lines+1], lty[max_robot_lines+1];
+
+	short wins, trials, kills, deaths, startkills, shots_fired, match_shots, hits, damage_total,
+		cycles_lived, error_count;
+
+	struct config_rec config;
+	char *name[31];
+	char fn[255];
+	bool shields_up, lshields, overburn, keepshift, cooling, won;
+	struct prog_type code;
+	short ram[max_ram];
+	struct mine_rec mine[max_mines];
+
+	FILE * errorlog; 
+};
+
+char *parsetype[16];
+struct robot_rec * robot_ptr	= robot_rec;
+struct missile_rec {
+	double x, y, lx, ly, mult, mspd;
+	short source, a, hd, rad, lrad, max_rad;
+};
 
 
+// {--robot variables--}
+short num_robots;
+struct robot_ptr robot:array[max_robots+4]; // { a few extra pointers for luck.. :) } EDIT: I SHIFTED THE ARRAY INDEXES. IT USED TO START AT -2, NOW IT STARTS AT 0 -MZ
+struct missile_rec missile[max_missiles];
 
-function operand(n,m:integer):string;
-var
- s:string;
-begin
- s:=cstr(n);
-     (*
-     Microcode:
-        0 = instruction, number, constant
-        1 = variable, memory access
-        2 = :label
-        3 = !label (unresolved)
-        4 = !label (resolved)
-       8h mask = inderect addressing (enclosed in [])
-     *)
- case m and 7 of
-  1:s:='@'+s;
-  2:s:=':'+s;
-  3:s:='$'+s;
-  4:s:='!'+s;
-  else s:=cstr(n);
- end;
- if m and 8>0 then s:='['+s+']';
- operand:=s;
-end;
+// {--compiler variables--}
+FILE * 	f;
+short	numvars, numlabels, maxcode, lock_pos, lock_dat;
+char	varname[max_var_len][max_vars];
+short	varloc[max_vars];
+char	labelname[max_var_len][max_vars];
+short	labelnum[max_labels];
+bool	show_source, compile_only;
+char *	lock_code;
 
-function mnemonic(n,m:integer):string;
-var
-s:string;
-begin
- s:=cstr(n);
- if m=0 then
+// {--simulator/graphics variables--}
+// {FIFI}
+bool	bout_over;	//	{made global from procedure bout}
+short	step_mode;	//	{0=off, for (0<step_mode<=9) = #of game cycles per step}
+short	temp_mode;	//	{stores previous step_mode for return to step}
+short 	step_count;	//	{step counter used as break flag}
+bool	step_loop;	//	{break flag for stepping}
+
+// bool show_debugger; {flag for viewing debugger panel vs. robot stats}
+// {/FIFI}
+
+bool	old_shields, insane_missiles, debug_info, windoze, no_gfx, logging_errors,
+	timing, show_arcs;
+short	game_delay, time_slice, insanity, update_timer, max_gx, max_gy, stats_mode;
+short	game_limit, game_cycle;
+short	matches, played, executed;
+
+// {--general settings--}
+bool	quit, report, show_cnotice;
+short	kill_count, report_type;
+
+
+
+char * operand(short n, short m) {
+	char *s;
+
+	// Unsure what this function does	
+	s:=cstr(n);
+     	/*
+     	Microcode:
+		0 = instruction, number, constant
+		1 = variable, memory access
+		2 = :label
+		3 = !label (unresolved)
+		4 = !label (resolved)
+		8h mask = inderect addressing (enclosed in [])
+     	*/
+	switch ( m & 7 ) {
+		case 1:
+			s:='@'+s;
+			break;
+
+		case 2:
+			s:=':'+s;
+			break;
+
+		case 3:
+			s:='$'+s;
+			break;
+
+		case 4:
+			s:='!'+s;
+			break;
+
+		default:
+			s:=cstr(n);
+	}
+
+	if ( (m & 8) > 0 ) then
+		s:='['+s+']';
+
+	return(s);
+}
+
+char * mnemonic(short n, short m) {
+
+	char *s;
+
+	s:=cstr(n);
+
+	if (m == 0) {
   case n of
    00:s:='NOP';
    01:s:='ADD';
@@ -289,9 +340,10 @@ begin
    45:s:='NEG';
    46:s:='JTL';
    else s:='XXX';
-  end else s:=operand(n,m);
- mnemonic:=s;
-end;
+  end 
+	} else s:=operand(n,m);
+	return (s);
+}
 
 procedure log_error(n,i:integer;ov:string);
 var
@@ -3560,57 +3612,86 @@ begin
  setscreen;
 end;
 
-procedure main;
-var
- i,j,k,l,n,w:integer;
-begin
- if graphix then begin_window;
- if matches>0 then
-  for i:=1 to matches do
-   bout;
- if not graphix then writeln;
- if quit then exit;
- if matches>1 then  {--Calculate overall statistics--}
-  begin
-   writeln; writeln;
-   graph_mode(false);
-   textcolor(15);
-   writeln('Bout complete! (',matches,' matches)');
-   writeln;
-   k:=0; w:=0;
-   for i:=0 to num_robots do
-    with robot[i]^ do
-     begin
-      if wins=w then begin inc(k); end;
-      if wins>w then begin k:=1; n:=i; w:=wins; end;
-     end;
-   writeln('Robot           Wins  Matches  Kills  Deaths    Shots');
-   writeln('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
-   for i:=0 to num_robots do
-    with robot[i]^ do
-     begin
-      textcolor(robot_color(i));
-      writeln(addfront(cstr(i+1),2)+' - '+addrear(fn,8)
-             +addfront(cstr(wins),7)+addfront(cstr(trials),8)
-             +addfront(cstr(kills),8)+addfront(cstr(deaths),8)
-             +addfront(cstr(shots_fired),9));
-     end;
-   textcolor(15);
-   writeln;
-   if k=1 then writeln('Robot #',n+1,' (',robot[n]^.fn,') wins the bout! (score: ',w,'/',matches,')')
-          else writeln('There is no clear victor!');
-   writeln;
-  end
- else if graphix then
-  begin {matches=1 also}
-   graph_mode(false);
-   show_statistics;
-  end;
- if report then write_report;
-end;
 
-begin
- init;
- main;
- shutdown;
-end.
+// Main loop for game
+void main() {
+	short i, j, k, l, n, w;
+
+	if ( graphix )
+		begin_window();
+
+	if (matches > 0) {
+		for (i=1; i <= matches; i++) {
+			bout; // Unknown function. Perhaps buffer out?
+		}
+	}
+
+	if ( !graphix )
+		writeln();
+
+	if ( quit() )
+		exit();
+
+	if (matches > 1) { // {--Calculate overall statistics--}
+		printf("\n"); printf("\n"); // Gotta keep the code one for one, unfortunately. I think this just prints to the line. Without parameters, perhaps it's just a new line?
+		graph_mode(FALSE);
+		textcolor(15); 		// Need to switch this function with something from SDL_ttf
+		fprintf(stdout, "Bout complete! (%hd matches)\n", matches);
+		printf("\n");
+
+		k = 0; w = 0;
+		for (i = 0; i <= num_robots; i++) {
+			if (robot[i] -> wins = w) then 
+				inc(k);
+
+			if (robot[i] -> wins > w) {
+				k = 1;
+				n = i;
+				w = wins;
+			}
+		}
+
+		printf("Robot           Wins  Matches  Kills  Deaths    Shots\n");
+		printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+
+		for (i = 0; i <= num_robots; i++) {
+		with robot[i]^ do
+			begin
+			textcolor(robot_color(i));
+
+			printf("addfront(cstr(i+1),2)+' - '+addrear(fn,8)
+			+addfront(cstr(wins),7)+addfront(cstr(trials),8)
+			+addfront(cstr(kills),8)+addfront(cstr(deaths),8)
+			+addfront(cstr(shots_fired),9)");
+			end;
+		}
+
+		textcolor(15); // Unknown function
+		printf("\n");
+		if (k = 1)
+			printf("Robot #%hd (%s) wins the bout! (score: %hd/%hd\n", (n+1), robot[n]->fn, w, matches);
+		else
+			printf("There is no clear victor!\n");
+
+		printf("\n");
+	}
+
+	else if ( graphix ) {
+		// {matches=1 also}
+		graph_mode(FALSE);
+		show_statistics();
+	}
+
+	if ( report )
+		write_report();
+}
+
+
+// Main function for entire program
+int main(int argc, char **argv) {
+	init();
+	main();
+	shutdown();
+
+	return EXIT_SUCCESS;
+}
