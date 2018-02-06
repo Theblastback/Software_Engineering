@@ -187,7 +187,7 @@ const int LOCKTYPE = 3;
 	k = 0;
 	while ( (k <= name -> length() - 1) && (name -> at(k) != '.') ) {
 		s1 = s1 + name -> at(k);
-		cout << "base_name: s1: " << s1 << endl;
+//		cout << "base_name: s1: " << s1 << endl;
 		k++;
 	}
 	cout << endl;
@@ -220,12 +220,12 @@ const int LOCKTYPE = 3;
  bool valid(string * thisfile) {
      fstream afile;
 
-	cout << "Valid: thisfile: " << *thisfile << endl;
+//	cout << "Valid: thisfile: " << *thisfile << endl;
 
      if (!exist(thisfile) ) {
          afile.open(*thisfile, std::fstream::out);
          afile.close();
-	cout << "Valid: Does not exist" << endl;
+//	cout << "Valid: Does not exist" << endl;
 
          // std::remove(thisfile -> c_str());
 
@@ -239,7 +239,6 @@ int main(int argc, char *argv[]){
     */
     //char *f1 [256], *f2 [256], *s[256], *s1[256], *s2[256], *lock_code[256];
    string fn1, fn2,f1,f2,s,s1,s2, lock_code;
-   size_t	temp_size;
    //char date [9];
    unsigned int i, k, num_lock_code;
    time_t now = time(0);
@@ -284,7 +283,7 @@ int main(int argc, char *argv[]){
    }else {
        arg2 = fn1 + ".ATL";
        fn2 = base_name(&arg2);
-		cout << "fn2 else: " << fn2 << endl;
+//		cout << "fn2 else: " << fn2 << endl;
 
    }
    if(fn2 == base_name(&fn2)) {
@@ -301,7 +300,7 @@ int main(int argc, char *argv[]){
    }
 
 
-	cout << "Fn1: " << fn1 << "\tFn2: " << fn2 << endl;
+//	cout << "Fn1: " << fn1 << "\tFn2: " << fn2 << endl;
 
    f1read.open(fn1.c_str());
    f2write.open(fn2.c_str());
@@ -327,7 +326,7 @@ int main(int argc, char *argv[]){
    arg = base_name(&fn1);
    no_path(&arg);
 
-	cout << "Path of arg: " << arg << endl;
+//	cout << "Path of arg: " << arg << endl;
 
    f2write << ";------------------------------------------------------------------------------";
    f2write << "; " << arg << "Locked on " << ctime(&now);
@@ -340,17 +339,19 @@ int main(int argc, char *argv[]){
    }
    f2write << "#LOCK" << LOCKTYPE << " " << lock_code;
 
-	cout << "Wrote to file" << endl;
+//	cout << "Wrote to file" << endl;
 
 
    /* Decode lock-Code */
-   temp_size = lock_code.length();
 	// need to convert string to number
+	sscanf(lock_code.c_str(), "%u", &num_lock_code);
+//	num_lock_code = 0;
+
+//	for (i = 0; i < lock_code.length(); i++)
+//		num_lock_code = (num_lock_code * 10) + (lock_code[i] - '0');
 
 
-
-
-   for (i = 0; i < std::stoi(lock_code, &temp_size, 10); i++) //length isn't working find fix
+   for (i = 0; i < num_lock_code; i++) //length isn't working find fix
        {
      lock_code[i] = char(lock_code[i] - 65); // lookup ord when possible)
    }
