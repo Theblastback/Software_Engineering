@@ -1,0 +1,17 @@
+
+5
+10
+0
+/^ /G /S /A
+---------------------------------------------------------------------------
+Comments can go down here, after all the data.
+Here's what each line means:
+
+Line    Meaning
+~~~~~~~~~~~~~~~
+  1     Robot directory. If left blank, current directory is used.
+  2     Number of matches per bout.
+  3     Time limit for each match in 1000's of cycles (32k is a long time)
+  4     If greater than 0, chirps between each pairing (not between matches)
+  5     Parameter line to pass to ATR2.EXE (/L and /M will be overridden)
+        (generally you should not edit this line)

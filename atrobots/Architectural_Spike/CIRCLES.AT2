@@ -1,0 +1,33 @@
+;
+; CIRCLES - runs in circles firing if enemy is detected.
+;
+; Sample robot - by Ed T. Toton III 02/04/97
+
+#def turn_rate
+
+     mov        turn_rate,      4   ; Set turn rate to 4 degrees
+     opo        13,     0           ; Port 13 - Set turret to 0 degrees
+     opo        17,     6           ; Port 17 - Set scan arc to 6 degrees.
+
+     ipo        10      ax          ; Port 10 - Get a random number
+     cmp        ax,     -1          ; is it 0 or higher?
+     ja         1                   ; if so, skip along.
+
+     xor        ax,     ax          ; ax = 0
+     sub        ax,     turn_rate   ; ax = 0 - turn_rate
+     mov        turn_rate,       ax ; turn_rate = ax        let's turn left!
+
+:1
+     opo        14,     turn_rate   ; Port 14 - turn
+     opo        11,     100         ; Port 11 - Throttle to 100%
+
+     ipo        7,      ax          ; Port 7 - scan,   ax=range
+     cmp        ax,     2000        ; is enemy in range?
+     ja         10                  ; if not then don't fire
+     opo        15                  ; Port 15 - Fire!
+
+:10
+     jmp        1                   ; repeat loop
+
+
+#END
