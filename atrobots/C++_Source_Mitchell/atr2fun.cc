@@ -1,6 +1,7 @@
 #include "Headers/myfile.h" // filelib is already included in myfile
 #include "Headers/atr2func.h"
 #include <ctime>
+#include <cmath>
 
 
 SDL_Rect view_trim(SDL_Rect value) {
@@ -447,6 +448,14 @@ void main_viewport() {
 }
 
 
+void make_tables() {
+	short i;
+
+	for (i = 0; i <= 255; i++) {
+		sint[i] = sin((i/128) * PI);
+		cost[i] = cos((i/128) * PI);
+
+
 short robot_color(short n) {
 	// Please excuse all of the one line operations here. It's to reduce space
 
@@ -536,7 +545,117 @@ void hole(short x1, short y1, short x2, short y2) {
 
 
 short hex2int(string * s) {
+	unsigned short w, i;
+
+	i = 0;
+	w = 0;
+
+	while ( i < s -> length() ) {
+		switch(s -> at(i)) {
+		case '0': w = (w << 4) | 0x0; break;
+		case '1': w = (w << 4) | 0x1; break;
+		case '2': w = (w << 4) | 0x2; break;
+		case '3': w = (w << 4) | 0x3; break;
+		case '4': w = (w << 4) | 0x4; break;
+		case '5': w = (w << 4) | 0x5; break;
+		case '6': w = (w << 4) | 0x6; break;
+		case '7': w = (w << 4) | 0x7; break;
+		case '8': w = (w << 4) | 0x8; break;
+		case '9': w = (w << 4) | 0x9; break;
+		case 'A': w = (w << 4) | 0xa; break;
+		case 'B': w = (w << 4) | 0xb; break;
+		case 'C': w = (w << 4) | 0xc; break;
+		case 'D': w = (w << 4) | 0xd; break;
+		case 'E': w = (w << 4) | 0xe; break;
+		case 'F': w = (w << 4) | 0xf; break;
+		default:
+			i = s -> length();
+		}
+		i++;
+	}
+	return w;
+}
 
 
 
+short str2int(string * s) {
+	long value = strtol(s -> c_str(), NULL, 0);
+
+	if ( (value < -32768) )
+		return -32768;
+	else if (value > 32767)
+		return 32767;
+	else
+		return (short)value;
+}
+
+
+double distance(double x1, double y1, double x2, double y2) {
+	return (sqrt(pow(y1-y2, 2) + pow(x1-x2, 2)));
+}
+
+
+double find_angle(double xx, double yy, double tx, double ty) {
+	short v, z;
+	double q = 0;
+
+	v = abs(tx - xx);
+
+	if ( v == 0 ) {
+		if ( (tx == xx) && (ty > yy) )
+			q = PI;
+		if ( (tx == xx) && (ty < yy) )
+			q = 0;
+	} else {
+		z = abs(ty - yy);
+		q = abs(atan(z / v));
+		if ( (tx > xx) && (ty > yy) )
+			q = (PI / 2) + q;
+		if ( (tx > xx) && (ty < yy) )
+			q = (PI / 2) - q;
+		if ( (tx < xx) && (ty < yy) )
+			q = PI + (PI / 2) + q;
+		if ( (tx < xx) && (ty > yy) )
+			q = PI + (PI / 2) - q;
+		if ( (tx == xx) && (ty > yy) )
+			q = PI / 2;
+		if ( (tx == xx) && (ty < yy) )
+			q = 0;
+		if ( (tx < xx) && ( ty == yy) )
+			q = PI + (PI / 2);
+		if ( (tx > xx) && (ty == yy) )
+			q = PI / 2;
+	}
+
+	return q;
+}
+
+
+short find_anglei(double xx, double yy, double tx, double ty) {
+	short i = (short)round(find_angle(xx, yy, tx, ty) / PI * 128 + 256));
+
+	while ( i < 0 )
+		i += 255;
+
+	i = i & 255;
+	return i;
+}
+
+
+string bin(short n) {
+	short i;
+	string bin_string = "";
+
+	for (i = 0; i <= 15; i++) {
+		bin_string = (n % 2) + bin_string;
+		n = n / 2;
+	}
+
+	return bin_string;
+}
+
+string decimal(short num) {
+	string dec_string = num;
+
+	return dec_string;
 }
