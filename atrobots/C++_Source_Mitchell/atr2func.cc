@@ -1,15 +1,16 @@
 #include "Headers/myfile.h" // filelib is already included in myfile
 #include "Headers/atr2func.h"
-#include <ctime>
 #include <cmath>
+#include <climits>
+#include <ctime>
 
 
 SDL_Rect view_trim(SDL_Rect value) {
-	if ( (value.w + value.x) > curnt_view.w )
-		value.w = value.w - ((value.x + value.w) - curnt_view.x);
+	if ( (value.w + value.x) > curnt_view -> w )
+		value.w = value.w - ((value.x + value.w) - curnt_view -> x);
 
-	if ( (value.h + value.y) > curnt_view.h )
-		value.h = value.h - ((value.y + value.h) - curnt_view.x);
+	if ( (value.h + value.y) > curnt_view -> h )
+		value.h = value.h - ((value.y + value.h) - curnt_view -> x);
 
 	return value;
 }
@@ -81,7 +82,7 @@ int get_rgb(short color) {
 		break;
 
 	case WHITE:
-		rgb = oxffffff << 8;
+		rgb = 0xffffff << 8;
 		break;
 	}
 
@@ -91,12 +92,13 @@ int get_rgb(short color) {
 
 
 // SetFillStyle controls color of bar
-void setfillstyle(short color);
+
+void setfillstyle(short color) {
 	int bg = get_rgb(color);
 
 	bg_color.r = bg >> 24;
 	bg_color.g = (bg << 8) >> 24;
-	bg_color.b = (bg << 16) >> 34;
+	bg_color.b = (bg << 16) >> 24;
 }
 
 
@@ -125,10 +127,10 @@ void outtextxy(short x_coor, short y_coor, string * text) {
 
 	SDL_SetRenderDrawColor(renderer_main, text_color.r, text_color.g, text_color.b, 0xff);
 
-	SDL_Surface * message_surf = ttf_RenderText_Solid(text_type, s -> c_str(), text_color);
+	SDL_Surface * message_surf = TTF_RenderText_Solid(text_type, text -> c_str(), text_color);
 
-	SDL_Texture * message_rend = SDL_CreateTextureFromSurface(main_renderer, message_surf);
-	SDL_DestroySurface(message_surf);
+	SDL_Texture * message_rend = SDL_CreateTextureFromSurface(renderer_main, message_surf);
+	SDL_FreeSurface(message_surf);
 
 
 	SDL_QueryTexture(message_rend, NULL, NULL, &W, &H);
@@ -158,7 +160,7 @@ void bar(short x_coor, short y_coor, short w_coor, short h_coor) {
 
 	SDL_SetRenderDrawColor(renderer_main, bg_color.r, bg_color.g, bg_color.b, 0xff);
 
-	SDL_RenderFillRect(main_renderer, &src);
+	SDL_RenderFillRect(renderer_main, &src);
 }
 
 void line(short x1, short y1, short x2, short y2) {
@@ -171,7 +173,7 @@ void line(short x1, short y1, short x2, short y2) {
 
 	rect = view_trim(rect);
 
-	SDL_SetRenderDrawColor(renderer_main, fg_color, fg_color.r, fg_color.g, fg_color.b, 0xff);
+	SDL_SetRenderDrawColor(renderer_main, fg_color.r, fg_color.g, fg_color.b, 0xff);
 
 	SDL_RenderDrawLine(renderer_main, rect.x, rect.y, rect.w, rect.h);
 }
@@ -179,22 +181,22 @@ void line(short x1, short y1, short x2, short y2) {
 void putpixel(short x, short y, short color) {
 	setcolor(color);
 
-	SDL_SetRenderDrawColor(renderer_main, fg_color, fg_color.r, fg_color.g, fg_color.b, 0xff);
-	SDL_RenderDrawPoint(renderer_main, x + curnt_view -> x, y curnt_view -> y);
+	SDL_SetRenderDrawColor(renderer_main, fg_color.r, fg_color.g, fg_color.b, 0xff);
+	SDL_RenderDrawPoint(renderer_main, x + curnt_view -> x, y + curnt_view -> y);
 }
 
 
 void textxy(short x, short y, string * s) {
 	setfillstyle(0);
 
-	bar(x, y, x + s->length() * 8; y + 7);
+	bar(x, y, x + s->length() * 8, y + 7);
 
 	outtextxy(x, y, s);
 }
 
 
 
-void coltextxy(short x, short y, string * s, unsigned char c)
+void coltextxy(short x, short y, string * s, unsigned char c) {
 	setcolor(c);
 	textxy(x, y, s);
 }
@@ -220,19 +222,24 @@ char hexnum(unsigned char num) {
 	case 'E': return 'E';
 	case 'F': return 'F';
 	default: return 'X';
+	}
 }
 
 
 
 string hexb(unsigned char num) {
-	string temp = hexnum(num >> 4) + hexnum(num & 15);
+	unsigned short number = hexnum(num >> 4) + hexnum(num & 15);
+
+	string temp = to_string(number);
 	return temp;
 }
 
 
 
-string hex(unsigned short) {
-	string temp = hexb(num >> 8) + hexb(num & 255);
+string hex(unsigned short num) {
+	unsigned char number = num >> 8;
+	string temp = hexb(number) + hexb(num & 255);
+
 	return temp;
 }
 
@@ -259,18 +266,18 @@ int value(string * i) {
 }
 
 
-string cstrr(double i) {
-	string temp = i;
+inline string cstrr(double i) {
+	string temp = to_string(i);
 	return temp;
 }
 
-string cstr(int i) {
-	string temp = i;
+inline string cstr(int i) {
+	string temp = to_string(i);
 	return temp;
 }
 
 
-string zero_pad(int n, int l) {
+string zero_pad(int n, unsigned int l) {
 	string s;
 
 	s = cstr(n);
@@ -280,7 +287,7 @@ string zero_pad(int n, int l) {
 	return s;
 }
 
-string zero_pads(string s, int l) {
+string zero_pads(string s, unsigned int l) {
 	string s1 = s;
 
 	while (s1.length() <= l)
@@ -307,7 +314,7 @@ string lcase(string * s) {
 
 
 string space(unsigned char i) {
-	unsigned char k
+	unsigned char k;
 	string s = "";
 
 	if ( i )
@@ -375,7 +382,7 @@ short get_seconds_past_hour() {
 void calibrate_timing() {
 // THE RTC IS LOCATED AT MEM ADDRESSES 0000:046C is current seconds past the hour
 // 0000:046E is the current hour in 24 hour time format
-	int i, k;
+	int k;
 
 	delay_per_sec = 0;
 	k = get_seconds_past_hour();
@@ -398,11 +405,14 @@ void time_delay(short n) {
 		calibrate_timing();
 
 	l = ((float)(n/1000)*delay_per_sec);
+
+	for ( i = 1; i <= l; i++)
+		SDL_Delay(1);
 }
 
 void check_registration() {
 	unsigned short w;
-	short i;
+	unsigned short i;
 	fstream f;
 	string s = "ATR2.REG";
 
@@ -423,7 +433,7 @@ void check_registration() {
 				w = w + s[i];
 
 			w = w ^ 0x5aa5;
-			if ( w == reg_num )
+			if ( w == strtoul(reg_num.c_str(), NULL, 0) )
 				registered = true;
 		}
 	}
@@ -452,8 +462,10 @@ void make_tables() {
 	short i;
 
 	for (i = 0; i <= 255; i++) {
-		sint[i] = sin((i/128) * PI);
-		cost[i] = cos((i/128) * PI);
+		sint[i] = sin((i/128) * M_PI);
+		cost[i] = cos((i/128) * M_PI);
+	}
+}
 
 
 short robot_color(short n) {
@@ -504,7 +516,7 @@ void box(short x1, short y1, short x2, short y2) {
 	line(x1, y1, x2-1, y1);
 	line(x1, y1, x1, y2-1);
 
-	setcolor(DARK_GRAY)
+	setcolor(DARK_GRAY);
 	line(x1+1, y2, x2, y2);
 	line(x2, y1+1, x2, y2);
 }
@@ -535,7 +547,7 @@ void hole(short x1, short y1, short x2, short y2) {
 	line(x1, y1, x2-1, y1);
 	line(x1, y1, x1, y2-1);
 
-	setcolor(WHITE)
+	setcolor(WHITE);
 	line(x1+1, y2, x2, y2);
 	line(x2, y1+1, x2, y2);
 
@@ -581,9 +593,9 @@ short hex2int(string * s) {
 short str2int(string * s) {
 	long value = strtol(s -> c_str(), NULL, 0);
 
-	if ( (value < -32768) )
+	if ( (value < SHRT_MIN) )
 		return -32768;
-	else if (value > 32767)
+	else if (value > SHRT_MAX)
 		return 32767;
 	else
 		return (short)value;
@@ -603,28 +615,28 @@ double find_angle(double xx, double yy, double tx, double ty) {
 
 	if ( v == 0 ) {
 		if ( (tx == xx) && (ty > yy) )
-			q = PI;
+			q = M_PI;
 		if ( (tx == xx) && (ty < yy) )
 			q = 0;
 	} else {
 		z = abs(ty - yy);
 		q = abs(atan(z / v));
 		if ( (tx > xx) && (ty > yy) )
-			q = (PI / 2) + q;
+			q = (M_PI / 2) + q;
 		if ( (tx > xx) && (ty < yy) )
-			q = (PI / 2) - q;
+			q = (M_PI / 2) - q;
 		if ( (tx < xx) && (ty < yy) )
-			q = PI + (PI / 2) + q;
+			q = M_PI + (M_PI / 2) + q;
 		if ( (tx < xx) && (ty > yy) )
-			q = PI + (PI / 2) - q;
+			q = M_PI + (M_PI / 2) - q;
 		if ( (tx == xx) && (ty > yy) )
-			q = PI / 2;
+			q = M_PI / 2;
 		if ( (tx == xx) && (ty < yy) )
 			q = 0;
 		if ( (tx < xx) && ( ty == yy) )
-			q = PI + (PI / 2);
+			q = M_PI + (M_PI / 2);
 		if ( (tx > xx) && (ty == yy) )
-			q = PI / 2;
+			q = M_PI / 2;
 	}
 
 	return q;
@@ -632,7 +644,7 @@ double find_angle(double xx, double yy, double tx, double ty) {
 
 
 short find_anglei(double xx, double yy, double tx, double ty) {
-	short i = (short)round(find_angle(xx, yy, tx, ty) / PI * 128 + 256));
+	short i = (short)round(find_angle(xx, yy, tx, ty) / M_PI * 128 + 256);
 
 	while ( i < 0 )
 		i += 255;
@@ -647,7 +659,7 @@ string bin(short n) {
 	string bin_string = "";
 
 	for (i = 0; i <= 15; i++) {
-		bin_string = (n % 2) + bin_string;
+		bin_string = to_string((n % 2)) + bin_string;
 		n = n / 2;
 	}
 
@@ -655,7 +667,7 @@ string bin(short n) {
 }
 
 string decimal(short num) {
-	string dec_string = num;
+	string dec_string = to_string(num);
 
 	return dec_string;
 }

@@ -1,12 +1,14 @@
-#ifndef ATR2FUN_H
+#ifndef ATR2FUNC_H
 #define ATR2FUNC_H
 
 #include "filelib.h"
 
+// These SDL headers work for me, but likely will not work for you guys
+// Their original names were <SDL2/...
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_mixer.h>
-#include <SDL2/SDL_ttf.h>
+#include <SDL.h>
+#include <SDL_mixer.h>
+#include <SDL_ttf.h>
 
 // Color definitions
 
@@ -41,8 +43,8 @@ int	delay_per_sec;
 bool	registered, graphix, sound_on;
 string	reg_name;
 
-unsigned short reg_num;
-double	sint[256], cost[256;
+string reg_num;
+double	sint[256], cost[256];
 
 
 extern void	setfillstyle(short);
@@ -60,8 +62,8 @@ extern double	valuer(string *);
 extern int	value(string *);
 extern string	cstrr(double);
 extern string	cstr(int);
-extern string	zero_pad(int, int);
-extern string	zero_pads(string *, int);
+extern string	zero_pad(int, unsigned int);
+extern string	zero_pads(string *, unsigned int);
 extern string	ucase(string *);
 extern string	lcase(string *);
 extern string	space(unsigned char);
@@ -74,7 +76,7 @@ extern void	flushkey(); // Not yet implemented
 
 extern void	calibrate_timing();
 extern void	time_delay(unsigned short);
-extern void	check_registration;
+extern void	check_registration();
 
 // Assembly functions (Not created)
 extern short	rol(short, short);
@@ -87,7 +89,7 @@ extern void	main_viewport();
 extern void	make_tables();
 
 // Robot color will have to be changed in order to store RGB
-extern int	robot_color(short);
+extern short	robot_color(short);
 extern void	box(short, short, short, short);
 extern void	hole(short, short, short, short);
 
@@ -103,7 +105,7 @@ extern short	hex2int(string *);
 extern short	str2int(string *);
 
 extern double	find_angle(double, double, double, double);
-extern int	find_anglei(double, double, double, double);
+extern short	find_anglei(double, double, double, double);
 
 extern string	bin(short);
 extern string	decimal(int, int);
