@@ -31,8 +31,8 @@
 SDL_Window	* window_main;
 SDL_Renderer	* renderer_main;
 SDL_Rect	* curnt_view;
-int		bg_color; // Bar color
-int		fg_color; // Line/rect color
+SDL_Color	bg_color; // Bar color
+SDL_Color	fg_color; // Line/rect color
 SDL_Color	text_color;
 TTF_Font	* text_type; // Needed to print text
 
@@ -44,10 +44,12 @@ unsigned short reg_num;
 double	sint[256], cost[256;
 
 
+extern void	setfillstyle(short);
+extern void	setcolor(short);
+extern void	textcolor(short);
 
 extern void	textxy(short, short, string *);
 extern void	outtextxy(short, short, string *);	// Is heavily used and is modified by the viewport, so this is needed
-
 
 extern void	coltextxy(short, short, string *, unsigned char);
 extern char	hexnum(unsigned char);
@@ -59,8 +61,6 @@ extern string	cstrr(double);
 extern string	cstr(int);
 extern string	zero_pad(int, int);
 extern string	zero_pads(string *, int);
-extern string	addfront(string *, int);
-extern string	addrear(string *, int);
 extern string	ucase(string *);
 extern string	lcase(string *);
 extern string	space(unsigned char);
@@ -68,18 +68,19 @@ extern string	repchar(char, unsigned char);
 extern string	ltrim(string *);
 extern string	rtrim(string *);
 extern string	btrim(string *);
-extern string	lstr(string *);
-extern string	rstr(string *);
 
-extern void	flushkey();
+extern void	flushkey(); // Not yet implemented
+
 extern void	calibrate_timing();
 extern void	time_delay(unsigned short);
 extern void	check_registration;
 
+// Assembly functions (Not created)
 extern short	rol(short, short);
 extern short	ror(short, short);
 extern short	sal(short, short);
 extern short	sar(short, short);
+
 extern void	viewport(short, short, short, short);
 extern void	main_viewport();
 extern void	make_tables();
@@ -89,7 +90,11 @@ extern int	robot_color(short);
 extern void	box(short, short, short, short);
 extern void	hole(short, short, short, short);
 
-extern void	bar(short, short, short, short);	// I remember making this function to replicate the original bar function
+// Functions that existed in pascal but don't in C++/SDL2
+extern void	bar(short, short, short, short);
+extern void	line(short, short, short, short);
+extern void	putpixel(short, short, short);
+
 extern void	chirp();
 extern void	click();
 
