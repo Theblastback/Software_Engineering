@@ -97,12 +97,12 @@ struct robot_rec {
 	string	fn;
 	bool	shields_up, lshields, overburn, keepshift, cooling, won;
 	struct 	prog_type	code;
-	short	ram[MAX_RAM];
-	struct 	mine_rec	mine[MAX_MINES];
-	string	errorlog;
+	short	ram[MAX_RAM +1];
+	struct 	mine_rec	mine[MAX_MINES +1];
+	ostream	errorlog;
 }
 
-string parsetype[MAX_OP];
+string parsetype[MAX_OP +1];
 struct missile_rec {
 	double x, y, lx, ly, mult, mspd;
 	short source, a, hd, rad, lrad, max_rad;
@@ -112,8 +112,8 @@ struct missile_rec {
 
 // Robot variables
 short num_robots;
-struct robot_ptr robot[MAX_ROBOTS + 4]; // Array started at -2, so I shifted it over
-struct missile_rec missile[MAX_MISSILES];
+struct robot_ptr robot[MAX_ROBOTS + 5]; // Array started at -2, so I shifted it over
+struct missile_rec missile[MAX_MISSILES + 1];
 
 // Compiler variables
 string	f;
@@ -609,4 +609,324 @@ void reset_hardware(short n) {
 	short i;
 	double d, dd;
 
+	// robot[n] -> dereference
+	for ( i = 0; i <= MAX_ROBOT_LINES; i++ ) {
+		robot[n] -> ltx[i] = 0;
+		robot[n] -> tx[i] = 0;
+		robot[n] -> lty[i] = 0;
+		robot[n] -> ty[i] = 0;
+	}
 
+	do {
+		robot[n] -> x = rand() % 1000;
+		robot[n] -> y = rand() % 1000;
+		robot[n] -> dd = 1000;
+		for ( i = 0; i <= NUM_ROBOTS; i++ ) {
+			if ( robot[i] -> x < 0 )
+				robot[i] -> x = 0;
+			if ( robot[i] -> x > 1000 )
+				robot[i] -> x = 1000;
+			if ( robot[i] -> y < 0 )
+				robot[i] -> y = 0;
+			if ( robot[i] -> y > 1000 )
+				robot[i] -> 1000;
+
+			robot[n] -> d = distance(robot[n] -> x, robot[n] -> y, robot[i] -> x, robot[i] -> y);
+			if ( (robot[i] -> armor > 0) && (i != n) && (robot[n] -> d < robot[n] -> dd) )
+				robot[n] -> dd = robot[n] -> d;
+		}
+	} while ( robot[n] -> dd > 32 );
+
+	for ( i = 0; i <= MAX_MINES; i++ ) {
+		robot[n] -> mine[i] -> x = -1;
+		robot[n] -> mine[i] -> y = -1;
+		robot[n] -> mine[i] -> yield = 0;
+		robot[n] -> mine[i] -> detonate = false;
+		robot[n] -> mine[i] -> detect = 0;
+	}
+	robot[n] -> lx = -1;
+	robot[n] -> ly = -1;
+	robot[n] -> hd = rand() % 256;
+	robot[n] -> shift = 0;
+	robot[n] -> lhd = robot[n] -> hd;
+	robot[n] -> lshift = robot[n] -> shift + 1;
+	robot[n] -> spd = 0;
+	robot[n] -> speed = 0;
+	robot[n] -> cooling = false;
+	robot[n] -> armor = 100;
+	robot[n] -> larmor = 0;
+	robot[n] -> heat = 0;
+	robot[n] -> lheat = 0;
+	robot[n] -> match_shots = 0;
+	robot[n] -> won = false;
+	robot[n] -> last_damage = 0;
+	robot[n] -> last_hit = 0;
+	robot[n] -> transponder = n + 1;
+	robot[n] -> meters = 0;
+	robot[n] -> shutdown = 400;
+	robot[n] -> shields_up = false;
+	robot[n] -> channel = 	robot[n] -> transponder;
+	robot[n] -> startkills = robot[n] -> kills;
+
+	robot_config(n);
+}
+
+void init_robot(short n) {
+	short i, j, k, l;
+
+	robot[n] -> wins = 0;
+	robot[n] -> trials = 0;
+	robot[n] -> kills = 0;
+	robot[n] -> deaths = 0;
+	robot[n] -> shots_fired = 0;
+	robot[n] -> match_shots = 0;
+	robot[n] -> hits = 0;
+	robot[n] -> damage_total = 0;
+	robot[n] -> cycles_lived = 0;
+	robot[n] -> error_count = 0;
+	robot[n] -> plen = 0;
+	robot[n] -> max_time = 0;
+	robot[n] -> name = "";
+	robot[n] -> fn = "";
+	robot[n] -> speed = 0;
+	robot[n] -> arc_count = 0;
+	robot[n] -> sonar_count = 0;
+	robot[n] -> robot_time_limit = 0;
+	robot[n] -> scanrange = 1500;
+	robot[n] -> shotstrength = 1;
+	robot[n] -> damageadj = 1;
+	robot[n] -> speedadj = 1;
+	robot[n] -> mines = 0;
+
+	robot[n] -> config.scanner = 5;
+	robot[n] -> config.weapon = 2;
+	robot[n] -> config.armor = 2;
+	robot[n] -> config.engine = 2;
+	robot[n] -> config.heatsinks = 1;
+	robot[n] -> config.shield = 0;
+	robot[n] -> config.mines = 0;
+
+	for ( i = 0; i <= MAX_RAM; i++ )
+		robot[n] -> ram[i] = 0;
+
+	robot[n] -> ram[71] = 768;
+
+	for ( i = 0; i <= MAX_CODE; i++ )
+		for ( k = 0; k <= MAX_OP; k++ )
+			robot[n] -> code[i].op[k] = 0;
+
+	reset_hardware(n);
+	reset_software(n);
+}
+
+
+void create_robot(short n, string filename) {
+	short i, j, k;
+
+	if ( (robot[n] = (struct robot_rec *) malloc(sizeof(struct robot_rec))) == NULL ) { // Malloc failed
+		prog_error(9, base_name(no_path(filename)));
+		return;
+	}
+
+	robot[n] -> config = (struct config_rec *) malloc(sizeof(struct config_rec));
+	if ( robot[n] -> config == NULL ) {
+		prog_error(9, base_name(no_path(filename)));
+		free(robot[n]);
+		return;
+	}
+
+	robot[n] -> code = (struct prog_type *) malloc(sizeof(struct prog_type));
+	if ( robot[n] -> code == NULL ) {
+		prog_error(9, base_name(no_path(filename)));
+		free(robot[n] -> config);
+		free(robot[n]);
+		return;
+	}
+
+	for (i = 0; i <= MAX_RAM; i++) {
+		robot[n] -> mine[i] = (struct mine_rec *) malloc(sizeof(struct mine_rec));
+		if ( robot[n] -> mine[i] == NULL ) {
+			prog_error(9, base_name(no_path(filename)));
+			for ( k = 0; k < i; k++ )
+				free(robot[n] -> mine[k]);
+
+			free(robot[n] -> config);
+			free(robot[n] -> code);
+			free(robot[n]);
+			return;
+		}
+	}
+	init_robot(n);
+	robot[n] -> filename = ucase(btrim(filename));
+	if ( robot[n] -> filename.compare(base_name(robot[b] -> filename)) == 0 )
+		if ( robot[n] -> filename[0] == '?' )
+			robot[n] -> filename = robot[n] -> filename + locked_ext;
+		else
+			robot[n] -> filename = robot[n] -> filename + robot_ext;
+
+	if ( robot[n] -> filename[0] == '?' )
+		robot[n] -> filename = rstr(robot[n] -> filename, robot[n] -> filename.length() -1);
+
+	robot[n] -> fn = base_name(no_path(robot[n] -> filename));
+	compile(n, robot[n] -> filename);
+	robot_config(n);
+
+	k = robot[n] -> config.scanner + robot[n] -> config.armor + robot[n] -> config.weapon +
+		robot[n] -> config.engine + robot[n] -> config.heatsinks + robot[n] -> config.shield + robot[n] -> config.mines;
+
+	if ( k > MAX_CONFIG_POINTS )
+		prog_error(21, cstr(k) + "/" + cstr(MAX_CONFIG_POINTS));
+}
+
+
+void shutdown() {
+	short i;
+
+	graph_mode(false);
+	if ( show_cnotice ) {
+		textcolor(CYAN);
+		cout << progname << " " << version << " ";
+		cout << cnotice1 << endl << cnotice2 << endl << cnotice3 << endl;
+
+	textcolor(LIGHT_GRAY);
+	cout << endl;
+	if ( logging_errors ) {
+		for ( i = 0; i <= num_robots; i++ ) {
+			cout << "Robot error-log created: " << base_name(robot[i] -> fn << ".ERR"<< endl;
+			robot[i] -> errorlog.close();
+		}
+	}
+
+	exit(EXIT_SUCCESS);
+}
+
+
+// delete_compile_report(
+
+// write_compile_report(
+
+
+// parse_param(
+
+
+void init() {
+	short i;
+
+	if ( debugging_compiler || compile_by_line || show_code ) {
+		cout << "!!! Warning !!! Compiler Debugging enabled !!!";
+		flushkey();
+		readkey();
+		cout << endl;
+	}
+
+	step_mode = 0;
+	logging_errors = false;
+	stats_mode = 0;
+	insane_missiles = false;
+	insanity = false;
+	delay_per_sec = 0;
+	windoze = true;
+	graphix = false;
+	no_gfx = false; // <-
+	sound_on = true;
+	timing = true;
+	matches = 1;
+	played = 0;
+	old_shields = false;
+	quit = false;
+	compile_only = false;
+	show_arcs = false;
+	debug_info = false;
+	show_cnotice = true;
+	show_source = true;
+	report = false;
+	kill_count = 0;
+	maxcode = max_code;
+
+	make_tables();
+	srand(time(NULL)); // Equivalent of randomize()
+	num_robots = -1;
+	game_limit = 100000;
+	game_cycle = 0;
+	game_delay = default_delay;
+	time_slice = default_slice;
+
+	for ( i = 0; i <= MAX_MISSILES; i++ ) {
+		missile[i] -> a = 0;
+		missile[i] -> source = -1;
+		missile[i] -> x = 0;
+		missile[i] -> y = 0;
+		missile[i] -> lx = 0;
+		missile[i] -> ly = 0;
+		missile[i] -> multi = 1;
+	}
+
+	registered = false;
+	reg_name = "Unregistered";
+	reg_num = 0xffff;
+	check_registration();
+
+	cout << endl;
+	textcolor(CYAN);
+	cout << progname << " " << version << " ";
+	cout << cnotice1 << endl << cnotice2 << endl;
+	textcolor(LIGHT_GRAY);
+	if ( !registered ) {
+		textcolor(RED);
+		cout << "Unregistered version" << endl;
+		textcolor(LIGHT_GRAY);
+	} else
+		cout << "Registered to: " << reg_name;
+
+	cout << endl;
+
+	delete_compile_report();
+
+	string tmp;
+	if ( paramcount > 0 )
+		for ( i = 1; i <= paramcount; i++ ) {
+			tmp = arguement[i]; // Arguement is paramstr. It is effectively argv, but global
+			parse_param(btrim(ucase(tmp))
+		}
+	else
+		pro_error(5, "");
+
+	temp_mode = step_mode;
+
+	if ( logging_errors )
+		for ( i = 0; i <= num_robots; i++ )
+			robot[i] -> errorlog.open(base_name(robot[i] -> fn) + ".ERR");
+
+	if ( compile_only )
+		write_compile_report();
+	if ( num_robots < 1 )
+		prog_error(4, "");
+
+	if ( !no_gfx )
+		graph_mode(true);
+
+	if ( matches > 100000 )
+		matches = 100000;
+	if ( matches < 1 )
+		matches = 1;
+	if ( game_delay > 1000 )
+		game_delay = 1000;
+	if ( game_delay < 0 )
+		game_delay = 0;
+	if ( time_slice > 100 )
+		time_slice = 100;
+	if ( time_slice < 1 )
+		time_slice = 1;
+	if ( game_limit < 0 )
+		game_limit = 0;
+	if ( game_limit > 100000 )
+		game_limit = 100000l
+	if ( maxcode < 1 )
+		max_code = 1; // 2 lines of max code. 0 based
+	if ( maxcode > MAX_CODE )
+		maxcode = MAX_CODE;
+
+	for ( i = NUM_ROBOTS + 1; i <= MAX_ROBOTS + 4; i++ )
+		robot[i] = robot[0];
+
+}
