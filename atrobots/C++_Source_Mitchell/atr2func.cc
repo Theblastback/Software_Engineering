@@ -100,20 +100,25 @@ void setcolor(short color) {
 }
 
 
-// SetTextColor (orwhatever its called) Determines the text color
+// SetTextColor (orwhatever its called) Determines the text color XXX Terminals only XXX
 void textcolor(short color) {
-	int rgb = get_rgb(color);
+/*	int rgb = get_rgb(color);
 
 	text_color.r = rgb >> 24;
 	text_color.g = (rgb << 8) >> 24;
 	text_color.b = (rgb << 16) >> 24;
+*/
+	// For terminals. Linux terminals may not support colors
+	#ifndef _WIN32
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+	#endif
 }
 
 void outtextxy(short x_coor, short y_coor, string text) {
 	SDL_Rect src;
 	int W, H;
 
-	SDL_SetRenderDrawColor(renderer_main, text_color.r, text_color.g, text_color.b, 0xff);
+	SDL_SetRenderDrawColor(renderer_main, fg_color.r, fg_color.g, fg_color.b, 0xff);
 
 	SDL_Surface * message_surf = TTF_RenderText_Solid(text_type, text.c_str(), text_color);
 
@@ -410,7 +415,16 @@ void check_registration() {
 }
 
 
-// Ignored ror, rol, sal, and sar
+
+// ror same as >>, but wrap discarded bits
+// rol same as <<, but wrap discared bits
+// sal same as <<
+// sar same as >>, but copy signed bit over
+
+
+
+
+
 
 
 void viewport(short x1, short y1, short x2, short y2) {
