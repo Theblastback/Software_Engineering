@@ -19,21 +19,21 @@ string	workstr;
 
 // Strings must be passed into functions as pointers or else null string errors may appear
 
-extern string	copy(string *, unsigned short, unsigned short);
+extern string	copy(string, unsigned short, unsigned short);
 
-extern string	addfront(string *, unsigned short);
-extern string	addrear(string *, unsigned short);
-extern string	lstr(string *, unsigned short);
-extern string	rstr(string *, unsigned short);
+extern string	addfront(string, unsigned short);
+extern string	addrear(string, unsigned short);
+extern string	lstr(string, unsigned short);
+extern string	rstr(string, unsigned short);
 
-extern bool 	exist(string *);
-extern bool 	valid(string *);
-extern string	name_form(string *);
-extern string	exten(string *);
+extern bool 	exist(string);
+extern bool 	valid(string);
+extern string	name_form(string);
+extern string	exten(string);
 extern string	attribs(unsigned char);
-extern string	path(string *);
-extern string	no_path(string *);
-extern int	file_length(string *);
+extern string	path(string);
+extern string	no_path(string);
+extern int	file_length(string);
 
 
 #endif

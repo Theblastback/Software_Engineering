@@ -2,54 +2,54 @@
 
 
 // Copy function was included in base pascal compiler. Recoding it here
-string copy(string * name, unsigned short start, unsigned short count) {
+string copy(string name, unsigned short start, unsigned short count) {
 	string temp = "";
 
 	start--; // To compensate for c++ strings starting at 0, not 1
 	for ( unsigned short index = 0; index < count; index++ )
-		temp = temp + name -> at(index);
+		temp = temp + name.at(index);
 
 	return temp;
 }
 
 
-string addfront(string * b, unsigned short l) {
-	while ( b -> length() < l )
-		*b = " " + *b;
+string addfront(string b, unsigned short l) {
+	while ( b.length() < l )
+		b = " " + b;
 
-	return *b;
+	return b;
 }
 
 
-string addrear(string * b, unsigned short l) {
-	while ( b -> length() < l )
-		*b = *b + " ";
+string addrear(string b, unsigned short l) {
+	while ( b.length() < l )
+		b = b + " ";
 
-	return *b;
+	return b;
 }
 
 
-string lstr(string * s1, unsigned short l) {
-	if ( s1 -> length() <= l )
-		return *s1;
+string lstr(string s1, unsigned short l) {
+	if ( s1.length() <= l )
+		return s1;
 	else
 		return ( copy(s1, 1, l) );
 }
 
 
-string rstr(string * s1, unsigned short l) {
-	if ( s1 -> length() <= l )
-		return *s1;
+string rstr(string s1, unsigned short l) {
+	if ( s1.length() <= l )
+		return s1;
 	else
-		return ( copy(s1, s1 -> length() - l + 1, l) );
+		return ( copy(s1, s1.length() - l + 1, l) );
 }
 
 
-bool exist(string * thisfile) {
+bool exist(string thisfile) {
 	fstream afile;
 	bool return_type = false;
 
-	afile.open(*thisfile, fstream::in);
+	afile.open(thisfile, fstream::in);
 
 	if ( afile.good() ) {
 		afile.close();
@@ -61,13 +61,13 @@ bool exist(string * thisfile) {
 }
 
 
-bool valid(string * thisfile) {
+bool valid(string thisfile) {
 	fstream afile;
 	bool ret_type = true;
 
 
 	if ( !exist(thisfile) ) {
-		afile.open(*thisfile, fstream::out);
+		afile.open(thisfile, fstream::out);
 
 		if ( afile.good() )
 			afile.close();
@@ -77,7 +77,7 @@ bool valid(string * thisfile) {
 }
 
 
-string name_form(string * name) {
+string name_form(string name) {
 	unsigned short k;
 	string s1, s2;
 
@@ -86,28 +86,28 @@ string name_form(string * name) {
 
 	k = 0;
 
-	if ( !name -> compare(".") || !name -> compare("..") )
+	if ( !name.compare(".") || !name.compare("..") )
 		return ( addrear(name, 12) );
 
-	while ( (k <= name -> length()) && ( name -> at(k) != '.') ) {
-		s1 = s1 + name -> at(k);
+	while ( (k <= name.length()) && ( name.at(k) != '.') ) {
+		s1 = s1 + name.at(k);
 		k++;
 	}
 
-	if ( k < name -> length() ) {
+	if ( k < name.length() ) {
 		k++;
 
-		while ( (k <= name -> length()) && (name -> at(k) != '.') ) {
-			s2 = s2 + name -> at(k);
+		while ( (k <= name.length()) && (name.at(k) != '.') ) {
+			s2 = s2 + name.at(k);
 			k++;
 		}
 	}
 
-	return ( (addrear(&s1, 9) + addrear(&s2, 3)) );
+	return ( (addrear(s1, 9) + addrear(s2, 3)) );
 }
 
 
-string exten(string * name) {
+string exten(string name) {
 	unsigned short k;
 	string s1, s2;
 
@@ -115,25 +115,25 @@ string exten(string * name) {
 	s2 = "";
 	k = 0;
 
-	while ( (k <= name -> length()) && (name -> at(k) != '.') ) {
-		s1 = s1 + name -> at(k);
+	while ( (k <= name.length()) && (name.at(k) != '.') ) {
+		s1 = s1 + name.at(k);
 		k++;
 	}
 
-	if ( k < name -> length() ) {
+	if ( k < name.length() ) {
 		k++;
 
-		while ( (k <= name -> length()) && (name -> at(k) != '.') ) {
-			s2 = s2 + name -> at(k);
+		while ( (k <= name.length()) && (name.at(k) != '.') ) {
+			s2 = s2 + name.at(k);
 			k++;
 		}
 	}
 
-	return (addrear(&s2, 3));
+	return (addrear(s2, 3));
 }
 
 
-string base_name(string * name) {
+string base_name(string name) {
 	unsigned short k;
 	string s1;
 
@@ -141,8 +141,8 @@ string base_name(string * name) {
 
 	k = 0;
 
-	while ( (k <= name -> length()) && (name -> at(k) != '.') ) {
-		s1 = s1 + name -> at(k);
+	while ( (k <= name.length()) && (name.at(k) != '.') ) {
+		s1 = s1 + name.at(k);
 		k++;
 	}
 
@@ -190,14 +190,14 @@ string attribs (unsigned char b) {
 }
 
 
-string path(string * fn) {
+string path(string fn) {
 
 	unsigned short i, k;
 
 	k = 0;
 
-	for ( i = fn -> length() - 1; i >= 0; i--)
-		if ( (fn -> at(i) == '\\') || (fn -> at(i) == ':') || (k < i) )
+	for ( i = fn.length() - 1; i >= 0; i--)
+		if ( (fn.at(i) == '\\') || (fn.at(i) == ':') || (k < i) )
 			k = i;
 
 	if ( k != 0 )
@@ -207,27 +207,27 @@ string path(string * fn) {
 }
 
 
-string no_path(string * fn) {
+string no_path(string fn) {
 	unsigned short i, k;
 
 	k = 0;
 
-	for ( i = fn -> length() - 1; i >= 0; i-- )
-		if ( (fn -> at(i) == '\\') || (fn -> at(i) == ':') || (k < i) )
+	for ( i = fn.length() - 1; i >= 0; i-- )
+		if ( (fn.at(i) == '\\') || (fn.at(i) == ':') || (k < i) )
 			k = i;
 
 	if (k != 0)
-		return (rstr(fn, fn -> length() -k) );
+		return (rstr(fn, fn.length() -k) );
 	else
-		return (*fn);
+		return (fn);
 
 }
 
 
-int file_length(string * fn) {
+int file_length(string fn) {
 	int file_size;
 
-	fstream sr(*fn, fstream::binary | fstream::ate);
+	fstream sr(fn, fstream::binary | fstream::ate);
 
 	if ( sr.good() ) {
 		file_size = sr.tellg();

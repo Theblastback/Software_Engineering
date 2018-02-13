@@ -109,13 +109,13 @@ void textcolor(short color) {
 	text_color.b = (rgb << 16) >> 24;
 }
 
-void outtextxy(short x_coor, short y_coor, string * text) {
+void outtextxy(short x_coor, short y_coor, string text) {
 	SDL_Rect src;
 	int W, H;
 
 	SDL_SetRenderDrawColor(renderer_main, text_color.r, text_color.g, text_color.b, 0xff);
 
-	SDL_Surface * message_surf = TTF_RenderText_Solid(text_type, text -> c_str(), text_color);
+	SDL_Surface * message_surf = TTF_RenderText_Solid(text_type, text.c_str(), text_color);
 
 	SDL_Texture * message_rend = SDL_CreateTextureFromSurface(renderer_main, message_surf);
 	SDL_FreeSurface(message_surf);
@@ -156,17 +156,17 @@ void putpixel(short x, short y, short color) {
 }
 
 
-void textxy(short x, short y, string * s) {
+void textxy(short x, short y, string s) {
 	setfillstyle(0);
 
-	bar(x, y, x + s->length() * 8, y + 7);
+	bar(x, y, x + s.length() * 8, y + 7);
 
 	outtextxy(x, y, s);
 }
 
 
 
-void coltextxy(short x, short y, string * s, unsigned char c) {
+void coltextxy(short x, short y, string s, unsigned char c) {
 	setcolor(c);
 	textxy(x, y, s);
 }
@@ -215,8 +215,8 @@ string hex(unsigned short num) {
 
 
 
-double valuer(string * i) {
-	long int n = strtol(i -> c_str(), NULL, 0);
+double valuer(string i) {
+	long int n = strtol(i.c_str(), NULL, 0);
 
 	if ( (n == LONG_MAX) || (n == LONG_MIN) )
 		return 0;
@@ -226,8 +226,8 @@ double valuer(string * i) {
 
 
 
-int value(string * i) {
-	long int n = strtol(i -> c_str(), NULL, 0);
+int value(string i) {
+	long int n = strtol(i.c_str(), NULL, 0);
 
 	if ( (n == LONG_MAX) || (n == LONG_MIN) )
 		return 0;
@@ -267,19 +267,19 @@ string zero_pads(string s, unsigned int l) {
 }
 
 
-string ucase(string * s) {
-	for (unsigned int i = 0; i < s -> length(); i++)
-		s -> at(i) = toupper(s -> at(i));
+string ucase(string s) {
+	for (unsigned int i = 0; i < s.length(); i++)
+		s.at(i) = toupper(s.at(i));
 
-	return *s;
+	return s;
 }
 
 
-string lcase(string * s) {
-	for (unsigned int i = 0; i < s-> length(); i++)
-		s -> at(i) = tolower(s -> at(i));
+string lcase(string s) {
+	for (unsigned int i = 0; i < s.length(); i++)
+		s.at(i) = tolower(s.at(i));
 
-	return *s;
+	return s;
 }
 
 
@@ -307,28 +307,28 @@ string repchar(char c, unsigned char i) {
 }
 
 
-string ltrim(string * s1) {
-	while ( s1 -> size() && isspace(s1 -> front()) )
-		s1 -> erase(s1 -> begin());
+string ltrim(string s1) {
+	while ( s1.size() && isspace(s1.front()) )
+		s1.erase(s1.begin());
 
-	return *s1;
+	return s1;
 }
 
 
 
-string rtrim(string * s1) {
-	while ( !s1 -> empty() && isspace(s1 -> at(s1->size()-1)) )
-		s1 -> erase(s1 -> end() - 1);
+string rtrim(string s1) {
+	while ( !s1.empty() && isspace(s1.at(s1.size()-1)) )
+		s1.erase(s1.end() - 1);
 
-	return *s1;
+	return s1;
 }
 
 
-string btrim(string * s1) {
-	*s1 = ltrim(s1);
-	*s1 = rtrim(s1);
+string btrim(string s1) {
+	s1 = ltrim(s1);
+	s1 = rtrim(s1);
 
-	return *s1;
+	return s1;
 }
 
 
@@ -388,7 +388,7 @@ void check_registration() {
 
 	registered = false;
 
-	if ( exist(&s) ) {
+	if ( exist(s) ) {
 		f.open(s, fstream::in);
 		if ( f.good() ) {
 			getline(f, reg_name);
@@ -396,8 +396,8 @@ void check_registration() {
 			f.close();
 
 			w = 0;
-			s = ucase(&reg_name);
-			s = btrim(&s);
+			s = ucase(reg_name);
+			s = btrim(s);
 
 			for (i = 0; i < s.length(); i++)
 				w = w + s[i];
@@ -524,14 +524,14 @@ void hole(short x1, short y1, short x2, short y2) {
 }
 
 
-short hex2int(string * s) {
+short hex2int(string s) {
 	unsigned short w, i;
 
 	i = 0;
 	w = 0;
 
-	while ( i < s -> length() ) {
-		switch(s -> at(i)) {
+	while ( i < s.length() ) {
+		switch(s.at(i)) {
 		case '0': w = (w << 4) | 0x0; break;
 		case '1': w = (w << 4) | 0x1; break;
 		case '2': w = (w << 4) | 0x2; break;
@@ -549,7 +549,7 @@ short hex2int(string * s) {
 		case 'E': w = (w << 4) | 0xe; break;
 		case 'F': w = (w << 4) | 0xf; break;
 		default:
-			i = s -> length();
+			i = s.length();
 		}
 		i++;
 	}
@@ -558,8 +558,8 @@ short hex2int(string * s) {
 
 
 
-short str2int(string * s) {
-	long value = strtol(s -> c_str(), NULL, 0);
+short str2int(string s) {
+	long value = strtol(s.c_str(), NULL, 0);
 
 	if ( (value < SHRT_MIN) )
 		return -32768;
