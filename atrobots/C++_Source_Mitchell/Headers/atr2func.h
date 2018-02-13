@@ -50,26 +50,26 @@ extern void	setfillstyle(short);
 extern void	setcolor(short);
 extern void	textcolor(short);
 
-extern void	textxy(short, short, string *);
-extern void	outtextxy(short, short, string *);	// Is heavily used and is modified by the viewport, so this is needed
+extern void	textxy(short, short, string);
+extern void	outtextxy(short, short, string);	// Is heavily used and is modified by the viewport, so this is needed
 
-extern void	coltextxy(short, short, string *, unsigned char);
+extern void	coltextxy(short, short, string, unsigned char);
 extern char	hexnum(unsigned char);
 extern string	hexb(unsigned char);
 extern string	hex(unsigned short);
-extern double	valuer(string *);
-extern int	value(string *);
+extern double	valuer(string);
+extern int	value(string);
 extern string	cstrr(double);
 extern string	cstr(int);
 extern string	zero_pad(int, unsigned int);
-extern string	zero_pads(string *, unsigned int);
-extern string	ucase(string *);
-extern string	lcase(string *);
+extern string	zero_pads(string, unsigned int);
+extern string	ucase(string);
+extern string	lcase(string);
 extern string	space(unsigned char);
 extern string	repchar(char, unsigned char);
-extern string	ltrim(string *);
-extern string	rtrim(string *);
-extern string	btrim(string *);
+extern string	ltrim(string);
+extern string	rtrim(string);
+extern string	btrim(string);
 
 extern void	flushkey(); // Not yet implemented
 
@@ -100,8 +100,8 @@ extern void	putpixel(short, short, short);
 extern void	chirp();
 extern void	click();
 
-extern short	hex2int(string *);
-extern short	str2int(string *);
+extern short	hex2int(string);
+extern short	str2int(string);
 
 extern double	find_angle(double, double, double, double);
 extern short	find_anglei(double, double, double, double);
