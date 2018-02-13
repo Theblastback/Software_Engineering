@@ -101,3 +101,44 @@ struct robot_rec {
 	struct 	mine_rec	mine[MAX_MINES];
 	string	errorlog;
 }
+
+string parsetype[MAX_OP];
+struct missile_rec {
+	double x, y, lx, ly, mult, mspd;
+	short source, a, hd, rad, lrad, max_rad;
+}
+
+// Begin global variables
+
+// Robot variables
+short num_robots;
+struct robot_ptr robot[MAX_ROBOTS + 4]; // Array started at -2, so I shifted it over
+struct missile_rec missile[MAX_MISSILES];
+
+// Compiler variables
+string	f;
+short	numvars, numlabels, maxcode, lock_pos, lock_dat;
+string	varname[MAX_VARS -1];
+short	varloc[MAX_VARS -1];
+string	labalname[MAX_VARS -1];
+short	labelnum[MAX_VARS -1];
+bool	show_source, compile_only;
+string	lock_code;
+
+// Simulator/graphics variables
+bool	bout_over;
+short	step_mode;	// 0 = off; for 0 < step_mode <= 9 = # of game cycles per step
+short	temp_mode;	// Stores previous step_mode for return to step
+short	step_count	// Step counter used as break flag
+bool	step_loop;	// Break flag for stepping
+
+bool	old_shields, insane_missiles, debug_info, windoze, no_gfx, logging_errors,
+	timing, show_arcs;
+short	game_delay, time_slice, insanity, update_timer, max_gx, max_gy, stats_mode;
+int	game_limit, game_cycle, matches, played, executed;
+
+// General settings
+bool	quit, report, show_cnotice;
+short	kill_count, report_type;
+
+

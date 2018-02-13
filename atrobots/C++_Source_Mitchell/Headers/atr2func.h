@@ -33,7 +33,6 @@
 // All of these will be initialized in atr2's init function
 SDL_Window	* window_main;
 SDL_Renderer	* renderer_main;
-SDL_Rect	* curnt_view;
 SDL_Color	bg_color; // Bar color
 SDL_Color	fg_color; // Line/rect color
 SDL_Color	text_color;

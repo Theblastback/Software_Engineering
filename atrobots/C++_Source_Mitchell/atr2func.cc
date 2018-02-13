@@ -5,18 +5,6 @@
 #include <ctime>
 
 
-SDL_Rect view_trim(SDL_Rect value) {
-	if ( (value.w + value.x) > curnt_view -> w )
-		value.w = value.w - ((value.x + value.w) - curnt_view -> x);
-
-	if ( (value.h + value.y) > curnt_view -> h )
-		value.h = value.h - ((value.y + value.h) - curnt_view -> x);
-
-	return value;
-}
-
-
-
 int get_rgb(short color) {
 	int rgb;
 
@@ -135,12 +123,10 @@ void outtextxy(short x_coor, short y_coor, string * text) {
 
 	SDL_QueryTexture(message_rend, NULL, NULL, &W, &H);
 
-	src.x = x_coor + curnt_view -> x;
-	src.y = y_coor + curnt_view -> y;
+	src.x = x_coor;
+	src.y = y_coor;
 	src.w = W;
 	src.h = H;
-
-	src = view_trim(src);
 
 	SDL_RenderCopy(renderer_main, message_rend, NULL, &src);
 
@@ -149,14 +135,7 @@ void outtextxy(short x_coor, short y_coor, string * text) {
 
 
 void bar(short x_coor, short y_coor, short w_coor, short h_coor) {
-	SDL_Rect src;
-
-	src.x = x_coor + curnt_view -> x;
-	src.y = y_coor + curnt_view -> y;
-	src.w = w_coor;
-	src.h = h_coor;
-
-	src = view_trim(src);
+	SDL_Rect src = {x_coor, y_coor, x_coor, h_coor};
 
 	SDL_SetRenderDrawColor(renderer_main, bg_color.r, bg_color.g, bg_color.b, 0xff);
 
@@ -164,25 +143,16 @@ void bar(short x_coor, short y_coor, short w_coor, short h_coor) {
 }
 
 void line(short x1, short y1, short x2, short y2) {
-	SDL_Rect rect;
-
-	rect.x = x1 + curnt_view -> x;
-	rect.y = y1 + curnt_view -> y;
-	rect.w = x2 + curnt_view -> x;
-	rect.w = y2 + curnt_view -> y;
-
-	rect = view_trim(rect);
-
 	SDL_SetRenderDrawColor(renderer_main, fg_color.r, fg_color.g, fg_color.b, 0xff);
 
-	SDL_RenderDrawLine(renderer_main, rect.x, rect.y, rect.w, rect.h);
+	SDL_RenderDrawLine(renderer_main, x1, y1, x2, y2);
 }
 
 void putpixel(short x, short y, short color) {
 	setcolor(color);
 
 	SDL_SetRenderDrawColor(renderer_main, fg_color.r, fg_color.g, fg_color.b, 0xff);
-	SDL_RenderDrawPoint(renderer_main, x + curnt_view -> x, y + curnt_view -> y);
+	SDL_RenderDrawPoint(renderer_main, x, y);
 }
 
 
@@ -447,10 +417,8 @@ void viewport(short x1, short y1, short x2, short y2) {
 	if ( !graphix )
 		return;
 
-	curnt_view -> x = x1;
-	curnt_view -> y = y1;
-	curnt_view -> w = x2;
-	curnt_view -> h = y2;
+	SDL_Rect view = {x1, y1, (x2 - x1), (y2 - y1)};
+	SDL_RenderSetViewport(renderer_main, &view);
 }
 
 void main_viewport() {
