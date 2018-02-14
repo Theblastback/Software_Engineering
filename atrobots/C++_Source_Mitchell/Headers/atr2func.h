@@ -46,6 +46,8 @@ string reg_num;
 double	sint[256], cost[256];
 
 
+extern void	arc(short, short, unsigned short, unsigned short, unsigned short);
+extern void	circle(short, short, unsigned short);
 extern void	setfillstyle(short);
 extern void	setcolor(short);
 extern void	textcolor(short);

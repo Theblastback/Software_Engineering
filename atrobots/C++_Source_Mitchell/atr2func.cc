@@ -78,6 +78,50 @@ int get_rgb(short color) {
 }
 
 
+void arc(short cent_x, short cent_y, unsigned short st_angle, unsigned short end_angle, unsigned short radius) {
+	// Utilizing the premade tables in this program
+	// Converting a 360 degree circle to a 255 degree means every 1.4 degrees equals 1 degree
+	short x1, x2, y1, y2;
+
+	SDL_SetRenderDrawColor(renderer_main, fg_color.r, fg_color.g, fg_color.b, 0xff);
+
+	st_angle = st_angle / 1.4;
+	end_angle = end_angle / 1.4;
+
+	// Do this outside of the loop in order to set up loop
+	x2 = (cost[st_angle] * radius) + cent_x;
+	y2 = (sint[st_angle) * radius) + cent_y;
+
+	for ( unsigned short angle = st_angle + 1; angle <= end_angle; angle++ ) {
+		x1 = x2;
+		y1 = y2;
+
+		x2 = (cost[angle] * radius) + cent_x;
+		y2 = (sint[angle) * radius) + cent_y;
+
+		SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+	}
+}
+
+
+void circle(short cent_x, short cent_y, unsigned short radius) {
+	int rad_2 = radius * radius;
+	int area = rad_2 << 2;
+	int rad_r = radius << 1;
+
+
+	SDL_SetRenderDrawColor(renderer_main, fg_color.r, fg_color.g, fg_color.b, 0xff);
+
+	for ( int i = 0; i < area; i++ ) {
+		int x = (i % rad_r) - radius;
+		int y = (i / rad_r) - radius;
+
+		if ( ((x*x) + (y*y)) <= rad_2 )
+			SDL_RenderDrawPoint(renderer_main, (cent_x + x), (cent_y + y));
+	}
+
+}
+
 
 // SetFillStyle controls color of bar
 

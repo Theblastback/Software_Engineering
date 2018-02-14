@@ -54,7 +54,7 @@ string report_ext	= ".REP";
 #define SCREEN_SCALE	0.46
 #define SCREEN_X	5
 #define SCREEN_Y	5
-#define RPBPT_SCAL	6
+#define ROBOT_SCALE	6
 #define DEFAULT_DELAY	20
 #define DEFAULT_SLICE	5
 #define MINE_CIRCLE	(MINE_BLAST * SCREEN_SCALE) + 1
@@ -63,10 +63,10 @@ string report_ext	= ".REP";
 #define MAX_ROBOT_LINES	8
 
 struct op_rec {
-	short	op[MAX_OP];
+	short	op[MAX_OP+1];
 }
 
-struct op_rec prog_type[MAX_CODE];
+struct op_rec prog_type[MAX_CODE+1];
 
 struct config_rec {
 	short scanner, weapon, armor, engine, heatsinks, shield, mines;
@@ -88,7 +88,7 @@ struct robot_rec {
 		lshift, arc_count, sonar_count, scannrange, last_damage, last_hit, transponder,
 		shutdown, channel, lendarc, endarc, lstartarc, startarc, mines;
 
-	short	tx[MAX_ROBOT_LINES +1], ltx[MAX_ROBOT_LINES +1], ty[MAX_ROBOT_LINES +1], lty[MAX_ROBOT_LINES +1];
+	short	tx[MAX_ROBOT_LINES], ltx[MAX_ROBOT_LINES], ty[MAX_ROBOT_LINES], lty[MAX_ROBOT_LINES];
 	int	wins, trials, kills, deaths, startkills, shots_fired, match_shots, hits,
 		damage_total, cycles_lived, error_count;
 
@@ -610,7 +610,7 @@ void reset_hardware(short n) {
 	double d, dd;
 
 	// robot[n] -> dereference
-	for ( i = 0; i <= MAX_ROBOT_LINES; i++ ) {
+	for ( i = 0; i < MAX_ROBOT_LINES; i++ ) {
 		robot[n] -> ltx[i] = 0;
 		robot[n] -> tx[i] = 0;
 		robot[n] -> lty[i] = 0;
@@ -621,7 +621,7 @@ void reset_hardware(short n) {
 		robot[n] -> x = rand() % 1000;
 		robot[n] -> y = rand() % 1000;
 		robot[n] -> dd = 1000;
-		for ( i = 0; i <= NUM_ROBOTS; i++ ) {
+		for ( i = 0; i < NUM_ROBOTS; i++ ) {
 			if ( robot[i] -> x < 0 )
 				robot[i] -> x = 0;
 			if ( robot[i] -> x > 1000 )
@@ -637,7 +637,7 @@ void reset_hardware(short n) {
 		}
 	} while ( robot[n] -> dd > 32 );
 
-	for ( i = 0; i <= MAX_MINES; i++ ) {
+	for ( i = 0; i < MAX_MINES; i++ ) {
 		robot[n] -> mine[i] -> x = -1;
 		robot[n] -> mine[i] -> y = -1;
 		robot[n] -> mine[i] -> yield = 0;
@@ -930,3 +930,180 @@ void init() {
 		robot[i] = robot[0];
 
 }
+
+
+void draw_robot(short n) {
+	short i, t;
+	double xx, yy;
+
+	if ( (n < 0) || (n > NUM_ROBOTS) )
+		return;
+
+	if ( robot[n] -> x > 1000 )
+		robot[n] -> x = 1000;
+	if ( robot[n] -> y > 1000 )
+		robot[n] -> y = 1000;
+	if ( robot[n] -> x < 0 )
+		robot[n] -> x = 0;
+	if ( robot[n] -> y < 0 )
+		robot[n] -> y = 0;
+
+	// Set up for draw
+	xx = (robot[n] -> x * SCREEN_SCALE) + SCREEN_X;
+	yy = (robot[n] -> y * SCREEN_SCALE) + SCREEN_Y;
+	robot[n] -> hd = (robot[n] -> hd + 1024) & 255;
+	robot[n] -> tx[0] = (xx + sint[robot[n] -> hd] * 5) + 0.5;
+	robot[n] -> ty[0] = (yy - cost[robot[n] -> hd] * 5) + 0.5;
+
+	robot[n] -> tx[1] = (xx + sint[(robot[n] -> hd + 0x68) & 255] * ROBOT_SCALE) + 0.5;
+	robot[n] -> ty[1] = (yy - cost[(robot[n] -> hd + 0x68) & 255] * ROBOT_SCALE) + 0.5;
+
+	robot[n] -> tx[2] = (xx + sint[(robot[n] -> hd + 0x98) & 255] * ROBOT_SCALE) + 0.5;
+	robot[n] -> ty[2] = (yy - cost[(robot[n] -> hd + 0x98) & 255] * ROBOT_SCALE) + 0.5;
+	t = (robot[n] -> hd + (robot[n] -> shift & 255) + 1024) & 255;
+
+	robot[n] -> tx[3] = xx + 0.5;
+	robot[n] -> ty[3] = yy + 0.5;
+
+	robot[n] -> tx[4] = (xx + sint[t] * ROBOT_SCALE * 0.8) + 0.5;
+	robot[n] -> ty[4] = (yy - cost[y] * ROBOT_SCALE * 0.8) + 0.5;
+
+	robot[n] -> tx[5] = (xx + sint[(t + robot[n] -> scanarc + 1024) & 255] * robot[n] -> scanrange * SCREEN_SCALE) + 0.5;
+	robot[n] -> ty[5] = (yy - cost[(t + robot[n] -> scanarc + 1024) & 255] * robot[n] -> scanrange * SCREEN_SCALE) + 0.5;
+
+	robot[n] -> tx[6] = (xx + sint[(t - robot[n] -> scanarc + 1024) & 255] * robot[n] -> scanrange * SCREEN_SCALE) + 0.5;
+	robot[n] -> ty[6] = (yy - cost[(t - robot[n] -> scanarc + 1024) & 255] * robot[n] -> scanrange * SCREEN_SCALE) + 0.5;
+
+	robot[n] -> startarc = (( (265 - ((t + robot[n] -> scanarc) & 255)) / 256 * 360) + 90) + 0.5;
+	robot[n] -> endarc = (( (265 - ((t - robot[n] -> scanarc) & 255)) / 256 * 360) + 90) + 0.5;
+
+	if ( graphix ) {
+		main_viewport();
+		setcolor(0);
+		if ( robot[n] -> lshields )
+			circle(robot[n] -> ltx[3], robot[n] -> lty[3], ROBOT_SCALE);
+
+		if ( robot[n] -> arc_count > 0 ) {
+			line(robot[n] -> ltx[3], robot[n] -> lty[3], robot[n] -> ltx[5], robot[n] -> lty[5]);
+			line(robot[n] -> ltx[3], robot[n] -> lty[3], robot[n] -> ltx[6], robot[n] -> lty[6]);
+			if ( robot[n] -> scanrange < 1500 )
+				arc(robot[n] -> ltx[3], robot[n] -> lty[3], robot[n] -> lstartarc, robot[n] -> lendarc, (robot[n] -> scanrance * SCREEN_SCALE) + 0.5);
+		}
+
+		if ( robot[n] -> sonar_count > 0 )
+			circle(robot[n] -> ltx[3], robot[n] -> lty[3], robot[n] -> lstartarc, robot[n] -> lendard, (robot[n] -> scanrange * SCREEN_SCALE) + 0.5);
+
+		if ( robot[n] -> armor > 0 ) { // Only erases bot if bot is alive
+			line(robot[n] -> ltx[0], robot[n] -> lty[0], robot[n] -> ltx[1], robot[n] -> lty[1]);
+			line(robot[n] -> ltx[1], robot[n] -> lty[1], robot[n] -> ltx[2], robot[n] -> lty[2]);
+			line(robot[n] -> ltx[2], robot[n] -> lty[2], robot[n] -> ltx[0], robot[n] -> lty[0]);
+			line(robot[n] -> ltx[3], robot[n] -> lty[3], robot[n] -> ltx[4], robot[n] -> lty[4]);
+		}
+	}
+
+	if ( robot[n] -> armor > 0 ) { // If bot is alive, redraw
+		if ( robot[n] -> arc_count > 0 )
+			(robot[n] -> arc_count)--;
+		if ( robot[n] -> sonar_count > 0 )
+			(robot[n] -> sonar_count)--;
+		if ( graphix ) { // Only draw if graphics are enabled
+			setcolor(get_rgb(robot_color(n) & 7));
+			if ( robot[n] -> shields_up )
+				circle(robot[n] -> tx[3], robot -> ty[3], ROBOT_SCALE);
+
+			line(robot[n] ->tx[0], robot[n] ->ty[0], robot[n] ->tx[1], robot[n] ->ty[1]);
+			line(robot[n] ->tx[1], robot[n] ->ty[1], robot[n] ->tx[2], robot[n] ->ty[2]);
+			line(robot[n] ->tx[2], robot[n] ->ty[2], robot[n] ->tx[0], robot[n] ->ty[0]);
+			setcolor(LIGHT_GRAY);
+
+			line(robot[n] ->tx[3], robot[n] ->ty[3], robot[n] -> tx[4], robot[n] ->ty[4]);
+			setcolor(DARK_GRAY);
+
+			if ( showarcs && (robot[n] -> arc_count > 0) ) {
+				line(robot[n] ->tx[3], robot[n] ->ty[3], robot[n] ->tx[5], robot[n] ->ty[6]);
+				line(robot[n] ->tx[3], robot[n] ->ty[3], robot[n] ->tx[6], robot[n] ->ty[6]);
+				if ( robot[n] -> scanrange < 1500 )
+					arc(robot[n] ->tx[3], robot[n] ->ty[3], robot[n] -> startarc, robot[n] -> endarc, (robot[n] -> scanrange * SCREEN_SCALE) + 0.5);
+			}
+			if ( show_arcs && (robot[n] -> sonar_count > 0) )
+				circle(robot[n] ->tx[4], robot[n] ->ty[4], (robot[n] -> max_sonar * SCREEN_SCALE) + 0.5);
+	}
+
+	robot[n] -> lx = robot[n] -> x;
+	robot[n] -> ly = robot[n] -> y;
+	robot[n] -> lhd = robot[n] -> hd;
+	robot[n] -> lshift = robot[n] -> shift;
+	robot[n] -> lshields = robot[n] -> shields_up;
+
+	for ( i = 0; i < MAX_ROBOT_LINES; i++ ) {
+		robot[n] -> ltx[i] = robot[n] -> tx[i];
+		robot[n] -> lty[i] = robot[n] -> ty[i];
+	}
+
+	robot[n] -> lstartarc = robot[n] -> startarc;
+	robot[n] -> lendarc = robot[n] -> endarc;
+}
+
+
+// The direct memory access from ram has been replaced with a psuedo ram array
+short get_from_ram(short n, short i, short j) {
+	short k, l;
+
+	if ( (i < 0) || (i > (MAX_RAM) +(((MAX_CODE + 1) <<3)-1)) ) {
+		k = 0;
+		robot_error(n, 4, cstr(i));
+	} else {
+		if ( i < MAX_RAM )
+			k = robot[n] -> ram[i];
+		else {
+			l = i - MAX_RAM - 1;
+			k = robot[n] -> code[l << 2].op[l & 3];
+		}
+	}
+	return k;
+}
+
+
+short get_val(short n, short c, short 0) {
+	short i, j, k;
+
+	k = 0;
+	j = (robot[n] -> code[c].op[MAX_OP] << (4 * 0)) & 15;
+	i = robot[n] -> code[c].op[o];
+
+	if ( (j & 7) == 1 )
+		k = get_from_ram(n, i, j);
+	else
+		k = i;
+	if ( (j & 8) > 0 )
+		k = get_from_ram(n, k, j);
+
+	return k;
+}
+
+void put_val(short n, short c, short o, short v) {
+	short i, j, k;
+	i = 0; j = 0; k = 0;
+
+	j = (robot[n] -> code[c].op[MAX_OP] >> (4 * o)) & 15;
+	i = robot[n] -> code[c].op[o];
+	if ( (j & 7) == 1 ) {
+		if ( (i < 0) || (i > MAX_RAM) )
+			robot_error(n, 4, cstr(i));
+		else {
+			if ( (j & 8) > 0 ) {
+				i = robot[n] -> ram[i];
+				if ( (i < 0) || (i > max_ram) )
+					robot_error(n, 4, cstr(i));
+				else
+					robot[n] -> ram[i] = v;
+			} else
+				robot[n] -> ram[i] = v;
+		}
+	} else
+		robot_error(n, 3, "");
+}
+
+void push (short n, short v) {
+	// No need to check as this actually isn't ram, but preallocated space
+	
