@@ -1104,6 +1104,42 @@ void put_val(short n, short c, short o, short v) {
 		robot_error(n, 3, "");
 }
 
-void push (short n, short v) {
-	// No need to check as this actually isn't ram, but preallocated space
-	
+void push(short n, short v) {
+	if ( (robot[n] -> ram[71] >= STACK_BASE) && (robot[n] -> ram[71] < (STACK_BASE + STACK_SIZE)) ) {
+		robot[n] -> ram[robot[n] -> ram[71]] = v ;
+		(robot[n] -> ram[71])++;
+	} else
+		robot_error(n, 1, cstr(robot[n] -> ram[71]));
+}
+
+short pop(short n) {
+	short k;
+	if ( (robot[n] -> ram[71] > STACK_BASE) && (robot[n] -> ram[71] <= (STACK_BASE + STACK_SIZE)) {
+		(robot[n] -> ram[71])--;
+		k = robot[n] -> ram[robot[n] -> ram[71]];
+	} else
+		robot_error(n, 5, cstr(robot[n] -> ram[71]));
+
+	return k;
+}
+
+
+short find_label(short n, short l, short m) {
+	short i, j, k;
+
+	k = -1;
+	if ( m == 3 )
+		robot_error(n, 9, "");
+	else
+		if ( m == 4 )
+			k = l;
+		else
+			for ( i = robot[n] -> plen; i >= 0; i-- ) {
+				j = robot[n] -> code[i].op[MAX_OP] & 15;
+				if ( (j == 2) && (robot[n] -> code[i].op[0] == l) )
+					k = i;
+			}
+	return k;
+}
+
+
