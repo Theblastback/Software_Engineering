@@ -1,0 +1,12 @@
+#msg Transmits counter!
+opo P_channel, 1   ; Set to channel 1.
+xor     ax, ax     ; Set AX = 0
+:1
+delay   10         ; We want to delay between each transmit, and we put
+                   ; it at the beginning of the loop to give the receiver
+                   ; time to prepare at the beginning of the simulation.
+
+inc     ax         ; AX = AX + 1
+err     ax         ; Display what we're about to transmit.
+int     I_transmit ; transmit AX over the radio.
+jmp     1          ; and start over.

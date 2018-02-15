@@ -1,0 +1,121 @@
+ATRT - AT-Robots Tournament
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is just a quick overview of how to use ATRT to run an automatic
+and/or unattended tournament aith AT-Robots.
+
+You need a functional copy of AT-Robots version 2.08 or higher,
+and the ATRT archive must be decompressed into the same directory
+as AT-Robots.
+
+For the purposes of explaining the use of ATRT, this file will
+use the example tournament that is included, "DEMO.TRN".
+
+
+GETTING STARTED
+~~~~~~~~~~~~~~~
+Using ATRT is actually quite simple. As mentioned above, make sure
+it is in the same directory as the ATROBOTS program. Then you will
+be ready to begin.
+
+To prepare for a tournament, you must first decide which robots
+to include. To make things easier, it is best to create a subdirectory
+under the AT-Robots directory to place the robots in. But for the sake
+of this example, we will assume you are not doing this, and therefore
+all of the robots will be in the AT-Robots directory.
+
+The next step is to create a tournament file. For this example we will
+use the sample file "DEMO.TRN" (tournament configuration files must end
+in ".TRN"). Inside of the sample file you will see some comments that
+describe each line. When you make your own tournament files, it will be
+best to base them off of the sample.
+
+ATRT will use all of the robots it finds in the tournament directory,
+so because our sample has the directory line blank, it will use any
+and all of the sample robots in your AT-Robots directory.
+
+The next two lines in the tournament file specify the number of matches
+per pairing, and the maximum time-limit for each pairing measured in
+thousands of game cycles. For our example, we'll leave these set to 5
+and 10 respectively.
+
+The fourth line is a set of parameters that will be passed to ATROBOTS,
+so we'll leave that set to "/^ /G /S /A".
+
+Next, all you need to do is run ATRT and tell it which config file to
+use. In this case we would run it like this:
+
+  ATRT DEMO
+
+ATRT assumes a ".TRN" extension and loads "DEMO.TRN", and then it scans
+the directory for robots. These robots undergo a verification compile, and
+any that are not determined to be valid robots are disqualified.
+
+If instead of starting the tournament it says that the results are already
+complete, you can type "DEL DEMO.RES" and then try again to force a re-run
+of the competition. (for a while, ATR2 was being distributed with copies
+of these demo files in it by mistake)
+
+The tournament then begins. It defaults to graphics-off, so you see a
+text-mode output of the current cycle count for each match, and also the
+results of each match. During the tournament, you can still use the
+standard AT-Robots keyboard commands, so you can watch the battles.
+In fact, you may wish to actually remove the /G command from the
+4th line in the .TRN file to make it display all of the battles in
+graphics by default.
+
+The tournament may take a while. If you abort it, you can resume, but
+you must be careful not to change ANYTHING before you resume it, or you
+can ruin the results, or ruin the tournament data (and thus be forced to
+start over).
+
+Once the tournament is complete, the results will be written in both
+text and HTML formats. In this case they will be DEMO.RES and DEMO.HTM.
+the .RES file is how ATRT keeps track of whether the tournament has been
+completed or not, so if you wish to completely start over, just delete
+the .RES file and ATRT will allow you to use the same .TRN file again.
+Just keep in mind that you lose the old results, unless you backed them
+up first. Personally, I name my tournament files sequentially (such as
+T1, T2, etc), to keep them all seperate.
+
+There will also be a .LOG file created during the tournament, which is
+a log of the individual pairings in the competition, so you can see which
+robots did well against which other robots.
+
+And that's it! Enjoy!
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+REVISION HISTORY:
+
+  1.01   - Changed terminology. Now the term 'pairing' is used instead of
+             'bout' to make things less confusing.
+         - Now uses /R3 report mode, and can thus track kills, deaths,
+             and shots fired.
+
+  1.02   - Now uses /R4 report mode.
+         - Displays the best robots for several categories.
+
+  1.03   - Now passes entire custom parameter list for the test-compile
+             phase to disqualify robots based on settings (particularly
+             when using /#).
+
+  1.04   - Added option to score off a single /R4 report file (great for
+             doing large rumbles).
+         - "Best Marksman" and "Most Haphazard" now display the numbers
+             correctly in the results outputs.
+
+  1.05   - You can now put a '/y' parameter *after* the tournament name
+             to make it automatically assume "yes" for yes/no questions).
+         - Generates an overall report for the entire tournament in the
+             standard /R4 format.
+         - Maximum number of robots decreased to 512 to save some memory.
+         - Fixed an uninitialized variable issue or three.
+         - Changed the output stats to consolidate a few things.
+         - Added "longest reign" and "newest contender" to generated
+             results (which only show up if the number of matches differ
+             between the robots).
+         - Sorting of robots made a little cleaner, so that in the ranking,
+             ties get broken by kills, then deaths, damage, longevity, and
+             finally error rate.
+

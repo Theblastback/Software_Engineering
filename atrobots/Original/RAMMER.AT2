@@ -1,0 +1,53 @@
+; RAMMER -  Robot that rams targets, sometimes driving backwards.
+; Sample robot - Intended only to demonstrate backwards driving.
+;
+; Ed T. Toton III - 02/20/97
+;
+
+#def    speed
+#msg    Eat my shorts!
+
+        opo     17      6       ; Scan arc is +/-6
+        out     13,     0       ; Aim turret forward.
+        mov     speed,  100     ; speed = 100%
+
+        ipo     10,     ax      ; get random
+        cmp     ax,     0       ; 50% chance
+        jls     100
+
+        out     13,     80h     ; Aim turret backwards.
+        mov     speed,  -100    ; Robot will go backwards at max (75)
+                                ; (The -100 will be trunc'ed to -75
+                                ; by the game engine, but if the game's
+                                ; max backward speed ever gets changed,
+                                ; the robot is already designed to as
+                                ; fast as the game will allow).
+
+:100                            ; begin main loop
+
+        out     14,     -5      ; turn 5 degrees left
+        out     11,     speed   ; drive backwards at maximum speed!
+        in      7,      ax      ; scan
+        cmp     ax,     1500    ; find anything?
+        ja      100             ; if not, repeat
+
+        mov     bx,     0       ; bx = 0
+
+:101                            ; if so, do the following:
+
+        ipo     10,     ax      ; get random number
+        cmp     ax,     4000h   ; 1/4 chance
+        jls     102
+        opo     15,     bx      ; fire!
+:102
+        ipo     8       bx      ; get accuracy setting from scan
+        mpy     bx,     3       ; enlarge it
+        out     14,     bx      ; turn! Keep him centered!
+
+        in      7,      ax      ; scan
+        cmp     ax,     1500    ; still there?
+        jls     101             ; if so, scan again.
+
+
+        jmp     100             ; end main loop
+

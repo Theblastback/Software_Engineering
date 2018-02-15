@@ -1,0 +1,24 @@
+;
+; TRACON.  Use this one as a non-moving target.
+; (Unlike SDUCK, this one actually shoots back!)
+; Be careful, once locked on a non-moving target,
+; this guys can really dish out the damage.
+;
+; Sample robot - by Ed T. Toton III 02/24/97
+
+#MSG Where are you?
+
+        opo     17,     0       ; Scan-arc = 0 (just a line)
+:1
+        opo     12,     1       ; Turn 1 degree.
+:2
+        ipo     7,      ax      ; Scan
+        cmp     ax,     1500    ; Find anything?
+        jls     3               ; If so, shoot!
+        jmp     1               ; If not, continue scans.
+:3
+        ipo     2,      ax      ; check heat
+        cmp     ax,     250     ; hotter than 250?
+        jgr     2               ; if so, forget target, continue scan.
+        opo     15,     0       ; Fire!
+        jmp     2               ; Scan again.
