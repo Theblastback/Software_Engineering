@@ -929,11 +929,11 @@ void parse1(int n, int p, parsetype s){
             }
 
             if(found){
-                code[p].op[i] = opcode;
+                robot[n]->code[p].op[i] = opcode;
                 if(indirect){
                     microcode = microcode | 8;
                 }
-                code[p].op[max_op] = code[p].op[max_op] | (microcode << (i*4));
+                robot[n]->code[p].op[max_op] = robot[n]->code[p].op[max_op] | (microcode << (i*4));
             }
             else if(s[i] != '')
                 prog_error(2, s[i]);
