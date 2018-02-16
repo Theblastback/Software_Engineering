@@ -358,6 +358,7 @@ void update_cycle_window() {
 		bar(59, 2, 154, 10);
 		setcolor(LIGHT_GRAY);
 		outtextxy(75, 3, zero_pad(game_cycle, 9));
+		SDL_RenderPresent();
 	}
 }
 
@@ -823,7 +824,7 @@ void init() {
 	logging_errors = false;
 	stats_mode = 0;
 	insane_missiles = false;
-	insanity = false;
+	insanity = 0;
 	delay_per_sec = 0;
 	windoze = true;
 	graphix = false;
@@ -1143,3 +1144,251 @@ short find_label(short n, short l, short m) {
 }
 
 
+void init_mine(short n, detectrange, size) {
+	short i, k;
+
+	k = -1;
+	for ( i = 0; i <= MAX_MINES; i++ ) {
+		if ( ((robot[n] -> mine[i].x < 0) || (robot[n] -> mine[i].x > 1000) || (robot[n] -> mine[i].y < 0) || (robot[n] -> mine[i].y > 1000) ||
+			(robot[n] -> mine[i].yield <= 0)) && ( k < 0 ) ) {
+			k = i;
+		}
+	}
+	if ( k >= 0 ) {
+		robot[n] -> mine[k].x = x;
+		robot[n] -> mine[k].y = y;
+		robot[n] -> mine[k].detect = detectrange;
+		robot[n] -> mine[k].yield = size;
+		robot[n] -> mine[k].detonate = false;
+		// click(); XXX Sound function. Uncomment later
+	}
+}
+
+short count_missiles() {
+	short i, k;
+
+	k = 0;
+	for ( i = 0; i <= MAX_MISSILES; i++ ) {
+		if ( missile[i].a > 0 )
+			k++;
+	}
+
+	return k;
+}
+
+
+void init_missile(double xx, double yy, double xxv, double yyx, short dir, short s, short blast, bool ob) {
+	short i, k;
+	double m;
+	bool sound;
+
+	k = -1;
+	// click(); XXX Sound function. Uncomment later
+	for ( i = MAX_MISSILES; i >= 0; i-- )
+		if ( missile[i].a == 0 )
+			k = i
+
+	if ( k >= 0 ) {
+		missile[k].source = s;
+		missile[k].x = xx;
+		missile[k].lx = missile[k].x;
+		missile[k].y = yy;
+		missile[k].ly = missile[k].y;
+		missile[k].rad = 0;
+		missile[k].lrad = 0;
+
+		if ( ob )
+			missile[k].mult = 1.25;
+		else
+			missile[k].mult = 1;
+
+		if ( missile[k].blast > 0 ) {
+			missile[k].max_rad = missile[k].blast;
+			missile[k].a = 2;
+		} else {
+			if ( (missile[k].s >= 0) && (missile[k].s <= NUM_ROBOTS) )
+				missile[k].mult = missile[k].mult * (robot[s] -> shotstrength);
+
+			m = missile[k].mult;
+			if ( ob )
+				m = m + 0.25;
+
+			missile[k].mspd = MISSILE_SPD * mult;
+			if ( insane_missiles ) {
+				missile[k].mspd = 100 + (50 * insanity) * mult;
+			if ( (s >= 0) && ( s <= NUM_ROBOTS) )
+				robot[s] -> heat += (20 * m);
+				(robot[s] -> shots_fired)++;
+				(robot[s] -> match_shots)++;
+			}
+		}
+		missile[k].a = 1;
+		missile[k].hd = dir;
+		missile[k].max_rad = missile[k].mis_radius;
+
+		/* XXX Debug code here
+
+		*/
+	}
+}
+
+void damage(short n, short d, bool physical) {
+	short i, k, h, dd;
+	real m;
+
+	if ( (n < 0) || (n > NUM_ROBOTS) || (robot[n] -> armor <= 0) )
+		return;
+	if ( robot[n] -> config.shield < 3 )
+		robot[n] -> shields_up = false;
+
+	h = 0;
+	if ( (robot[n] -> shields_up) && (!physical) ) {
+		dd = d;
+		if ( (robot[n] -> old_shields) && (robot[n] -> config.shield >= 3) ) {
+			d = 0;
+			h = 0;
+		} else {
+			switch (robot[n] -> config.shield) {
+			case 3:
+				d = (dd * 2 / 3) + 0.5;
+				if ( d < 1 )
+					d = 1;
+				h = (dd * 2 / 3) + 0.5;
+				break;
+			case 4:
+				h = dd/2;
+				d = dd - h;
+				break;
+			case 5:
+				d = (dd * 1 / 3) + 0.5;
+				if ( d < 1 )
+					d = 1;
+				h = (dd * 1 / 3) + 0.5;
+				if ( h < 1 )
+					h = 1;
+				break;
+			}
+		}
+	}
+	if ( d < 0 )
+		d = 0;
+	/* XXX Debug code here
+
+
+	*/
+	if ( d > 0 ) {
+		d = (d * robot[n] -> damageadj) + 0.5;
+		if ( d < 1 )
+			d = 1;
+	}
+	robot[n] -> armor -= d;
+	robot[n] -> heat += h;
+	robot[n] -> last_damage = 0;
+
+	if ( robot[n] -> armor <= 0 )
+		robot[n] -> armor = 0;
+		update_armor(n);
+		robot[n] -> heat = 500;
+		update_heat(n);
+
+		robot[n] -> armor = 0;
+		(robot[n] -> kill count)++;
+		(robot[n] -> deaths)++;
+		update_lives(n);
+		if ( graphix && timing )
+			time_delay(10);
+
+		draw_robot(n);
+		robot[n] ->  heat = 0;
+		update_heat(n);
+		init_missile(robot[n] -> x, robot[n] -> y, 0, 0, 0, n, BLAST_CIRCLE, false);
+		if ( robot[n] -> overburn )
+			m = 1.3;
+		else
+			m = 1;
+
+		for ( i = 0; i <= NUM_ROBOTS; i++ ) {
+			if ( (i != n) && (robot[i] -> armor > 0) ) {
+				k = (distance(robot[n] -> x, robot[n] -> y, robot[i] -> x, robot[i] -> y)) + 0.5;
+				if ( k < BLAST_RADIUS )
+					damage(i, (abs(BLAST_RADIUS - k) * m) + 0.5, false);
+			}
+		}
+	}
+}
+
+
+short scan(short n) {
+	double r, d, acc;
+	short dir, range, i, j, k, l, nn, xx, yy, sign;
+
+	nn = -1;
+	rand = MAXINT;
+	if ( (n < 0) || (n > NUM_ROBOTS) )
+		return NULL;
+
+	if ( robot[n] -> scanarc < 0 )
+		robot[n] -> scanarc = 0;
+
+	robot[n] -> accuracy = 0;
+	nn = -1;
+	dir = (robot[n] -> shift + robot[n] -> hd) & 255;
+	// XXX Debug code here
+
+	for ( i = 0; i <= NUM_ROBOTS; i++ ) {
+		if ( (i != n) && (robot[i] -> armor > 0) ) {
+			j = find_anglei(robot[n] -> x, robot[n] -> y, robot[i] -> x, robot[i] -> y);
+			d = distance(robot[n] -> x, robot[n] -> y, robot[i] -> x, robot[i] -> y);
+			k = d + 0.5;
+			if ( (k < range) && ( k <= robot[n] -> scanrange) &&
+			     ( (abs(j - dir) <= abs(robot[n] -> scanarc)) || (abs(j - dir) >= (256 - abs(robot[n] -> scanarc))) ) {
+
+				dir = (dir + 1024) & 255;
+				xx = (sint[dir] * d + robot[n] -> x) + 0.5;
+				yy = ((-1 * cost[dir])* d + robot[n] ->  y) + 0.5;
+				r = distance(xx, yy, robot[i] -> x, robot[i] -> y);
+				// XXX Debug code here
+				if ( (robot[n] -> scanarc > 0) || robot[n] -> r < robot[n] -> hit_range - 2) ) {
+					range = k;
+					robot[n] -> accuracy = 0;
+					if ( robot[n] -> scanarc > 0 ) {
+						j = (j + 1024) & 255;
+						dir = (dir + 1024) & 255;
+						if ( j < dir )
+							sign = -1;
+						if ( j > dir )
+							sign = 1;
+						if ( (j > 190) && (dir < 66) ) {
+							dir = dir + 256;
+							sign = -1;
+						}
+						if ( (dir > 190) && (j < 66) ) {
+							j = j + 256;
+							sign = 1;
+						}
+						acc = abs(j - dir) / robot[n] -> scanarc * 2;
+						if ( sign < 0 )
+							robot[n] -> accuracy = -1 * abs((int)(acc + 0.5));
+						else
+							robot[n] -> accuracy = abs((int)(acc + 0.5));
+
+						if ( robot[n] -> accuracy > 2 )
+							robot[n] -> accuracy = 2;
+						if ( robot[n] -> accuracy < -2 )
+							robot[n] -> accuracy = -2;
+					}
+					// XXX Debug code here
+
+				}
+			}
+		}
+		if ( (nn >= 0) && (nn <= NUM_ROBOTS) ) {
+			robot[n] -> ram[5] = robot[nn] -> transponder;
+			robot[n] -> ram[6] = (robot[nn] -> hd - (robot[n] -> hd + robot[n] -> shift) + 1024) & 255;
+			robot[n] -> ram[7] = robot[nn] -> spd;
+			robot[n] -> robot[13] = (robot[nn] -> speed * 100) + 0.5;
+		}
+	}
+
+	return range;
+}

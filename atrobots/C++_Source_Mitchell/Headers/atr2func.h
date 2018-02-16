@@ -3,12 +3,18 @@
 
 #include "filelib.h"
 
+#include <cmath>
+
 // These SDL headers work for me, but likely will not work for you guys
 // Their original names were <SDL2/...
 
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include <SDL_ttf.h>
+
+#ifndef _WIN32
+	#include <windows.h>
+#endif
 
 // Color definitions
 

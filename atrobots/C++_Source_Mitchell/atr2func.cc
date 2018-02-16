@@ -1,6 +1,5 @@
 #include "Headers/myfile.h" // filelib is already included in myfile
 #include "Headers/atr2func.h"
-#include <cmath>
 #include <climits>
 #include <ctime>
 
@@ -90,16 +89,16 @@ void arc(short cent_x, short cent_y, unsigned short st_angle, unsigned short end
 
 	// Do this outside of the loop in order to set up loop
 	x2 = (cost[st_angle] * radius) + cent_x;
-	y2 = (sint[st_angle) * radius) + cent_y;
+	y2 = (sint[st_angle] * radius) + cent_y;
 
 	for ( unsigned short angle = st_angle + 1; angle <= end_angle; angle++ ) {
 		x1 = x2;
 		y1 = y2;
 
 		x2 = (cost[angle] * radius) + cent_x;
-		y2 = (sint[angle) * radius) + cent_y;
+		y2 = (sint[angle] * radius) + cent_y;
 
-		SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+		SDL_RenderDrawLine(renderer_main, x1, y1, x2, y2);
 	}
 }
 
