@@ -42,7 +42,7 @@ bool debugging_compiler = F;
 char max_robots		= 31; 	// {starts at 0, so total is max_robots+1}
 short max_code		= 1023; // {same here}
 char max_op		= 3;	// {etc...}
-short stack_size	= 256;   
+short stack_size	= 256;
 short stack_base	= 768;
 short max_ram		= 1023; // {but this does start at 0 (odd #, 2^n-1)}
 short max_vars		= 256;
@@ -97,7 +97,7 @@ TTF_Font	*main_font;
 struct op_rec {
 	short op[max_op];
 };
- 
+
 struct prog_type {
 	struct op_rec[max_code];
 }
@@ -136,7 +136,7 @@ struct robot_rec {
 	short ram[max_ram];
 	struct mine_rec mine[max_mines];
 
-	fstream errorlog;	// Was FILE * 
+	fstream errorlog;	// Was FILE *
 };
 
 string parsetype[16];
@@ -187,7 +187,7 @@ short	kill_count, report_type;
 char * operand(short n, short m) {
 	string s;
 
-	// cstr converts number to string	
+	// cstr converts number to string
 	s = cstr(n);
      	/*
      	Microcode:
@@ -231,7 +231,7 @@ char * mnemonic(short n, short m) {
 
 	s = cstr(n);
 
-	char *text[] { "NOP", "ADD", "OR", "AND", "SUB", "OR", "AND", "XOR", 
+	char *text[] { "NOP", "ADD", "OR", "AND", "SUB", "OR", "AND", "XOR",
 		"NOT", "MPY", "DIV", "MOD", "RET", "CALL", "JMP", "JLS", "JGR",
 		"JNE", "JE", "SWAP", "DO", "LOOP", "CMP", "TEST", "MOV", "LOC",
 		"GET", "PUT", "INT", "IPO", "OPO", "DELAY", "PUSH", "POP", "ERR",
@@ -255,7 +255,7 @@ procedure log_error(n,i:integer;ov:string);
 	short j, k;
 	string s;
 
-	if ( !logging_errors ) 
+	if ( !logging_errors )
 		exit;
  with robot[n]^ do
   begin
@@ -350,7 +350,7 @@ void robot_graph(short n) {
 			max_gy = 66;
 	}
 	rgb = robot_color(n);
-	SDL_SetRenderDrawColor((rgb>>24), ((rgb<<8)>>24), ((rgb<<16)>>24), 0xff);	
+	SDL_SetRenderDrawColor((rgb>>24), ((rgb<<8)>>24), ((rgb<<16)>>24), 0xff);
 	setcolor_render(robot_color(n));
 }
 
@@ -465,7 +465,7 @@ void update_cycle_window ();
 	if (!graphix)
 		cout << #13+ << "match " << played << "/" << matches << " Cycle: " << zero_pad(game_cycle,9);
 	else {
-		set_viewport(480, 440, 635, 474);		
+		set_viewport(480, 440, 635, 474);
 		SDL_SetRenderDrawColor(0x0, 0x0, 0x0, 0xff); // Solid fill, black
 
 		bar(59, 2, 154, 10);
@@ -536,7 +536,7 @@ void setscreen() {
           					outtextxy(3  , 12  ," A:");
           					outtextxy(3  , 22  ," H:");
 						break;
-         				
+
        					case 2:
           					setcolor(robot[i]->robot_color(i) & 7);
           					outtextxy(80  , 2  ,"A");
@@ -1016,19 +1016,19 @@ begin
                 end
                else if (s2='CONFIG') then
                 begin
-                 if (lstr(s3,8)='SCANNER=') then 0config.scanner = 
+                 if (lstr(s3,8)='SCANNER=') then 0config.scanner =
                      value(rstr(s3,length(s3)-8))
-                 else if (lstr(s3,7)='SHIELD=') then config.shield = 
+                 else if (lstr(s3,7)='SHIELD=') then config.shield =
                          value(rstr(s3,length(s3)-7))
-                 else if (lstr(s3,7)='WEAPON=') then config.weapon = 
+                 else if (lstr(s3,7)='WEAPON=') then config.weapon =
                          value(rstr(s3,length(s3)-7))
-                 else if (lstr(s3,6)='ARMOR=') then config.armor = 
+                 else if (lstr(s3,6)='ARMOR=') then config.armor =
                          value(rstr(s3,length(s3)-6))
-                 else if (lstr(s3,7)='ENGINE=') then config.engine = 
+                 else if (lstr(s3,7)='ENGINE=') then config.engine =
                          value(rstr(s3,length(s3)-7))
-                 else if (lstr(s3,10)='HEATSINKS=') then config.heatsinks = 
+                 else if (lstr(s3,10)='HEATSINKS=') then config.heatsinks =
                          value(rstr(s3,length(s3)-10))
-                 else if (lstr(s3,6)='MINES=') then config.mines = 
+                 else if (lstr(s3,6)='MINES=') then config.mines =
                          value(rstr(s3,length(s3)-6))
                  else prog_error(20,s3);
                  with config do
@@ -1130,7 +1130,7 @@ begin
      parse1(n,plen,pp);
     end
    else
-    dec(plen); 
+    dec(plen);
 
 
    {--second pass, resolving !labels--}
@@ -1207,7 +1207,7 @@ void robot_config(short n) {
 	default:
 		robot[n]->shotstrength = 0.5;
 	}
-	
+
 	switch (robot[n]->config.armor) {
 	case 5:
 		robot[n]->damageadj = 0.66;
@@ -1400,7 +1400,7 @@ void init_robot(short n) {
 	robot[n]->config.heatsinks = 1
 	robot[n]->config.shield = 0
 	robot[n]->config.mines = 0;
-	
+
 	for (i = 0; i <= max_ram; i++)
 		robot[n]->ram[i] = 0;
 	robot[n]->ram[71] = 768;
@@ -1437,7 +1437,7 @@ void create_robot(short n, string filename) {
 	robot[n]->fn = base_name(no_path( robot[n]->filename));
 
 //	compile(n, robot[n]->filename);    Pretty sure compile loads in all of the file stuff from the atr robots
-	robot_config(n);	
+	robot_config(n);
 
 	k -=robot[n]->config.scanner + robot[n]->config.armor + robot[n]->config.weapon + robot[n]->config.engine +
 		robot[n]->config.heatsinks + robot[n]->config.shield + robot[n]->config.mines;
@@ -1461,7 +1461,7 @@ void shutdown() {
 	textcolor(7);
 	if (!registered)
 		textcolor(4);
-		cout << "Unregistered version << endl;
+		cout << "Unregistered version" << endl;
 	else
 		cout << "Registered to: " << reg_name << endl;
 
@@ -1600,7 +1600,7 @@ void init() {
 
 	viewport = (SDL_Rect *) malloc(sizeof(SDL_Rect));
 
-	
+
 	step_mode = 0; // stepping disabled
 	logging_errors = false;
 	stats_mode = 0;
@@ -1624,7 +1624,7 @@ void init() {
 	report = false;
 	kill_count = 0;
 	maxcode = max_code;
-	
+
 	make_tables();
 	randomize();
 	num_robots = -1;
@@ -1805,7 +1805,7 @@ begin
       begin
        circle(ltx[4],lty[4],round(max_sonar*screen_scale));
       end;
-     if armor>0 then 
+     if armor>0 then
       begin {only erase body if still alive, that way we leave a "corpse" when dead}
        line(ltx[1],lty[1],ltx[2],lty[2]);
        line(ltx[2],lty[2],ltx[3],lty[3]);
@@ -2834,350 +2834,493 @@ begin
  end;
 end;
 
-procedure execute_instruction(n:integer);
-var
- i,j,k:integer;
- time_used,loc:integer;
- inc_ip:boolean;
- {FIFI}
- c:char;
- {/FIFI}
-begin
- with robot[n]^ do
-  begin
-   {--update system variables--}
-   ram[000] = tspd;
-   ram[001] = thd;
-   ram[002] = shift;
-   ram[003] = accuracy;
+#include <cstdio>	// Required for file manipulation
+#include <cstdlib>
+#include <time.h>
+*/
+void execute_instruction ( int n){
+  int i, j, k;
+  int time_used, loc;
+  bool inc_ip;
+  char c;
 
-   time_used = 1; inc_ip = true; loc = 0;
-   if (ip>plen) or (ip<0) then ip = 0;
-   if invalid_microcode(n,ip) then
-      begin time_used = 1; robot_error(n,16,hex(code[ip].op[max_op])); end
-    else
+  //Update System Variables
+  ram [000] = tspd;
+  ram [001] = thd;
+  ram [002] = shift;
+  ram [003] = accuracy;
 
-  {FIFI}
-  if graphix and (step_mode>0) and (n=0) then  {if stepping enabled...}
-   begin
-    inc(step_count);
+  time_used = 1;
+  inc_ip = true;
+  loc = 0;
+  if (ip > plen || ip < 0) {
+    ip = 0;
+  }
+
+  if (invalid_microcode(n,ip)){
+    time_used = 1;
+    robot_error (n, 16, hex(code[ip].op[max_op]));
+  }
+
+  if (graphix && step_mode > 0 && n == 0){
+    step_count++;
     update_cycle_window;
     update_debug_window;
-    if (step_count mod step_mode)=0 then step_loop = true else step_loop = false;
-    while step_loop and (not(quit or gameover or bout_over)) do
-     if keypressed then with robot[0]^ do
-      begin
-       c = upcase(readkey);
-       case c of
-        'X':begin
-             temp_mode = step_mode;
-             step_mode = 0;
-             step_loop = false;
-             close_debug_window;
-            end;
-        ' ':begin step_count = 0; step_loop = false; end;
-        '1'..'9':begin step_mode = value(c); step_count = 0; step_loop = false; end;
-        '0':begin step_mode = 10; step_count = 0; step_loop = false; end;
-        '-','_':if mem_watch>0 then
-                 begin
-                  setcolor(0);
-                  for i = 0 to 9 do
-                   outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :');
-                  dec(mem_watch);
-                  update_debug_memory;
-                 end;
-        '+','=':if mem_watch<1014 then
-                 begin
-                  setcolor(0);
-                  for i = 0 to 9 do
-                   outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :');
-                  inc(mem_watch);
-                  update_debug_memory;
-                 end;
-        '[','{':if mem_watch>0 then
-                 begin
-                  setcolor(0);
-                  for i = 0 to 9 do
-                   outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :');
-                  dec(mem_watch,10);
-                  if mem_watch<0 then mem_watch = 0;
-                  update_debug_memory;
-                 end;
-        ']','}':if mem_watch<1014 then
-                 begin
-                  setcolor(0);
-                  for i = 0 to 9 do
-                   outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :');
-                  inc(mem_watch,10);
-                  if mem_watch>1014 then mem_watch = 1014;
-                  update_debug_memory;
-                 end;
-        'G':begin toggle_graphix; temp_mode = step_mode; step_mode = 0; step_loop = false; end;
-        else process_keypress(c);
-       end;
-      end;
-   end;
-  {/FIFI}
 
-   if (not ((code[ip].op[max_op] and 7) in [0,1])) then
-      begin time_used = 0; end
-    else
-   case get_val(n,ip,0) of
-    00:begin (*NOP*)
-        inc(executed);
-       end;
-    01:begin (*ADD*)
-        put_val(n,ip,1,get_val(n,ip,1)+get_val(n,ip,2));
-        inc(executed);
-       end;
-    02:begin (*SUB*)
-        put_val(n,ip,1,get_val(n,ip,1)-get_val(n,ip,2));
-        inc(executed);
-       end;
-    03:begin (*OR*)
-        put_val(n,ip,1,get_val(n,ip,1) or get_val(n,ip,2));
-        inc(executed);
-       end;
-    04:begin (*AND*)
-        put_val(n,ip,1,get_val(n,ip,1) and get_val(n,ip,2));
-        inc(executed);
-       end;
-    05:begin (*XOR*)
-        put_val(n,ip,1,get_val(n,ip,1) xor get_val(n,ip,2));
-        inc(executed);
-       end;
-    06:begin (*NOT*)
-        put_val(n,ip,1,not(get_val(n,ip,1)));
-        inc(executed);
-       end;
-    07:begin (*MPY*)
+    if(step_count % step_mode = 0) {
+      step_loop = true;
+    }
+    else{
+      step_loop = false;
+    }
+
+    while (step_loop && !(quit || gameover || bout_over)){
+      if (keypressed){
+        c = upcase(readkey);
+        switch (c){
+
+         case 'X':
+         temp_mode = step_mode;
+         step_mode = 0;
+         step_loop = false;
+         close_debug_window;
+         break;
+
+         case ' ':
+         step_count = 0;
+         step_loop = false;
+         break;
+
+         case 1 ... 9:
+         step_mode = value(c); //figure out value
+         step_count = 0;
+         step_loop = false;
+         break;
+
+         case 0:
+         step_mode = 10;
+         step_count = 0;
+         step_loop = false;
+         break;
+
+         case '-': //check these for set color, outtext and dec
+         if (mem_watch > 0){
+           setcolor (0);
+           for (int i = 0; i <= 9; i++){
+              outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :')
+           }
+           mem_watch--;
+           update_debug_memory;
+         }
+         break;
+         case '_':
+         if (mem_watch > 0){
+           setcolor (0);
+           for (int i = 0; i <= 9; i++){
+              outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :')
+              mem_watch--;
+              update_debug_memory;
+           }
+         }
+         break;
+
+         case '+':
+         if (mem_watch < 1014){
+           setcolor(0);
+           for (int i = 0; i <= 9; i++){
+             outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :');
+           }
+           mem_watch++;
+           update_debug_memory;
+         }
+         break;
+         case '=':
+         if (mem_watch < 1014){
+           setcolor(0);
+           for (int i = 0; i <= 9; i++){
+             outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :');
+           }
+           mem_watch++;
+           update_debug_memory;
+         }
+         break;
+
+         case '[':
+         if(mem_watch > 0){
+           setcolor(0);
+           for (int i = 0; i <= 9; i++){
+             outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :');
+           }
+           mem_watch -= 10;
+           if (mem_watch < 0){
+             nem_watch = 0;
+           }
+           update_debug_memory
+         }
+         break;
+         case '{':
+         if(mem_watch > 0){
+           setcolor(0);
+           for (int i = 0; i <= 9; i++){
+             outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :');
+           }
+           mem_watch -= 10;
+           if (mem_watch < 0){
+             nem_watch = 0;
+           }
+           update_debug_memory
+         }
+         break;
+
+         case ']':
+         if (mem_watch < 1014){
+           setcolor(0);
+           for (int i = 0l i <= 9; i++){
+             outtextxy(035,212+(10*i), decimal((mem_watch+i), 4) + ' :');
+           }
+           mem_watch += 10;
+           if (mem_watch > 1014){
+             mem_watch = 1014;
+           }
+           update_debug_memory;
+         }
+         break;
+         case '}':
+         if (mem_watch < 1014){
+           setcolor(0);
+           for (int i = 0l i <= 9; i++){
+             outtextxy(035,212+(10*i), decimal((mem_watch+i), 4) + ' :');
+           }
+           mem_watch += 10;
+           if (mem_watch > 1014){
+             mem_watch = 1014;
+           }
+           update_debug_memory;
+         }
+         break;
+
+         case 'G':
+         toggle_graphix;
+         temp_mode = step_mode;
+         step_mode = 0;
+         step_loop = false;
+         break;
+       }
+     }
+     else process_keypress(c);
+   }
+  }
+
+  if (! ((code[ip].op[max_op] && 7) in [0,1])){
+    time_used = 0;
+  }
+  else {
+    switch (get_val(n,ip,0)){ //assembly?
+      case 0: executed++; break; //NOP
+      case 1: //ADD
+        put_val(n,ip,1,get_val(n,ip,1) + get_val(n,ip,2));
+        executed++;
+        break;
+      case 2: //SUB
+        put_val(n,ip,1,get_val(n,ip,1) - get_val(n,ip,2));
+        executed++;
+        break;
+      case 3://OR
+        put_val(n,ip,1,get_val(n,ip,1) | get_val(n,ip,2));
+        executed++;
+        break;
+      case 4: //AND
+        put_val(n,ip,1,get_val(n,ip,1) & get_val(n,ip,2));
+        executed ++;
+        break;
+      case 5: //XOR
+        put_val(n,ip,1,get_val(n,ip,1) ^ get_val(n,ip,2));
+        executed++;
+        break;
+      case 6: //NOT
+        put_val(n,ip,1,!(get_val(n,ip,1)));
+        executed++;
+        break;
+      case 7: //MPY
         put_val(n,ip,1,get_val(n,ip,1)*get_val(n,ip,2));
         time_used = 10;
-        inc(executed);
-       end;
-    08:begin (*DIV*)
+        executed++;
+        break;
+      case 8: //DIV
         j = get_val(n,ip,2);
-        if j<>0 then put_val(n,ip,1,get_val(n,ip,1) div j)
-                else robot_error(n,8,'');
+        if (j != 0){
+          put_val(n,ip,1,get_val(n,ip,1) / j);
+        }
+        else{
+          robot_error(n,8,"");
+        }
         time_used = 10;
-        inc(executed);
-       end;
-    09:begin (*MOD*)
+        executed++;
+        }
+        break;
+      case 9: //MOD
         j = get_val(n,ip,2);
-        if j<>0 then put_val(n,ip,1,get_val(n,ip,1) mod j)
-                else robot_error(n,8,'');
+        if (j != 0){
+          put_val(n,ip,1,get_val(n,ip,1) % j);
+        }
+        else {
+          robot_error(n,8,"");
+        }
         time_used = 10;
-        inc(executed);
-       end;
-    10:begin (*RET*)
+        executed++;
+        break;
+      case 10: //RET
         ip = pop(n);
-        if (ip<0) or (ip>plen) then robot_error(n,7,cstr(ip));
-        inc(executed);
-       end;
-    11:begin (*GSB*)
-        loc = find_label(n,get_val(n,ip,1),code[ip].op[max_op] shr (1*4));
-        if loc>=0 then begin push(n,ip); inc_ip = false; ip = loc; end
-                  else robot_error(n,2,cstr(get_val(n,ip,1)));
-        inc(executed);
-       end;
-    12:begin (*JMP*)
+        if (ip < 0 || ip > plen){
+          robot_error(n,7,cstr(ip));
+        }
+        executed++;
+        break;
+      case 11: //GSB
+        loc - find_label(get_val(n,ip,1),code[ip].op[max_op] >> (1*4))
+        if (loc >= 0){
+          push(n,ip);
+          inc_ip = false;
+          ip = loc;
+        }
+        else {
+          robot_error(n,2,cstr(get_val(n,i,1)));
+        }
+        executed++;
+        break;
+      case 12: //JMP
         jump(n,1,inc_ip);
-        inc(executed);
-       end;
-    13:begin (*JLS,JB*)
-        if ram[64] and 2>0 then
-           jump(n,1,inc_ip);
+        executed++;
+        break;
+      case 13: //JLS,JB
+        if (ram[64] && 2>0){
+          jump(n,1,inc_ip);
+        }
         time_used = 0;
-        inc(executed);
-       end;
-    14:begin (*JGR,JA*)
-        if ram[64] and 4>0 then
-           jump(n,1,inc_ip);
+        executed++;
+        break;
+      case 14: //JGR,JA
+        if (ram[64] && 4>0){
+          jump(n,1,inc_ip);
+        }
         time_used = 0;
-        inc(executed);
-       end;
-    15:begin (*JNE*)
-        if ram[64] and 1=0 then
-           jump(n,1,inc_ip);
+        executed++;
+        break;
+      case 15: //JNE
+        if (ram[64] and 1 = 0){
+          jump(n,1,inc_ip);
+        }
         time_used = 0;
-        inc(executed);
-       end;
-    16:begin (*JEQ,JE*)
-        if ram[64] and 1>0 then
-           jump(n,1,inc_ip);
+        executed++;
+        break;
+      case 16: // JEQ,JE
+        if (ram[64] && 1 > 0){
+          jump (n,1,inc_ip);
+        }
         time_used = 0;
-        inc(executed);
-       end;
-    17:begin (*SWAP, XCHG*)
+        executed++;
+        break;
+      case 17://SWAP, XCHG
         ram[4] = get_val(n,ip,1);
         put_val(n,ip,1,get_val(n,ip,2));
         put_val(n,ip,2,ram[4]);
         time_used = 3;
-        inc(executed);
-       end;
-    18:begin (*DO*)
-        ram[67] = get_val(n,ip,1);
-        inc(executed);
-       end;
-    19:begin (*LOOP*)
-        dec(ram[67]);
-        if ram[67]>0 then
-           jump(n,1,inc_ip);
-        inc(executed);
-       end;
-    20:begin (*CMP*)
-        k = get_val(n,ip,1)-get_val(n,ip,2);
-        ram[64] = ram[64] and $FFF0;
-        if k=0 then ram[64] = ram[64] or 1;
-        if k<0 then ram[64] = ram[64] or 2;
-        if k>0 then ram[64] = ram[64] or 4;
-        if (get_val(n,ip,2)=0) and (k=0) then
-                    ram[64] = ram[64] or 8;
-        inc(executed);
-       end;
-    21:begin (*TEST*)
-        k = get_val(n,ip,1) and get_val(n,ip,2);
-        ram[64] = ram[64] and $FFF0;
-        if k=get_val(n,ip,2) then ram[64] = ram[64] or 1;
-        if k=0               then ram[64] = ram[64] or 8;
-        inc(executed);
-       end;
-    22:begin (*MOV, SET*)
+        executed++;
+        break;
+      case 18: //DO
+        ram[67]:=get_val(n,ip,1);
+        executed++;
+        break;
+      case 19: //loop
+        ram[67]--;
+        if (ram[67] > 0){
+          jump (n,1,inc_ip);
+        }
+        executed++;
+        break;
+      case 20: //CMP
+        k = get_val(n,ip,1) - get_val(n,ip,2);
+        ram [64] = ram[64] & $FFF0
+        if (k=0){
+          ram[64] = ram [64] | 1;
+        }
+        if (k<0){
+          ram[64] = ram [64] | 2;
+        }
+        if (k>0){
+          ram[64] = ram [64] | 4;
+        }
+        if (get_val(n,ip,2) = 0 && k=0){
+          ram[64] = ram[64] | 8;
+        }
+        executed++;
+        break;
+      case 21: //TEST
+        k = get_val(n,ip,1) & get_val(n,ip,2);
+        ram [64] = ram[64] & $FFF0
+        if (k = get_val(n,ip,2)){
+          ram[64] =  ram[64] | 1;
+        }
+        if (k = 0){
+          ram[64] = ram[64] | 8;
+        }
+        executed++;
+        break;
+      case 22: //MOV, SET
         put_val(n,ip,1,get_val(n,ip,2));
-        inc(executed);
-       end;
-    23:begin (*LOC*)
+        executed++;
+        break;
+      case 23: //LOC
         put_val(n,ip,1,code[ip].op[2]);
         time_used = 2;
-        inc(executed);
-       end;
-    24:begin (*GET*)
+        executed++;
+        break;
+      case 24: //GET
         k = get_val(n,ip,2);
-        if (k>=0) and (k<=max_ram) then
-            put_val(n,ip,1,ram[k])
-          else if (k>max_ram) and (k<=(Max_ram+1)+(((max_code+1) shl 3)-1)) then
-           begin
-            j = k-max_ram-1;
-            put_val(n,ip,1,code[j shr 2].op[j and 3]);
-           end
-          else robot_error(n,4,cstr(k));
+        if (k >=0 && l <= MAX_RAM){
+          put_val (n,ip,1,ram[k])
+        }
+        else {
+          if (k > MAX_RAM && k <= (MAX_RAM + 1) + (((MAX_CODE + 1) shl 3)-1)){
+            j = k - MAX_RAM - 1;
+            put_val(n,ip,1,code[j shr 2].op[j & 3]);
+          }
+          else{
+            robot_error(n,4,cstr(k));
+          }
+          time_used = 2;
+          executed++;
+        }
+        break;
+      case 25: //PUT
+        k= get_val(n,ip,2);
+        if (k>=0 and k<=MAX_RAM){
+            ram[k]= get_val(n,ip,1)
+          }
+          else {
+            robot_error(n,4,cstr(k));
+          }
         time_used = 2;
-        inc(executed);
-       end;
-    25:begin (*PUT*)
-        k = get_val(n,ip,2);
-        if (k>=0) and (k<=max_ram) then
-            ram[k] = get_val(n,ip,1)
-          else robot_error(n,4,cstr(k));
-        time_used = 2;
-        inc(executed);
-       end;
-    26:begin (*INT*)
+        executed++;
+        break;
+      case 26: //INT
         call_int(n,get_val(n,ip,1),time_used);
-        inc(executed);
-       end;
-    27:begin (*IPO,IN*)
+        executed++;
+        break;
+      case 27: //IPO,IN
         time_used = 4;
         put_val(n,ip,2,in_port(n,get_val(n,ip,1),time_used));
-        inc(executed);
-       end;
-    28:begin (*OPO,OUT*)
-        time_used = 4;
+        executed++;
+        break;
+      case 28: //OPO,OUT
         out_port(n,get_val(n,ip,1),get_val(n,ip,2),time_used);
-        inc(executed);
-       end;
-    29:begin (*DEL,DELAY*)
+        executed++;
+        break;
+      case 29: //DEL,DELAY
         time_used = get_val(n,ip,1);
-        inc(executed);
-       end;
-    30:begin (*PUSH*)
+        executed++;
+        break;
+      case 30: //PUSH
         push(n,get_val(n,ip,1));
-        inc(executed);
-       end;
-    31:begin (*POP*)
+        executed++;
+        break;
+      case 31: //POP
         put_val(n,ip,1,pop(n));
-        inc(executed);
-       end;
-    32:begin (*ERR*)
-        robot_error(n,get_val(n,ip,1),'');
+        executed++;
+        break;
+      case 32: //ERR
+        robot_error(n,get_val(n,ip,1),"");
         time_used = 0;
-        inc(executed);
-       end;
-    33:begin (*INC*)
+        executed++;
+        break;
+      case 33: //INC
         put_val(n,ip,1,get_val(n,ip,1)+1);
-        inc(executed);
-       end;
-    34:begin (*DEC*)
+        executed++;
+        break;
+      case 34: //DEC
         put_val(n,ip,1,get_val(n,ip,1)-1);
-        inc(executed);
-       end;
-    35:begin (*SHL*)
+        executed++;
+        break;
+      case 35: //SHL
         put_val(n,ip,1,get_val(n,ip,1) shl get_val(n,ip,2));
-        inc(executed);
-       end;
-    36:begin (*SHR*)
+        executed++;
+        break;
+      case 36: //SHR
         put_val(n,ip,1,get_val(n,ip,1) shr get_val(n,ip,2));
-        inc(executed);
-       end;
-    37:begin (*ROL*)
+        executed++;
+        break;
+      case 37: //ROL
         put_val(n,ip,1,rol(get_val(n,ip,1),get_val(n,ip,2)));
-        inc(executed);
-       end;
-    38:begin (*ROR*)
+        break;
+      case 38: //ROR
         put_val(n,ip,1,ror(get_val(n,ip,1),get_val(n,ip,2)));
-        inc(executed);
-       end;
-    39:begin (*JZ*)
+        executed++;
+        break;
+      case 39: //JZ
         time_used = 0;
-        if ram[64] and 8>0 then
-           jump(n,1,inc_ip);
-        inc(executed);
-       end;
-    40:begin (*JNZ*)
+        if (ram[64] && 8 > 0){
+          jump(n,1,inc_ip);
+        }
+        executed++;
+        break;
+      case 40: //JNZ
+        time_used=0
+        if (ram[64] && 8 = 0){
+          jump(n,1,inc_ip);
+        }
+        executed++;
+        break;
+      case 41: //JBE,JLE
+        if ((ram[64] && 1 > 0) || (ram[64] && 4 > 0)){
+          jump(n,1,inc_ip);
+        }
         time_used = 0;
-        if ram[64] and 8=0 then
-           jump(n,1,inc_ip);
-        inc(executed);
-       end;
-    41:begin (*JAE,JGE*)
-        if (ram[64] and 1>0) or (ram[64] and 4>0) then
-           jump(n,1,inc_ip);
+        executed++;
+        break;
+      case 42: //JBE,JLE
+        if ((ram[64] && 1 > 0) || (ram[64] && 2 > 0)){
+          jump(n,1,inc_ip);
+        }
         time_used = 0;
-        inc(executed);
-       end;
-    42:begin (*JBE,JLE*)
-        if (ram[64] and 1>0) or (ram[64] and 2>0) then
-           jump(n,1,inc_ip);
-        time_used = 0;
-        inc(executed);
-       end;
-    43:begin (*SAL*)
+        executed++;
+        break;
+      case 43: //SAL
         put_val(n,ip,1,sal(get_val(n,ip,1),get_val(n,ip,2)));
-        inc(executed);
-       end;
-    44:begin (*SAR*)
+        executed++;
+        break;
+      case 44: //SAR
         put_val(n,ip,1,sar(get_val(n,ip,1),get_val(n,ip,2)));
-        inc(executed);
-       end;
-    45:begin (*NEG*)
+        executed++;
+        break;
+      case 45: //NEG
         put_val(n,ip,1,0-get_val(n,ip,1));
-        inc(executed);
-       end;
-    46:begin (*JTL*)
+        executed++;
+        break;
+      case 46: //JTL
         loc = get_val(n,ip,1);
-        if (loc>=0) and (loc<=plen) then begin inc_ip = false; ip = loc; end
-                                    else robot_error(n,2,cstr(loc));
-       end;
-    else begin robot_error(n,6,''); end;
-   end;
-   inc(delay_left,time_used);
-   if inc_ip then inc(ip);
-   {FIFI}
-   if graphix and (n=0) and (step_mode>0) then update_debug_window;
-   {/FIFI}
-  end;
-end;
+        if (loc >= 0 && loc <=plen){
+          inc_ip = false;
+          ip = loc;
+        }
+        else {
+          robot_error(n,2,cstr(loc));
+        }
+        break;
+    else {
+      robot_error(n,6,"");
+     }
+    }
 
+  delay_left++;
+  time_used++;
+  if (inc_ip){
+    ip++;
+  }
+  if (graphix && n = 0 && step_mode > 0){
+    update_debug_window
+  }
+}
+ /*
 procedure do_robot(n:integer);
 var
  i,j,k,l,tthd:integer;
@@ -3619,7 +3762,7 @@ void bout() {
 
 	if (step_mode = 0)
 		step_loop = false;
-	 else 
+	 else
 		step_loop = true; // set/clear loop flag
 
 	step_count = -1; // will be set to 0 at first iteration of REPEAT
@@ -3634,7 +3777,7 @@ void bout() {
 			if (robot[i] -> armor > 0)
 				do_robot(i);
 
-		for (i = 0; i <= max_missiles; i++) 
+		for (i = 0; i <= max_missiles; i++)
 			if (missile[i].a > 0)
 				do_missile(i);
 
@@ -3643,18 +3786,18 @@ void bout() {
 				if (robot[i] -> mine[k].yield > 0)
 					do_mine(i,k);
 
-		if (graphix && timing) 
+		if (graphix && timing)
 			SDL_Delay(game_delay);
 
- 
+
 		if ( keypressed )
 			c = readkey
-		else 
+		else
 			c = 255;
 
 		switch (c) {
 
-		case 'X': 
+		case 'X':
 			if ( !robot[0] -> is_locked )
 				if ( !graphix)
 					toggle_graphix();
@@ -3720,7 +3863,7 @@ void bout() {
 		case '-':
 		case '_':
 			if (game_delay > 0)
-				switch (game_delay){ 
+				switch (game_delay){
 				case 0 ... 5:
 					game_delay = 0;
 					break;
@@ -3778,7 +3921,7 @@ void bout() {
 
 		if (game_delay > 100)
 			game_delay = 100;
- 
+
 		switch (game_delay) {
 		case 0 ... 1:
 			k = 100;
@@ -3791,7 +3934,7 @@ void bout() {
 		case 2 6 ... 10:
 			k = 25;
 			break;
-	
+
 		case 11 ... 25:
 			k = 20;
 			break;
@@ -3916,7 +4059,7 @@ void actual_main() {
 
 		k = 0; w = 0;
 		for (i = 0; i <= num_robots; i++) {
-			if (robot[i] -> wins = w) then 
+			if (robot[i] -> wins = w) then
 				inc(k);
 
 			if (robot[i] -> wins > w) {
