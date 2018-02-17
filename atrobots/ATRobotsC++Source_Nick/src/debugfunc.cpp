@@ -42,7 +42,7 @@ void log_error(int i, int n, string ov){
         break;
 
     case 7:
-        log<< "Return out of range - Woops!"<<endl;
+        log<< "Return out of range - Whoops!"<<endl;
         break;
 
     case 8:
