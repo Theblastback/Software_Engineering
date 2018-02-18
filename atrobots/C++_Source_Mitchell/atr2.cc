@@ -903,8 +903,8 @@ void init() {
 	if ( num_robots < 1 )
 		prog_error(4, "");
 
-	if ( !no_gfx )
-		graph_mode(true);
+	if ( !no_gfx ) // If there are graphics
+		graph_mode(true);	// Start in graph mode
 
 	if ( matches > 100000 )
 		matches = 100000;
@@ -1819,3 +1819,420 @@ void process_keypress(char c) {
 	}
 }
 
+
+string victor_string(short k, short n) {
+	string s = "";
+
+	if ( k == 1 )
+		s = "Robot #" + cstr(n + 1) + " (" + robot[n] -> fn + ") wins!";
+	if ( k == 0 )
+		s = "Simultaneos destruction, match is a tie.";
+	if ( k > 1 )
+		s = "No clear victor, match is a tie.";
+
+	return s;
+}
+
+
+void show_statistics() {
+	short i, j, k, n, sx, sy;
+
+	if ( windoze == false )
+		return;
+
+	if ( graphix = true ) { // Display results in window
+		sx = 24;
+		sy = 93 - NUM_ROBOTS * 3;
+		viewport(0, 0, 639, 479);
+		box(sx, sy, sx + 591, sy + 102 + NUM_ROBOTS * 12);
+		hole(sx + 4, sy + 4, sx + 587, sy + 98 + NUM_ROBOTS * 12);
+		setfillpattern(1); // 50/50 checkering
+
+		bar(sx + 5, sy + 5, sx + 586, sy + 97 + NUM_ROBOTS * 12);
+		set_color(WHITE);
+		outtextxy(sx + 16, sy + 20, "Robot            Scored   Wins   Matches   Armor   Kills   Deaths    Shots");
+		outtextxy(sx + 16, sy + 30, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
+		n = -1;
+		k = 0;
+		for ( i = 0; i <= NUM_ROBOTS; i++ ) {
+			if ( (robot[n] -> armor > 0) || (robot[n] -> won) ) {
+				k++;
+				n = i;
+			}
+		}
+
+		for ( i = 0; i <= NUM_ROBOTS; i++ ) {
+			setcolor(robot_color(i));
+			if ( (k == 1) && (n == i) )
+				j = 1;
+			else
+				j = 0;
+
+			outtextxy(sx + 16, sy + 42 + i * 12, addfront(cstr(i + 1), 2) +
+				" - " + addrear(robot[n] -> fn, 15) + cstr(j) +
+				addfront(cstr(robot[n] -> wins), 8) + addfront(cstr(robot[n] -> trials), 8) +
+				addfront(cstr(robot[n] -> armor) + "%", 9) + addfront(cstr(robot[n] -> kills), 7) +
+				addfront(cstr(robot[n] -> deaths), 8) + addfront(cstr(robot[n] -> match_shots), 9));
+		}
+
+		setcolor(WHITE);
+		outtextxy(sx + 16, sy + 64 + NUM_ROBOTS * 12, victor_string(k, n));
+
+		if ( windoze ) {
+			outtextxy(sx + 16, sy + 76 +NUM_ROBOTS * 12, "Press any key to continue...");
+			flushey();
+			readkey();
+		}
+	} else { // No graphics; Display results on commandline/terminal
+		textcolor(WHITE);
+		cout << endl << space(79) << endl;
+		cout << "Match " << played << "/" << matches << " results:" << endl << endl;
+		cout << "Robot            Scored   Wins   Matches   Armor   Kills   Deaths    Shots" << endl;
+		cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
+		n = -1;
+		k = 0;
+
+		for ( i = 0; i <= NUM_ROBOTS; i++ ) {
+			if ( (robot[n] -> armor > 0) || (robot[n] -> won) ) {
+				k++;
+				n = i;
+			}
+		}
+
+		for ( i = 0; i <= NUM_ROBOTS; i++ ) {
+			textcolor(robot_color(i));
+			if ( (k == 1) && (n == i) )
+				j = 1;
+			else
+				j = 0;
+
+			cout << addfront(cstr(i + 1), 2) << " - " << addrear(robot[n] -> fn, 15) << cstr(j) <<
+				addfront(cstr(robot[n] -> wins), 8) << addfront(cstr(robot[n] -> trials), 8)  <<
+				addfront(cstr(robot[n] -> armor) + "%", 9) << addfront(cstr(robot[n] -> kills), 7) <<
+				addfront(cstr(robot[n] -> deaths), 8) << addfront(cstr(robot[n] -> match_shots), 9) << endl;
+
+		}
+		textcolor(WHITE);
+		cout << endl << victor_string(k, n) << endl << endl;
+	}
+}
+
+
+void score_robots() {
+	short i, k, n;
+
+	for ( i = 0; i <= NUM_ROBOTS; i++ ) {
+		robot[i] -> trials += 1;
+		if ( robot[i] -> armor > 0 ) {
+			k++;
+			n = i;
+		}
+	}
+	if ( (k == 1) && (n >= 0) ) {
+		robot[n] -> wins += 1;
+		robot[n] -> won = true;
+	}
+}
+
+void init_bout();
+	short i;
+
+	game_cycle = 0;
+	for ( i = 0; i <= MAX_MISSILES; i++ ) {
+		missile[i].a = 0;
+		missile[i].source = -1;
+		missile[i].x = 0;
+		missile[i].y = 0;
+		missile[i].lx = 0;
+		missile[i].ly = 0;
+		missile[i].mult = 1;
+	}
+	for ( i = 0; i <= NUM_ROBOTS; i++ ) {
+		robot[i] -> mem_watch = 128;
+		reset_hardware(i);
+		reset_software(i);
+	}
+
+	if ( graphix )
+		setscreen();
+	if ( graphix && (step_mode > 0) )
+		//init_debug_window; XXX Debug function here
+
+	if ( graphix == false )
+		textcolor(LIGHT_GRAY);
+}
+
+
+// Primary function that runs the games.
+void bout() {
+	short i, j, k;
+	unsigned char c;
+	int timer, n;
+
+	if ( quit )
+		return;
+
+	played++;
+	init_bout();
+	bout_over = false;
+
+	if ( step_mode == 0 )
+		step_loop = false
+	else
+		step_loop = true;
+
+	step_count = -1; // will be set to 0 upon first iteration of do while loop
+	if ( graphix && (step_mode > 0) )
+		for ( i = 0; i <= NUM_ROBOTS; i++ )
+			draw_robot(i);
+
+	// Begin start of main loop
+	do {
+		game_cycle++;
+		for ( i = 0; i <= NUM_ROBOTS; i++ )
+			if ( robot[i] -> armor > 0 )
+				do_robot(i);
+
+		for ( i = 0; i <= MAX_MISSILES; i++ )
+			if ( missile[i].a > 0 )
+				do_missile();
+
+		for ( i = 0; i <= NUM_ROBOTS; i++ )
+			for ( k = 0; k <= MAX_MINES; k++ )
+				if ( robot[i] -> mine[k].yield > 0 )
+					do_mine(i, k);
+
+
+		if ( graphix && timing )
+			time_delay(game_delay);
+
+		if ( keypressed )
+			c = upcase(readkey());
+		else
+			c = 255;
+
+		switch (c) {
+		case 'X':
+			if ( !robot[0] -> is_locked ) {
+				if ( graphix == false )
+					toggle_graphix();
+
+				if ( robot[0] -> armor > 0 ) {
+					if ( temp_mode > 0 )
+						step_mode = temp_mode;
+					else
+						step_mode = 1;
+				}
+				step_count = -1;
+				// init_debug_window() XXX Debug function
+			}
+			break;
+		case '+':
+		case '=':
+			if ( game_delay < 100 ) {
+				// Triple dot notation only compiles on gcc
+				switch (game_delay) {
+				case 0 ... 4: game_delay = 5; break;
+				case 5 ... 9: game_delay = 10; break;
+				case 10 ... 14: game_delay = 15; break;
+				case 15 ... 19: game_delay = 20; break;
+				case 20 ... 29: game_delay = 30; break;
+				case 30 ... 39: game_delay = 40; break;
+				case 40 ... 49: game_delay = 50; break;
+				case 50 ... 59: game_delay = 60; break;
+				case 60 ... 74: game_delay = 75; break;
+				case 75 ... 100: game_delay = 100; break;
+				}
+			}
+			break;
+		case '-':
+		case '_':
+			if ( game_delay > 0 ) {
+				switch (game_delay) {
+				case 0 ... 5: game_delay = 0; break;
+				case 6 ... 10: game_delay = 5; break;
+				case 11 ... 15: game_delay = 10; break;
+				case 16 ... 20: game_delay = 15; break;
+				case 21 ... 30: game_delay = 20; break;
+				case 31 ... 40: game_delay = 30; break;
+				case 41 ... 50: game_delay = 40; break;
+				case 51 ... 60: game_delay = 50; break;
+				case 61 ... 75: game_delay = 65; break;
+				case 76 ... 100: game_delay = 75; break;
+				}
+			}
+			break;
+		case 'G': toggle_graphix(); break;
+		default:
+			process_keypress(c);
+		}
+
+		flushkey();
+
+		if ( game_delay < 0 )
+			game_delay = 0;
+		else if ( game_delay > 100 )
+			game_delay = 100;
+
+		switch (game_delay) {
+		case 0 ... 1: k = 100; break;
+		case 2 ... 5: k = 50; break;
+		case 6 ... 10: k = 25; break;
+		case 11 ... 25: k = 20; break;
+		case 26 ... 40: k = 10; break;
+		case 41 ... 70: k = 5; break;
+		case 71 ... MAXINT: k = 1; break;
+		default:
+			k = 10;
+		}
+
+		if ( !graphix )
+			k = 100;
+
+		if ( graphix ) {
+			if ( ((game_cycle % k) == 0) || (game_cycle == 10) )
+				update_cycle_window;
+			else {
+				if ( update_timer != get_seconds_after_hour() >> 1 )
+					update_cycle_window();
+
+				update_timer = get_seconds_past_hour() >> 1;
+			}
+		}
+	} while ( !quit || !gameover || !bout_over );
+
+	update_cycle_window();
+
+	score_robots();
+	show_statistics();
+}
+
+
+void write_report() {
+	short i;
+	fstream f;
+
+	f.open(main_filename + report_ext, fstream::out);
+
+	f << (NUM_ROBOTS + 1) << endl;
+	for ( i = 0; i <= NUM_ROBOTS; i++ ) {
+		switch (report_type) {
+		case 2:
+			f << robot[i] -> wins << " " << robot[i] -> trials << " " << robot[i] -> kills << " " << robot[i] -> deaths << " " << robot[i] -> fn << " " << endl;
+			break;
+		case 3:
+			f << robot[i] -> wins << " " << robot[i] -> trials << " " << robot[i] -> kills << " " << robot[i] -> deaths << " " << robot[i] -> armor <<
+			" " << robot[i] -> heat << " " << robot[i] -> shots_fired << " " << robot[i] -> fn << " " << endl;
+			break;
+		case 4:
+			f << robot[i] -> wins << " " << robot[i] -> trials << " " << robot[i] -> kills << " " << robot[i] -> deaths << " " << robot[i] -> armor <<
+			" " << robot[i] -> heat << " " << robot[i] -> shots_fired << " " << robot[i] -> hits << " " << robot[i] -> damage_total <<
+			" " << robot[i] -> cycles_lived << " " << robot[i] -> error_count << " " << robot[i] -> fn << " " << endl;
+			break;
+		default:
+			f << robot[i] -> wins << " " << robot[i] -> trials << " " << robot[i] -> fn << " " << endl;
+		}
+	}
+
+	f.close();
+}
+
+
+void begin_window() {
+	string s;
+
+	if ( !graphix || !windoze )
+		return;
+
+	setscreen();
+	viewport(0, 0, 639, 479);
+	box(100, 150, 539, 200);
+	hole(105, 155. 534, 195);
+
+	setfillpattern(1); // Checkered
+	bar(105, 155, 534, 195);
+
+	setcolor(15);
+	s = "Press any key to begin!";
+	outtextxy(320 - ((s.length() << 3) >> 1), 172, s);
+
+	flushkey();
+	readkey();
+	setscreen();
+}
+
+void true_main() {
+	short i, j, k, l, n, w;
+
+	if ( graphix )
+		begin_main();
+
+	if ( matches > 0 )
+		for ( i = 1; i <= matches; i++ )
+			bout();
+
+	if ( graphix == false )
+		cout << endl;
+
+	if ( quit )
+		return;
+
+	// Calculates overall statistics
+	if ( matches > 1 ) {
+		cout << endl << endl;
+
+		graph_mode(false);
+		textcolor(WHITE);
+		cout << "Bout complete! (" << matches << ")" << endl << endl;
+
+		k = 0;
+		w = 0;
+
+		for ( i = 0; i <= NUM_ROBOTS; i++ ) {
+			if ( robot[i] -> wins == w )
+				k++;
+			if ( robot[i] -> wins > w ) {
+				k = 1;
+				n = i;
+				w = robot[i] -> wins;
+			}
+		}
+
+		cout << "Robot            Wins   Matches   Kills   Deaths    Shots" << endl;
+		cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
+
+		for ( i = 0; i <= NUM_ROBOTS; i++ ) {
+			textcolor(robot_color(i));
+			cout << addfront(cstr(i + 1), 2) << " - " << addrear(robot[i] -> fn, 8) <<
+				addfront(cstr(robot[i] -> wins), 7) << addfront(cstr(robot[i] -> trials), 8)  <<
+				addfront(cstr(robot[n] -> kills), 8) << addfront(cstr(robot[n] -> deaths), 8) <<
+				addfront(cstr(robot[n] -> shots_fired), 9) << endl;
+		}
+
+		textcolor(WHITE);
+		cout << endl;
+		if ( k == 1 ) {
+			cout << "Robot #" << to_string(n + 1) << " (" << robot[n] -> fn << ") wins the bout! (score :" << to_string(w) << "/" << to_string(matches) << endl;
+		else
+			cout << "There is no clear victor!" << endl;
+
+		cout << endl;
+	} else if (graphix) {
+		graph_mode(false);
+		show_statistics();
+	}
+
+	if ( report )
+		write_report();
+
+}
+
+
+int main(int argc, char ** argv) {
+	init();
+	main();
+	shutdown();
+
+	return EXIT_SUCCESS;
+}
