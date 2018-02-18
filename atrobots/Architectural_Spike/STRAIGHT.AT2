@@ -1,0 +1,20 @@
+; TEST ROBOT:
+; Put this against sduck and see what happens
+; in non-graphics mode.
+; *Bones* perhaps you can get better debug info
+; with this more specific problem :-)
+out 17, 0
+!loop
+in 7, ax
+cmp ax, 1700
+jls !good
+out 12, 1
+jgr !loop
+!good
+out 15, @3
+out 15, @3
+out 15, @3
+out 15, @3
+out 15, @3
+je !loop
+jne !loop

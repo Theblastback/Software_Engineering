@@ -1,0 +1,174 @@
+; Sniper 2.  4/21/99.    Copyright 1999 Ed T. Toton III, All Rights Reserved.
+;
+; This is a new version of sniper, written from scratch. It's a little
+; smarter, but is still intended to be only an example and not a high-
+; powered contestant for the tournaments.
+;
+; Notice there are few or no hard JMP commands. Whenever you see a
+; je/jne to the same label together, it acts like a hard jmp but requires
+; zero cpu cycles to execute.
+
+#msg You can't hide!
+
+#config scanner=4   ; Saves a point
+#config armor=3     ; Consumes a point
+;#config engine=1    ; Saves a point
+;#config heatsinks=2 ; Consumes a point
+
+#def turret_home
+#def arc
+#def armor
+#def firecode
+
+!start
+
+
+
+;------------ Goto a random wall.---------------
+
+        ipo     10      ax      ; Get random number
+        and     ax      3       ; now it's 0-3
+        add     ax      1000    ; routine 1000-1003
+        jmp     ax
+
+:1000
+        mov     ex      500
+        mov     fx      0
+        mov     turret_home     080h
+        je      1004
+        jne     1004
+:1001
+        mov     ex      1000
+        mov     fx      500
+        mov     turret_home     0C0h
+        je      1004
+        jne     1004
+:1002
+        mov     ex      500
+        mov     fx      1000
+        mov     turret_home     000h
+        je      1004
+        jne     1004
+:1003
+        mov     ex      0
+        mov     fx      500
+        mov     turret_home     040h
+:1004
+        int     7
+        call    !set-course     ; set course
+:1005
+        ipo     3       ax      ; Check our heading
+        cmp     ax      @1      ; Compare to our desired heading.
+        jne     1005            ; Wait for turn to complete
+
+        opo     11      100     ; And start driving
+        mov     ax      1       ; ax = 1
+        int     4               ; overburn = on
+        opo     13      0       ; aim turret straight ahead.
+
+:1006
+        ipo     2       ax      ; Check heat
+        cmp     ax      0       ; is it 0?
+        jne     1007            ; if not, then skip next line
+        opo     15              ; Fire!
+:1007
+        cmp     @0      0       ; Is our throttle set back to 0?
+        jne     1006            ; If not, keep checking.
+
+        mov     ax      turret_home
+        call    !set-course     ; Aim away from wall.
+        xor     ax      ax      ; ax = 0
+        int     4               ; overburn = off
+        ipo     6       armor   ; Get our armor level
+:1008
+        ipo     3       ax      ; Check our heading
+        cmp     ax      @1      ; Compare to our desired heading.
+        jne     1008            ; Wait for turn to complete
+
+
+
+;----------Now look for enemy to kill----------
+!scan
+        mov     arc     64      ; Set our inital scan arc
+        mov     ax      turret_home
+        sub     ax      @1
+        opo     13      ax      ; Set turret to aim at home-position
+
+; Begin the actual scan
+:2000
+        opo     17      arc     ; Set scan-arc
+        ipo     7       ax      ; Scan for enemy
+        cmp     ax      2000
+        ja      !decide         ; If no one there, decide what to do.
+
+        mov     ax      @3      ; Get accuracy
+        add     ax      2012    ; move it to 2010-2014 range
+        je      ax
+        jne     ax
+
+:2010
+        xor     ax      ax      ; ax = 0
+        sub     ax      arc     ; ax = 0-arc
+        opo     12      ax      ; turn turret left
+	mov	firecode -2	
+        je      2015
+        jne     2015
+:2011
+        xor     ax      ax      ; ax = 0
+        sub     ax      arc     ; ax = 0-arc
+        sar     ax      1       ; ax = (0-arc)/2
+        opo     12      ax      ; turn turret left
+	mov	firecode -1	
+        je      2015
+        jne     2015
+:2012
+        ipo     2       ax       ; Check heat
+        cmp     ax      150      ; Campare to 150
+        ja      2015             ; If too hot, skip shooting
+        opo     15      firecode ; Fire!
+	mov	firecode 0
+        je      2015
+        jne     2015
+:2013
+        mov     ax      arc     ; ax = arc
+        shr     ax      1       ; ax = arc/2
+        opo     12      ax      ; turn turret right
+	mov	firecode 1	
+        je      2015
+        jne     2015
+:2014
+        mov     ax      arc     ; ax = arc
+        opo     12      ax      ; turn turret right
+	mov	firecode 2	
+        je      2015
+        jne     2015
+:2015
+        cmp     arc     2       ; compare arc to 2
+        jle     2000            ; If arc <= 2, then skip shrinking it.
+        shr     arc     2       ; cut our arc to 1/4 size
+        je      2000            ; Scan again.
+        jne     2000
+
+
+!decide
+        cmp     arc     64      ; What is our arc setting?
+        jae     !start          ; If too wide, move to another wall.
+        ipo     6       ax      ; Check armor
+        cmp     ax      armor   ; Did we get damaged?
+        jne     !start          ; If damaged, move to another wall.
+        shl     arc     1       ; Otherwise widen the arc, repeat scan.
+        je      2000
+        jne     2000
+
+;-------------------------------------------------------------------------
+
+;set course to heading in AX.
+!set-course
+        mov     bx,     @1      ; get current desired heading
+                                ; (not actual heading)
+        and     ax,     255     ; Fix ax into 0-255.
+        sub     ax,     bx      ; get number of degrees to turn.
+        opo     14,     ax      ; turn!
+        ret                     ; All done!
+
+

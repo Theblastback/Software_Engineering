@@ -1,0 +1,92 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;   STACK.AT2
+;   Author: William "Amos" Confer
+;   Details:
+;   
+;   This robot demonstrates passing parameters using the stack given
+;   the recent (ver 2.11) changes to the stack in AT-Robots 2.
+;   Specifically, the stack was relocated from its own array to a
+;   previously reserved portion of memory (256 words beginning @ 768).
+;   
+;   The value (SP - 1) is the address of the most recent addition to 
+;   the stack using PUSH or CALL.  This decision was made to allow
+;   horizontal text renderings of the stack.  For example:
+;   
+;   AX:1   BX:2   ret   sp
+;   
+;   could be used to show there are three things on the stack.  From
+;   the top-down they are: the return address of a call, the previous 
+;   contents of BX, and the previous contents of AX.  Because the SP
+;   points just beyond the top of the stack, it can be listed as "sp"
+;   to explicilty show the relative location in memory it points to.
+;   
+;   This visualization standard is used throughout this program's
+;   comments
+
+#msg pass it on the stack
+
+   ;--------------------------------------------------------
+   ; Each register is given a value so we can verify later
+   ; that no registers were harmed in the calling of of
+   ; our function.
+   mov   ax,   1
+   mov   bx,   2
+   mov   cx,   3
+   mov   dx,   4
+   mov   ex,   5
+   mov   fx,   6
+                          ;  sp    (empty stack)
+   push  -13              ; -13   sp
+   push   55              ; -13   55   sp
+   call   !max            ; -13   55   ret  sp
+   pop    ax              ;  sp    (now AX = return of the !max function)
+   err    ax
+
+!inf
+   jmp   !inf
+
+
+!max
+   push   ax              ; -13   55   ret  1   sp
+   push   bx              ; -13   55   ret  1   2   sp
+   push   ex              ; -13   55   ret  1   2   5   sp
+   mov    ex,   sp        ;;;; make a copy of the SP to manipulate
+   sub    ex,   5         ;;;; address of the 2nd parameter
+   mov    ax,   [ex]      ;;;; AX = 2nd parameter 
+   dec    ex              ;;;; address of the 1st parameter
+   mov    bx,   [ex]      ;;;; BX = 1st parameter
+
+   ;----------------------------
+   ; the !max function, proper
+
+   cmp    ax,   bx
+   jgr    !ax_big
+;bx_big
+                          ;;;; return BX from !max if it is biggest
+                          ;;;; (it isn't in this case)
+   mov    [ex], bx        ; -13   55   ret  1   2   5   sp
+                          ;  ^-----this is the return value location
+   jmp    !done
+!ax_big
+                          ;;;; return AX from !max if it is biggest
+   mov    [ex], ax        ;  55   55   ret  1   2   5   sp
+                          ;  ^----- this is the return value location
+!done
+
+   add    ex,   2         ;;;; address of the return
+   mov    ax,   [ex]      ;;;; AX = return address
+   dec    ex              ;;;; address where the return should be relocated
+   mov    [ex], ax        ;  55   ret  ret  1   2   5   sp
+                          ;        ^----- we just copied the return address here
+
+                          ;;;; Notice how the original values of the registers
+                          ;;;; we backed up are quitely waiting at the top of
+                          ;;;; the stack.
+
+   pop    ex              ;  55   ret  ret  1   2   sp
+   pop    bx              ;  55   ret  ret  1   sp
+   pop    ax              ;  55   ret  ret  sp
+
+   dec    sp              ;  55   ret  sp
+   ret                    ;  55   sp

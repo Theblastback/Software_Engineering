@@ -1,0 +1,34 @@
+; WALLBOMB, the sample robot. Copyright 1999 Ed T. Toton III.
+;
+; This robot drops mines, heading for the wall. When it gets there,
+; it self-destructs. Basically it throws the match, letting the other
+; robot get the win... but it makes it very hard for the other robot
+; to get the KILL.
+
+#config armor=4         ; consumes 2 points
+#config scanner=0       ; gives us 5 points
+#config engine=0        ; gives us 2 points
+#config heatsinks=0     ; gives us 1 point
+#config mines=5         ; consumes 5 points
+#config weapon=0        ; gives us 2 points
+#config shield=3        ; consumes 3 points
+; This breaks even. We are heavy and slow, tough and loaded with mines.
+
+        opo     11      100     ; Max throttle.
+        opo     24      1       ; Shield up.
+
+:100
+        opo     22      12      ; Lay mine.
+        opo     15              ; Fire
+        delay   80              ; Wait 85 cpu cycles
+        opo     22      12      ; Lay mine.
+        delay   80              ; Wait 85 cpu cycles
+        ipo     1       ax      ; Check spedometer
+        cmp     ax      0       ; Compare to 0
+        ja      100             ; If faster, then loop back and drop mine.
+;        ipo     22      ax      ; Check mine count
+;        cmp     ax      0       ; Compare to 0
+;        ja      100             ; If we have more than 0, drop another.
+
+        int                     ; We hit something. DESTRUCT!
+

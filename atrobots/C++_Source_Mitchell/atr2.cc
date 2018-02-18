@@ -63,20 +63,25 @@ string report_ext	= ".REP";
 #define MAX_ROBOT_LINES	8
 
 struct op_rec {
+<<<<<<< HEAD
 	short	op[MAX_OP+1];
 }
+=======
+	short	op[MAX_OP];
+};
+>>>>>>> Nick
 
 struct op_rec prog_type[MAX_CODE+1];
 
 struct config_rec {
 	short scanner, weapon, armor, engine, heatsinks, shield, mines;
-}
+};
 
 struct mine_rec {
 	double x, y;
 	short detect, yield;
 	bool detonate;
-}
+};
 
 struct robot_rec {
 	bool	is_locked;

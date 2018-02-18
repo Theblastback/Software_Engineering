@@ -1,0 +1,73 @@
+; SWEEPER sample robot - Ed T. Toton III  02/24/97
+;
+; Simply a demonstration/test of some new features.
+;
+
+#msg Hi there!
+
+; You can now access your program data beginning at @1024
+; Each instruction line (including ":" labels) takes 4 memory
+; addresses. The first one is the instruction/label, the
+; next two are the two operands, and the last is the microcode
+; defining what each does.
+
+
+        sub     ax,     ax      ; ax = 0
+        mov     ax,     @1024   ; ax = sub from above line (ax = 2)
+        mov     ax,     !end    ; get IP position for end of program
+        shl     ax,     2       ; IP positions represent 4 memory locations
+        add     ax,     1024    ; Now we have the memory address that
+                                ; marks the end of the program.
+        get     bx,     ax      ; Get what's there
+;        err     bx              ; Should be 0! (implied NOP at end of program)
+
+
+!start
+        xor     ex,     ex      ; ex = 0
+        xor     fx,     fx      ; fx = 0
+        int     7               ; find angle
+        opo     11,     100     ; Max speed!
+        call    !set-course     ; Let's go!
+        del     2
+
+        ipo     2,      ax      ; check our heat
+        cmp     ax,     50      ; is it over 50?
+        jgr     !start          ; if so, let's not scan just yet.
+
+!driving
+        ipo     1,      ax      ; Get current speed
+        cmp     ax,     0       ; Are we still moving?
+        jgr     !driving        ; If so, we're not there yet.
+
+        mov     ax,     224     ; ax=224
+        call    !set-course     ; face north-west
+        opo     13,     92      ; turret faces right
+
+        mov     cx,     19      ; loop 19 times
+!scanloop                       ; top of loop
+        ipo     7,      ax      ; scan!
+        cmp     ax,     1500    ; find anyone?
+        jgr     !skipshoot      ; if not, skip along
+        opo     15              ; if so, fire!
+!skipshoot
+        opo     12,     4       ; turn turret right 4 degrees
+        loop    !scanloop       ; end of loop
+
+        jtl     !start
+        jmp     !end
+
+
+;course-setting subroutine
+;set course to heading in AX.
+!set-course
+        mov     bx,     @1      ; get current desired heading
+                                ; (not actual heading)
+        and     ax,     255     ; Fix ax into 0-255.
+        sub     ax,     bx      ; get number of degrees to turn.
+        opo     14,     ax      ; turn!
+        ret                     ; All done!
+
+
+!end
+#end
+
