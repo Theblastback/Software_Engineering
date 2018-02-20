@@ -1,6 +1,7 @@
 #include "Headers/filelib.h"
 #include "Headers/myfile.h"
 #include "Headers/atr2fun.h"
+#include <iostream>
 
 
 // Begin global variable/definition listings
@@ -63,13 +64,8 @@ string report_ext	= ".REP";
 #define MAX_ROBOT_LINES	8
 
 struct op_rec {
-<<<<<<< HEAD
 	short	op[MAX_OP+1];
 }
-=======
-	short	op[MAX_OP];
-};
->>>>>>> Nick
 
 struct op_rec prog_type[MAX_CODE+1];
 
@@ -114,6 +110,7 @@ struct missile_rec {
 }
 
 // Begin global variables
+ofstream log;
 
 // Robot variables
 short num_robots;
@@ -337,6 +334,113 @@ void update_heat(short n) {
 }
 
 // Robot_error
+
+
+// Logs errors to the console for debugging robots.
+
+void log_error(int i, int n, string ov) {
+    log.open("errlog.txt");
+    log << endl;
+    log << endl;
+    if (!logging_errors)
+        log << "Turn on debugging mode to error check your code!" << endl;
+    switch (i) {
+        case 1:
+            log << "Stack full - Too many CALLs?" << endl;
+            break;
+
+        case 2:
+            log << "Label not found. Hmmm." << endl;
+            break;
+
+        case 3:
+            log << "Can't assign value - Tisk tisk." << endl;
+            break;
+
+        case 4:
+            log << "Illegal memory reference" << endl;
+            break;
+
+        case 5:
+            log << "Stack empty - Too many RETs?" << endl;
+            break;
+
+        case 6:
+            log << "Illegal instruction. How bizarre." << endl;
+            break;
+
+        case 7:
+            log << "Return out of range - Woops!" << endl;
+            break;
+
+        case 8:
+            log << "Divide by zero" << endl;
+            break;
+
+        case 9:
+            log << "Unresolved !label. WTF?" << endl;
+            break;
+
+        case 10:
+            log << "Invalid Interrupt Call" << endl;
+            break;
+
+        case 11:
+            log << "Invalid Port Access" << endl;
+            break;
+
+        case 12:
+            log << "Com Queue empty" << endl;
+            break;
+
+        case 13:
+            log << "No mine-layer, silly." << endl;
+            break;
+
+        case 14:
+            log << "No mines left" << endl;
+            break;
+
+        case 15:
+            log << "No shield installed - Arm the photon torpedoes instead. :/" << endl;
+            break;
+
+        case 16:
+            log << "Invalid Microcode in instruction." << endl;
+            break;
+
+        default:
+            log << "Unknown error." << endl;
+    }
+    log << endl;
+    log << endl;
+    log
+            << " <", i, "> ", s, " (Line #", robot[n]->ip, ") [Cycle: ", robot[n]->game_cycle, ", Match: ", robot[n]->played, "/", robot[n]->matches,
+            "]" << endl;
+    log << " ", mneonic(robot[n]->code[robot[n]->ip].op[0], robot[n]->code[robot[n]->ip].op[3] & 15), "  ",
+            operand(robot[n]->code[robot[n]->ip].op[1], (robot[n]->code[robot[n]->ip].op[3] >> 4) & 15), ", ",
+            operand(robot[n]->code[robot[n]->ip].op[2], (robot[n]->code[robot[n]->ip].op[3] >> 8) & 15) << endl;
+    if (ov != '')
+        log << "    (Values: ", ov, ")" << endl;
+    else
+        log << " ";
+    log << " AX=", addrear(cstr(robot[n]->ram[65]) + ",", 7) << endl;
+    log << " BX=", addrear(cstr(robot[n]->ram[66]) + ",", 7) << endl;
+    log << " CX=", addrear(cstr(robot[n]->ram[67]) + ",", 7) << endl;
+    log << " DX=", addrear(cstr(robot[n]->ram[68]) + ",", 7) << endl;
+    log << " EX=", addrear(cstr(robot[n]->ram[69]) + ",", 7) << endl;
+    log << " FX=", addrear(cstr(robot[n]->ram[70]) + ",", 7) << endl;
+    log << " Flags = ", robot[n]->ram[64] << endl;
+    log << " AX=", addrear(hex(robot[n]->ram[65]) + ",", 7) << endl;
+    log << " BX=", addrear(hex(robot[n]->ram[66]) + ",", 7) << endl;
+    log << " CX=", addrear(hex(robot[n]->ram[67]) + ",", 7) << endl;
+    log << " DX=", addrear(hex(robot[n]->ram[68]) + ",", 7) << endl;
+    log << " EX=", addrear(hex(robot[n]->ram[69]) + ",", 7) << endl;
+    log << " FX=", addrear(hex(robot[n]->ram[70]) + ",", 7) << endl;
+    log << " Flags = ", hex(robot[n]->ram[64]) << endl;
+    log.close();
+    return;
+}
 
 
 void update_lives(short n) {
@@ -2233,10 +2337,1376 @@ void true_main() {
 
 }
 
+void prog_error(short n, string ss) {
+    graph_mode(false);
+    log.open("errlog.txt");
+    log << endl;
+    log << endl;
+    switch (n) {
+        case 0:
+            log << ss;
+            break;
+        case 1:
+            log << "Invalid :label - " + ss + ", silly mortal.";
+            break;
+        case 2:
+            log << "Undefined identifier - " + ss + ". A typo perhaps?";
+            break;
+        case 3:
+            log << "Memory access out of range - " + ss + "";
+            break;
+        case 4:
+            log << "Not enough robots for combat. Maybe we should just drive in circles.";
+            break;
+        case 5:
+            log << "Robot names and settings must be specified. An empty arena is no fun.";
+            break;
+        case 6:
+            log << "Config file not found - " + ss + "";
+            break;
+        case 7:
+            log << "Cannot access a config file from a config file - " + ss + "";
+            break;
+        case 8:
+            log << "Robot not found " + ss + ". Perhaps you mistyped it?";
+            break;
+        case 9:
+            log << "Insufficient RAM to load robot: " + ss + "... This is not good.";
+            break;
+        case 10:
+            log << "Too many robots! We can only handle " + cstr(max_robots + 1) + "! Blah.. limits are limits.";
+            break;
+        case 11:
+            log << "You already have a perfectly good #def for " + ss + ", silly.";
+            break;
+        case 12:
+            log << "Variable name too long! (Max:" + cstr(max_var_len) + ") " + ss + "";
+            break;
+        case 13:
+            log << "!Label already defined " + ss + ", silly.";
+            break;
+        case 14:
+            log << "Too many variables! (Var Limit: " + cstr(max_vars) + ")";
+            break;
+        case 15:
+            log << "Too many !labels! (!Label Limit: " + cstr(max_labels) + ")";
+            break;
+        case 16:
+            log << "Robot program too long! Boldly we simplify, simplify along..." + ss;
+            break;
+        case 17:
+            log << "!Label missing error. !Label #" + ss + ".";
+            break;
+        case 18:
+            log << "!Label out of range: " + ss + "";
+            break;
+        case 19:
+            log << "!Label not found. " + ss + "";
+            break;
+        case 20:
+            log << "Invalid config option: " + ss + ". Inventing a new device?";
+            break;
+        case 21:
+            log << "Robot is attempting to cheat; Too many config points (" + ss + ")";
+            break;
+        case 22:
+            log << "Insufficient data in data statement: " + ss + "";
+            break;
+        case 23:
+            log << "Too many asterisks: " + ss + "";
+            break;
+        case 24:
+            log << "Invalid step count: " + ss + ". 1-9 are valid conditions.";
+            break;
+        case 25:
+            log << "'" + ss + "'";
+            break;
+        default:
+            log << ss;
+    }
+    log.close();
+    return;
+
+}
+
+
+void parse1(short n, short p, string * s){
+    int i, j, k, opcode, microcode;
+    bool found, indirect;
+    string ss;
+
+    for (i = 0; i <= max_op - 1; i++) {
+        k = 0;
+        found = false;
+        opcode = 0;
+        microcode = 0;
+        s[i] = trim(to_Uppercase(s[i]));
+        indirect = false;
+     /*
+     Microcode:
+        0 = instruction, number, constant
+        1 = variable, memory access
+        2 = :label
+        3 = !label (unresolved)
+        4 = !label (resolved)
+       8h mask = inderect addressing (enclosed in [])
+     */
+
+     if(s[i].compare("") == 0){
+        opcode = 0;
+        microcode = 0;
+        found = true;
+     }
+     if( (lstr(s[i], 1).compare("[") == 0) && (rstr(s[i], 1).compare("]") == 0) ){
+        s[i] = copy(s[i], 2, s[i].length()-2);
+        indirect = true;
+     }
+
+     //Labels
+     if(!found && (s[i][1] == '!') ){
+        ss = s[i];
+        ss = trim(rstr(ss, length(ss)-1));
+        if(numlabels > 0){
+            for(j = 1; j <= numlabels; j++){
+                if(ss == labelname[j]){
+                    found = true;
+                    if(labelnum[j] >= 0){
+                        opcode = labelnum[j]; //resolved label
+                        microcode = 4;
+                    }else{
+                    opcode = j; //unresolved label
+                    microcode = 3;
+                    }
+                }
+                if(!found){
+                    numlabels++;
+                    if(numlabels > max_labels){
+                        prog_error(15, '');
+                    }else{
+                        labelname[numblabels] = ss;
+                        labelnum[numlabels] = -1;
+                        opcode = numlabels;
+                        microcode = 3; //unresolved label
+                        found = true;
+                    }
+                }
+            }
+        }
+
+        if (numvars > 0 && !found) {
+            for (j = 1; j <= numvars; j++) {
+                if (s[i] == varname[j]) {
+                    opcode = varloc[j];
+                    microcode = 1;
+                    found = true;
+                }
+                //Instructions
+                switch (s[i]) {
+                    case "NOP":
+                        opcode = 0;
+                        found = true;
+                        break;
+                    case "ADD":
+                        opcode = 1;
+                        found = true;
+                        break;
+                    case "SUB":
+                        opcode = 2;
+                        found = true;
+                        break;
+                    case "OR":
+                        opcode = 3;
+                        found = true;
+                        break;
+                    case "AND":
+                        opcode = 4;
+                        found = true;
+                        break;
+                    case "XOR":
+                        opcode = 5;
+                        found = true;
+                        break;
+                    case "NOT":
+                        opcode = 6;
+                        found = true;
+                        break;
+                    case "MPY":
+                        opcode = 7;
+                        found = true;
+                        break;
+                    case "DIV":
+                        opcode = 8;
+                        found = true;
+                        break;
+                    case "MOD":
+                        opcode = 9;
+                        found = true;
+                        break;
+                    case "RET":
+                        opcode = 10;
+                        found = true;
+                        break;
+                    case "RETURN":
+                        opcode = 10;
+                        found = true;
+                        break;
+                    case "GSB":
+                        opcode = 11;
+                        found = true;
+                        break;
+                    case "GOSUB":
+                        opcode = 11;
+                        found = true;
+                        break;
+                    case "CALL":
+                        opcode = 11;
+                        found = true;
+                        break;
+                    case "JMP":
+                        opcode = 12;
+                        found = true;
+                        break;
+                    case "JUMP":
+                        opcode = 12;
+                        found = true;
+                        break;
+                    case "GOTO":
+                        opcode = 12;
+                        found = true;
+                        break;
+                    case "JLS":
+                        opcode = 13;
+                        found = true;
+                        break;
+                    case "JB":
+                        opcode = 13;
+                        found = true;
+                        break;
+                    case "JGR":
+                        opcode = 14;
+                        found = true;
+                        break;
+                    case "JA":
+                        opcode = 14;
+                        found = true;
+                        break;
+                    case "JNE":
+                        opcode = 15;
+                        found = true;
+                        break;
+                    case "JEQ":
+                        opcode = 16;
+                        found = true;
+                        break;
+                    case "JE":
+                        opcode = 16;
+                        found = true;
+                        break;
+                    case "XCHG":
+                        opcode = 17;
+                        found = true;
+                        break;
+                    case "SWAP":
+                        opcode = 17;
+                        found = true;
+                        break;
+                    case "DO":
+                        opcode = 18;
+                        found = true;
+                        break;
+                    case "LOOP":
+                        opcode = 19;
+                        found = true;
+                        break;
+                    case "CMP":
+                        opcode = 20;
+                        found = true;
+                        break;
+                    case "TEST":
+                        opcode = 21;
+                        found = true;
+                        break;
+                    case "SET":
+                        opcode = 22;
+                        found = true;
+                        break;
+                    case "MOV":
+                        opcode = 22;
+                        found = true;
+                        break;
+                    case "LOC":
+                        opcode = 23;
+                        found = true;
+                        break;
+                    case "ADDR":
+                        opcode = 23;
+                        found = true;
+                        break;
+                    case "GET":
+                        opcode = 24;
+                        found = true;
+                        break;
+                    case "PUT":
+                        opcode = 25;
+                        found = true;
+                        break;
+                    case "INT":
+                        opcode = 26;
+                        found = true;
+                        break;
+                    case "IPO":
+                        opcode = 27;
+                        found = true;
+                        break;
+                    case "IN":
+                        opcode = 27;
+                        found = true;
+                        break;
+                    case "OPO":
+                        opcode = 28;
+                        found = true;
+                        break;
+                    case "OUT":
+                        opcode = 28;
+                        found = true;
+                        break;
+                    case "DEL":
+                        opcode = 29;
+                        found = true;
+                        break;
+                    case "DELAY":
+                        opcode = 29;
+                        found = true;
+                        break;
+                    case "PUSH":
+                        opcode = 30;
+                        found = true;
+                        break;
+                    case "POP":
+                        opcode = 31;
+                        found = true;
+                        break;
+                    case "ERR":
+                        opcode = 32;
+                        found = true;
+                        break;
+                    case "ERROR":
+                        opcode = 32;
+                        found = true;
+                        break;
+                    case "INC":
+                        opcode = 33;
+                        found = true;
+                        break;
+                    case "DEC":
+                        opcode = 34;
+                        found = true;
+                        break;
+                    case "SHL":
+                        opcode = 35;
+                        found = true;
+                        break;
+                    case "SHR":
+                        opcode = 36;
+                        found = true;
+                        break;
+                    case "ROL":
+                        opcode = 37;
+                        found = true;
+                        break;
+                    case "ROR":
+                        opcode = 38;
+                        found = true;
+                        break;
+                    case "JZ":
+                        opcode = 39;
+                        found = true;
+                        break;
+                    case "JNZ":
+                        opcode = 40;
+                        found = true;
+                        break;
+                    case "JAE":
+                        opcode = 41;
+                        found = true;
+                        break;
+                    case "JGE":
+                        opcode = 41;
+                        found = true;
+                        break;
+                    case "JLE":
+                        opcode = 42;
+                        found = true;
+                        break;
+                    case "JBE":
+                        opcode = 42;
+                        found = true;
+                        break;
+                    case "SAL":
+                        opcode = 43;
+                        found = true;
+                        break;
+                    case "SAR":
+                        opcode = 44;
+                        found = true;
+                        break;
+                    case "NEG":
+                        opcode = 45;
+                        found = true;
+                        break;
+                    case "JTL":
+                        opcode = 46;
+                        found = true;
+                        break;
+
+                        //Registers
+                    case "COLCNT":
+                        opcode = 8;
+                        microcode = 1;
+                        found = true;
+                        break;
+                    case "METERS":
+                        opcode = 9;
+                        microcode = 1;
+                        found = true;
+                        break;
+                    case "COMBASE":
+                        opcode = 10;
+                        microcode = 1;
+                        found = true;
+                        break;
+                    case "COMEND":
+                        opcode = 11;
+                        microcode = 1;
+                        found = true;
+                        break;
+                    case "FLAGS":
+                        opcode = 64;
+                        microcode = 1;
+                        found = true;
+                        break;
+                    case "AX":
+                        opcode = 65;
+                        microcode = 1;
+                        found = true;
+                        break;
+                    case "BX":
+                        opcode = 66;
+                        microcode = 1;
+                        found = true;
+                        break;
+                    case "CX":
+                        opcode = 67;
+                        microcode = 1;
+                        found = true;
+                        break;
+                    case "DX":
+                        opcode = 68;
+                        microcode = 1;
+                        found = true;
+                        break;
+                    case "EX":
+                        opcode = 69;
+                        microcode = 1;
+                        found = true;
+                        break;
+                    case "FX":
+                        opcode = 70;
+                        microcode = 1;
+                        found = true;
+                        break;
+                    case "SP":
+                        opcode = 71;
+                        microcode = 1;
+                        found = true;
+                        break;
+
+                        //Constants
+                    case "MAXINT":
+                        opcode = 32767;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "MININT":
+                        opcode = -32768;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_SPEDOMETER":
+                        opcode = 1;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_HEAT":
+                        opcode = 2;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_COMPASS":
+                        opcode = 3;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_TANGLE":
+                        opcode = 4;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_TURRET_OFS":
+                        opcode = 4;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_THEADING":
+                        opcode = 5;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_TURRET_ABS":
+                        opcode = 5;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_ARMOR":
+                        opcode = 6;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_DAMAGE":
+                        opcode = 6;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_SCAN":
+                        opcode = 7;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_ACCURACY":
+                        opcode = 8;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_RADAR":
+                        opcode = 9;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_RANDOM":
+                        opcode = 10;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_RAND":
+                        opcode = 10;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_THROTTLE":
+                        opcode = 11;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_TROTATE":
+                        opcode = 12;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_OFS_TURRET":
+                        opcode = 12;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_TAIM":
+                        opcode = 13;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_ABS_TURRET":
+                        opcode = 13;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_STEERING":
+                        opcode = 14;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_WEAP":
+                        opcode = 15;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_WEAPON":
+                        opcode = 15;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_FIRE":
+                        opcode = 15;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_SONAR":
+                        opcode = 16;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_ARC":
+                        opcode = 17;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_SCANARC":
+                        opcode = 17;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_OVERBURN":
+                        opcode = 18;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_TRANSPONDER":
+                        opcode = 19;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_SHUTDOWN":
+                        opcode = 20;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_CHANNEL":
+                        opcode = 21;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_MINELAYER":
+                        opcode = 22;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_MINETRIGGER":
+                        opcode = 23;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_SHIELD":
+                        opcode = 24;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "P_SHIELDS":
+                        opcode = 24;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_DESTRUCT":
+                        opcode = 0;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_RESET":
+                        opcode = 1;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_LOCATE":
+                        opcode = 2;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_KEEPSHIFT":
+                        opcode = 3;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_OVERBURN":
+                        opcode = 4;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_ID":
+                        opcode = 5;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_TIMER":
+                        opcode = 6;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_ANGLE":
+                        opcode = 7;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_TID":
+                        opcode = 8;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_TARGETID":
+                        opcode = 8;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_TINFO":
+                        opcode = 9;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_TARGETINFO":
+                        opcode = 9;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_GINFO":
+                        opcode = 10;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_GAMEINFO":
+                        opcode = 10;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_RINFO":
+                        opcode = 11;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_ROBOTINFO":
+                        opcode = 11;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_COLLISIONS":
+                        opcode = 12;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_RESETCOLCNT":
+                        opcode = 13;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_TRANSMIT":
+                        opcode = 14;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_RECEIVE":
+                        opcode = 15;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_DATAREADY":
+                        opcode = 16;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_CLEARCOM":
+                        opcode = 17;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_KILLS":
+                        opcode = 18;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_DEATHS":
+                        opcode = 18;
+                        microcode = 0;
+                        found = true;
+                        break;
+                    case "I_CLEARMETERS":
+                        opcode = 19;
+                        microcode = 0;
+                        found = true;
+                        break;
+                }
+
+                //Memory addresses
+                if (!found && s[i][1] == '@' && (atoi(s[i][2]) >= 0 && atoi(s[i][2] <= 9))) {
+                    opcode = atoi(rstr(s[i], strlen(s[i]) - 1));
+                    if (opcode < 0 || opcode > (max_ram + 1) + (((max_code + 1) << 3) - 1)) {
+                        prog_error(3, s[i]);
+                        microcode = 1;
+                        found = true;
+                    }
+                }
+
+                //Numbers
+                if (!found && (atoi(s[i][1]) >= 0 && atoi(s[i][1] <= 9)) || s[i][1] == '-') {
+                    opcode = atoi(s[i]);
+                    found = true;
+                }
+
+                if (found) {
+                    robot[n]->code[p].op[i] = opcode;
+                    if (indirect) {
+                        microcode = microcode | 8;
+                    }
+                    robot[n]->code[p].op[max_op] = robot[n]->code[p].op[max_op] | (microcode << (i * 4));
+                } else if (s[i] != '')
+                    prog_error(2, s[i]);
+            }
+        }
+        if (show_code)
+            print_code(n, p);
+        if (compile_by_line)
+            readkey;
+    }
+}
+
+void compile(int n, string filename){
+    parsetype pp;
+    string s, s1, s2, s3, orig_s, msg;
+    int i, j, k, l, linecount, mask, locktype;
+    string ss[max_op];
+    char c, lc;
+
+    lock_code = '';
+    lock_pos = 0;
+    locktype = 0;
+    lock_dat = 0;
+    //Needs to be a filestream in the main function
+    if(!filestream)
+        prog_error(8, filename);
+    textcolor(robot_color(n));
+    cout<< "Compiling robot #", n+1, ": ", filename<<endl;
+
+    robot[n]->is_locked = false;
+    textcolor(robot_color(n));
+    numvars = 0;
+    numlabels = 0;
+    for(k = 0; k <= max_code; k++){
+        for(i = 0; i <= max_op; i++){
+            robot[n]->code[k].op[i] = 0;
+        }
+    }
+    robot[n]->plen = 0;
+    /*
+     * ????
+     * assign(f,filename)
+     * reset(f)
+     * ????
+     */
+    s = '';
+    linecount = 0;
+
+    //First pass, compile
+    while(!feof(f) && s != "#END"){
+        //readln(f, s);
+        linecount++;
+        if(locktype < 3)
+            lock_pos = 0;
+        if(lock_code != '')
+            for(i = 1; i <= strlen(s); i++){
+                lock_pos++;
+                if(lock_pos > strlen(lock_code))
+                    lock_pos = 1;
+                switch(locktype){
+                    case 3:
+                        s[i] = char((ord(s[i])-1) xor (ord(lock_code[lock_pos]) xor lock_dat));
+                        break;
+                    case 2:
+                        s[i] = char(ord(s[i]) xor (ord(lock_code[lock_pos]) xor 1));
+                        break;
+                    default:
+                        lock_dat = char(ord(s[i]) xor ord(lock_code[lock_pos]));
+                }
+                lock_dat = ord(s[i]) and 15;
+            }
+        s = trim(s);
+        orig_s = s;
+        for(i = 1; i <= strlen(s); i++){
+            //if s[i] in [#0..#32,',',#128..#255] then s[i]:=' ';
+        }
+        if(show_source && ((lock_code='') || debugging_compiler))
+            cout<< zero_pas(linecount, 3) + ":" + zero_pad(robot[n]->plen, 3)+' ', s << endl;
+    }
+
+}
+
+
+
+void do_robot(short n){
+  short i, j, k, l, tthd;
+  double heat_mult, ttx, tty;
+  if (n < 0 || n > num_robots) {
+    exit();
+  }
+  for (robot[*n]) {
+    if (armor <= 0) {
+      exit();
+    }
+  }
+  time_left = time_slice;
+  if (time_left > robot_time_limit && robot_time_limit > 0) {
+    time_left = robot_time_limit;
+  }
+  if (time_left > max_time && max_time > 0) {
+    time_left = max_time;
+  }
+  executed = 0;
+
+  while (time_left > 0 && !cooling && executed < 20 + time_slice && armor > 0) {
+    if (delay_left < 0) {
+      delay_left = 0;
+    }
+    if (delay_left > 0) {
+      delay_left--;
+      time_left--;
+    }
+    if (time_left >= 0 && delay_left = 0) {
+      execute_instruction(n);
+    }
+    if (heat >= shutdown) {
+      cooling = true;
+      shields_up = false;
+    }
+    if (heat >= 500) {
+      damage(n, 1000, true);
+    }
+  }
+
+  thd = (thd + 1024) + 255;
+  hd = (hd + 1024) + 255;
+  shift = (shift + 1024) + 255;
+  if (tspd < -75) {
+    tspd = -75;
+  }
+  if (tspd > 100) {
+    tspd = 100;
+  }
+  if (spd < -75) {
+    spd = -75;
+  }
+  if (spd > 100) {
+    spd = 100;
+  }
+  if (heat < 0) {
+    heat = 0;
+  }
+  if (last_damage < MAXINT) {
+    last_damage++;
+  }
+  if (last_hit < MAXINT) {
+    last_hit++;
+  }
+
+  /* update heat */
+
+  if (shields_up && (game_cycle + 3 == 0)) {
+    heat++;
+  }
+  if (!shields_up) {
+    if (heat > 0) {
+      switch(config.heatsinks){
+      case 1:
+        if (game_cycle + 1 == 0) {
+          heat--;
+        }
+        break;
+      case 2:
+          if (game_cycle % 3 == 0) {
+            heat--;
+          }
+          break;
+      case 3:
+        if (game_cycle + 3 == 0) {
+          heat--;
+        }
+        break;
+      case 4:
+        if (game_cycle + 7 == 0) {
+          heat--;
+        }
+        break;
+      default:
+        if (game_cycle + 3 == 0) {
+          heat++;
+        }
+        break;
+      }
+    }
+    if (overburn && (game_cycle % 3 == 0)) {
+      heat++;
+    }
+    if (heat > 0) {
+      heat--;
+    }
+    if (heat > 0 && (game_cycle + 7 == 0) && (abs(tspd) <= 25)) {
+      heat--;
+    }
+    if ((heat <= shutdown - 50) || (heat <= 0)) {
+      cooling = false;
+    }
+  }
+  if (cooling) {
+    tspd = 0;
+  }
+  heat_mult = 1;
+  if (heat >= 80 && heat <= 99) {
+    heat_mult = .98;
+  }
+  if (heat >= 100 && heat <= 149) {
+    heat_mult = .95;
+  }
+  if (heat >= 150 && heat <= 199) {
+    heat_mult = .85;
+  }
+  if (heat >= 200 && heat <= 249) {
+    heat_mult = .75;
+  }
+  if (heat >= 250 && heat <= MAXINT) {
+    heat_mult = .50;
+  }
+  if (overburn) {
+    heat_mult = heat_mult * 1.30;
+  }
+  if (heat >= 475 && (game_cycle + 3 == 0)) {
+    damage(n, 1, true);
+  }else if (heat >= 450 && (game_cycle + 7 == 0)) {
+    damage(n, 1, true);
+  }else if (heat >= 400 && (game_cycle + 15 == 0)) {
+    damage(n, 1, true);
+  }else if (heat >= 350 && (game_cycle + 31 == 0)) {
+    damage(n, 1, true);
+  }else if (heat >= 300 && (game_cycle + 63 == 0)) {
+    damage(n, 1, true);
+  }else{
+    damage(n, 1, true);
+  }
+
+  /* update robot in physical world */
+
+  if (abs(spd - tspd) <= acceleration) {
+    spd = tspd;
+  }else{
+    if (tspd > spd) {
+      spd++;
+      acceleration++;
+    }else{
+      spd--;
+      acceleration--;
+    }
+  }
+
+  /* turning */
+
+  tthd = hd + shift;
+  if (abs(hd - thd) <= turn_rate || abs(hd - thd) >= 256 - turn_rate) {
+    hd = thd;
+  }else if (hd != thd) {
+    k = 0;
+    if (((thd > hd) && (abs(hd - thd) <= 128)) || ((thd < hd) && (abs(hd - thd) >= 128))) {
+      k = 1;
+    }
+    if (k = 1) {
+      hd = (hd + turn_rate) + 255;
+    }else{
+      hd = (hd + 256 - turn_rate) + 255;
+    }
+  }
+  hd = hd + 255;
+  if (keepshift) {
+    shift = (tthd - hd + 1024) + 255;
+  }
+  speed = spd / 100 * (max_vel * heat_mult * speedadj);
+  xv = sint[hd] * speed;
+  yv = cost[hd] * speed;
+  if (hd = 0 || hd = 128) {
+    xv = 0;
+  }
+  if (hd = 64 || hd = 192) {
+    yv = 0;
+  }
+  if (xv != 0) {
+    ttx = x + xv;
+  }else{
+    ttx = x;
+  }
+  if (yv != 0) {
+    tty = y + yv;
+  }else{
+    tty = y;
+  }
+  if (ttx < 0 || tty < 0 || ttx > 1000 || tty > 1000) {
+    ram[8]++;
+    tspd = 0;
+    if (abs(speed) >= max_vel / 2) {
+      damage(n, 1, true);
+      spd = 0;
+    }
+    ttx = x;
+    tty = y;
+  }
+  for(int i = 0; i < num_robots; i++){
+    if (i != n && (robot[*i].armor > 0) && (distance(ttx, tty, robot[*i].x, robot[*i].y) < crash_range)) {
+      tspd = 0;
+      spd = 0;
+      ttx = x;
+      tty = y;
+      robot[*i].tspd = 0;
+      robot[*i].spd = 0;
+      ram[8]++;
+      robot[*i].ram[8]++;
+      if (abs(speed) >= max_vel / 2) {
+        damage(i, 1, true);
+      }
+    }
+  }
+  if (ttx < 0) {
+    ttx = 0;
+  }
+  if (tty < 0) {
+    tty = 0;
+  }
+  if (ttx > 1000) {
+    ttx = 1000;
+  }
+  if (tty > 1000) {
+    tty = 1000;
+  }
+  meters = meters + distance(x, y, ttx, tty);
+  if (meters >= MAXINT) {
+    meters = meters - MAXINT;
+  }
+  ram[9] = trunc(meters);
+  x = ttx;
+  y = tty;
+
+  /* draw robot */
+
+  if (armor < 0) {
+    armor = 0;
+  }
+  if (heat < 0) {
+    heat = 0;
+  }
+  if (graphix) {
+    if (armor != larmor) {
+      update_armor(n);
+    }
+    if ((heat / 5) != (lheat / 5)) {
+      update_heat(n);
+    }
+    draw_robot(n);
+  }
+  lheat = heat;
+  larmor = armor;
+
+  cycles_lived++;
+}
+
+void do_mine(int n, int m) {
+  int i, j, k, l;
+  double d, r;
+  bool source_alive;
+  for(robot[*n].mine[m]){
+    if (x >= 0 && x <= 1000 && y >= 0 && y <= 1000 && yield > 0) {
+      for (int i = 0; i < num_robots; i++) {
+        if (robot[*i].armor > 0 && i != n) {
+          d = distance(x, y, robot[*i].x, robot[*i].y);
+          if (d <= detect) {
+            detonate = true;
+          }
+        }
+        if (detonate) {
+          init_missile(x, y, 0, 0, 0, n, mine_circle, false);
+          kill_count = 0;
+          if (robot[*i].armor > 0) {
+            source_alive = true;
+          }else{
+            source_alive = false;
+          }
+          for (int i = 0; i < num_robots; i++) {
+            if (i != n && robot[*i].armor > 0) {
+              k = round(distance(x, y, robot[*i].x, robot[*i].y));
+              if (k < yield) {
+                damage(i, round(abs(yield - k)), false);
+                if ((n >= 0 && n <= num_robots) && i != n) {
+                  robot[*n].damage_total += round(abs(yield - k));
+                }
+              }
+            }
+          }
+          if (kill_count > 0 && source_alive && robot[*n].armor <= 0) {
+            kill_count--;
+          }
+          if (kill_count > 0) {
+            robot[*n].kills += kill_count;
+            update_lives(n);
+          }
+          if (graphix) {
+            putpixel(round(x * screen_scale) + screen_x, round(y * screen_scale) + screen_y, 0);
+            yield = 0;
+            x = -1;
+            y = -1;
+          }else{
+            if (graphix && (game_cycle + 1 == 0)) {
+              main_viewport;
+              setcolor(robot_color(n));
+              line(round(x * screen_scale) + screen_x,round(y * screen_scale) + screen_y - 1,
+                   round(x * screen_scale) + screen_x,round(y * screen_scale) + screen_y + 1);
+              line(round(x * screen_scale) + screen_x + 1,round(y * screen_scale) + screen_y,
+                   round(x * screen_scale) + screen_x - 1,round(y * screen_scale) + screen_y);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+void do_missile(int n) {
+  double llx, lly, r, d, dir, xv, yv;
+  int i, j, k, l, xx, yy, tx, ty, dd, dam;
+  bool source_alive;
+  for (missile[n]) {
+    if (a == 0) {
+      exit();
+    }else{
+      if (a == 1) {
+        if (x < -20 || x > 1020 || y < -20 || y > 1020) {
+          a = 0;
+        }
+
+        /* move missile */
+
+        llx = lx;
+        lly = ly;
+        if (a > 0) {
+          hd = (hd + 256) + 255;
+          xv = sint[hd] * mspd;
+          yv = -cost[hd] * mspd;
+          x += xv;
+          y += yv;
+        }
+
+        /* look for hit on a robot */
+
+        k = -1;
+        l = MAXINT;
+        for (int i = 0; i < num_robots; i++) {
+          if (robot[*i].armor > 0 && i != source) {
+            d = distance(lx, ly, robot[*i].x, robot[*i].y);
+            dir = find_angle(lx, ly, robot[*i].x, robot[*i].y);
+            j = (round(dir/pi*128) + 1024) + 255;
+            hd = hd + 255;
+            xx = round(sint[hd] * d + lx);
+            yy = round(-cost[hd] * d + ly);
+            r = distance(xx, yy, robot[*i].x, robot[*i].y);
+            if (d <= mspd && r < hit_range && round(d) <= 1) {
+              k = i;
+              l = round(d);
+              dd = round(r);
+              tx = xx;
+              ty = yy;
+            }
+          }
+          if (k >= 0) {
+            println("hit a robot!");
+            x = tx;
+            y = ty;
+            a = 2;
+            rad = 0;
+            lrad = 0;
+            if (source >= 0 && source <= num_robots) {
+              robot[*source].last_hit = 0;
+              robot[*source].hits++;
+            }
+            for (int i = 0; i < num_robots; i++) {
+              dd =round(distance(x, y, robot[*i].x, robot[*i].y));
+              if (dd <= hit_range) {
+                dam = round(abs(hit_range - dd) * mult);
+                if (dam <= 0) {
+                  dam = 1;
+                }
+                kill_count = 0;
+                if (robot[*source].armor > 0) {
+                  source_alive = true;
+                }else{
+                  source_alive = false;
+                }
+                damage(i, dam, false);
+                if (source >= 0 && source <= num_robots && i != source) {
+                  robot[*source].damage_total += dam;
+                }
+                if (kill_count > 0 && source_alive && robot[*source].armor <= 0) {
+                  kill_count--;
+                }
+                if (kill_count > 0) {
+                  robot[*source].kills += kill_count;
+                  update_lives(source);
+                }
+              }
+            }
+          }
+
+          /* draw missile */
+
+          if (graphix) {
+            main_viewport;
+            setcolor(0);
+            line(round(llx * screen_scale) + screen_x, round(lly * screen_scale) + screen_y,
+                 round(lx * screen_scale) + screen_x, round(ly * screen_scale) + screen_y);
+            if (a == 1) {
+              if (mult > robot[*source].shotstrength) {
+                setcolor(14 + (game_cycle + 1));
+              }else{
+                setcolor(15);
+              }
+              line(round(x * screen_scale) + screen_x, round(y * screen_scale) + screen_y,
+                   round(lx * screen_scale) + screen_x, round(ly * screen_scale) + screen_y);
+            }
+          }
+          if (a == 2) {
+            lrad = rad;
+            rad++;
+            if (rad > max_rad) {
+              a = 0;
+            }
+            if (graphix) {
+              main_viewport;
+              setcolor(0);
+              circle(round(x * screen_scale) + screen_x, round(y * screen_scale) + screen_y, lrad);
+              if (mult > 1) {
+                setcolor(14 + (game_cycle + 1));
+              }else{
+                setcolor(15);
+              }
+              if (max_rad >= blast_circle) {
+                setcolor(14);
+              }
+              if (max_rad >= mine_circle) {
+                setcolor(11);
+              }
+              if (a > 0) {
+                circle(round(x * screen_scale) + screen_x, round(y * screen_scale) + screen_y, rad);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+short round(double x){
+	long temp = x + 0.5;
+
+	return (short)(temp & MAXINT);
+}
 
 int main(int argc, char ** argv) {
 	init();
-	main();
+	true_main();
 	shutdown();
 
 	return EXIT_SUCCESS;
