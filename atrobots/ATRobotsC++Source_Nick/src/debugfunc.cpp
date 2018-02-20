@@ -845,6 +845,8 @@ void compile(int n, string filename) {
     s = '';
     linecount = 0;
 
+    //TODO robot[n] in front of all robot variables.
+
     //First pass, compile
     while (!feof(f) && s != "#END") {
         //readln(f, s);
@@ -875,43 +877,220 @@ void compile(int n, string filename) {
         }
         if (show_source && ((lock_code = '') || debugging_compiler))
             cout << zero_pas(linecount, 3) + ":" + zero_pad(robot[n]->plen, 3) + ' ', s << endl;
+        if(debugging_compiler)
+            if(readkey == 27)
+                halt();
+        k = 0;
+        for(i = s.length(); s >= 1; s--)
+            if(s[i] == ';')
+                k = i;
+        if(k > 0)
+            s = lstr(s, k-1);
+        s = trim(to_Uppercase(s));
+        for(i = 0; i <= max_op; i++){
+            pp[i] = '';
+        }
+        if(s.length() > 0 && s[1] != ';'){
+            switch(s[1]){
+                case '#':
+                    s1 = to_Uppercase(trim(rstr(s,s.length()-1)));
+                    msg = trim(rstr(orig_s, orig_s.length()-5));
+                    k = 0;
+                    for(i = 1; i <= s1.length(); i++)
+                        if(k == 0 && s1[i] = ' ')
+                            k = i;
+                    k--;
+                    if(k > 1) {
+                        s2 = lstr(s1, k);
+                        s3 = to_Uppercase(trim(rstr(s1, s1.length() - k)));
+                        k = 0;
+                        if(numvars > 0)
+                            for(i = 1; i <= numvars; i++)
+                                if(!strcmp(s3, varname[i]))
+                                    k = i;
+                        if(!strcmp(s2, "DEF") && numvars < max_vars){
+                            if(s3.length() > max_var_len) {
+                                prog_error(14, '');
+                            }else{
+                                if(k > 0)
+                                    prog_error(11, s3);
+                                else {
+                                    numvars++;
+                                    if(numvars > max_vars)
+                                        prog_error(14, '');
+                                    else{
+                                        varname[numvars] = s3;
+                                        varloc[numvars] = 127 + numvars;
+                                    }
+
+                                }
+
+                            }
+                        }
+                        else if(!strcmp(lstr(s2, 4), "LOCK")){
+                            is_locked = true;
+                            if(s2.length > 4)
+                                locktype = value(rstr(s2, length(s2)-4));
+                            lock_code = trim(to_Uppercase(s3));
+                            cout<< "Robot is of LOCKed format from this point forward. [",locktype,"]"<<endl;
+                            for(i = 1; i <= lock_code.length()){
+                                lock_code[i] = char(ord(lock_code[i])- 65);
+                            }
+                        }else if(!strcmp(s2, "MSG"))
+                            name = msg;
+                        else if(!strcmp(s2, "TIME")){
+                            robot_time_limit = value(s3);
+                            if(robot_time_limit < 0)
+                                robot_time_limit = 0;
+                        }else if(!strcmp(s2, "CONFIG")){
+                            if(!strcmp(lstr(s3,8), "SCANNER="))
+                                config.scanner = value(rstr(s3, s3.length()-8));
+                            else if(!strcmp(lstr(s3,7), "SHIELD="))
+                                config.shield = value(rstr(s3, s3.length()-7));
+                            else if(!strcmp(lstr(s3,7), "WEAPON="))
+                                config.weapon = value(rstr(s3, s3.length()-7));
+                            else if(!strcmp(lstr(s3,6), "ARMOR="))
+                                config.armor = value(rstr(s3, s3.length()-6));
+                            else if(!strcmp(lstr(s3,7), "ENGINE="))
+                                config.engine = value(rstr(s3, s3.length()-7));
+                            else if(!strcmp(lstr(s3,10), "HEATSINKS="))
+                                config.heatsinks = value(rstr(s3, s3.length()-10));
+                            else if(!strcmp(lstr(s3,6), "MINES="))
+                                config.mines = value(rstr(s3, s3.length()-6));
+                            else
+                                prog_error(20, s3);
+
+                            if(config.scanner < 0)
+                                conifg.scanner = 0;
+                            if(config.scanner > 5)
+                                config.scanner = 5;
+
+                            if(config.shield < 0)
+                                conifg.shield = 0;
+                            if(config.shield > 5)
+                                config.shield = 5;
+
+                            if(config.weapon < 0)
+                                conifg.weapon = 0;
+                            if(config.weapon > 5)
+                                config.weapon = 5;
+
+                            if(config.armor < 0)
+                                conifg.armor = 0;
+                            if(config.armor > 5)
+                                config.armor = 5;
+
+                            if(config.engine < 0)
+                                conifg.engine = 0;
+                            if(config.engine > 5)
+                                config.engine = 5;
+
+                            if(config.heatsinks < 0)
+                                conifg.heatsinks = 0;
+                            if(config.heatsinks > 5)
+                                config.heatsinks = 5;
+
+                            if(config.mines < 0)
+                                conifg.mines = 0;
+                            if(config.mines > 5)
+                                config.mines = 5;
+                        }
+                        else
+                            cout<< "WARNING: unknown directive '", s2, "' "<<endl;
+
+                    }
+                    break;
+                case '*':
+                    check_plen(plen);
+                    for(i = 0; i <= max_op; i++)
+                        pp[i] = '';
+                    for(i = 2; i <= s.length(); i++)
+                        if(s[i] == '*')
+                            prog_error(23,s);
+                    k = 0;
+                    i = 1;
+                    s1 = '';
+                    if(s.length() <= 2)
+                        prog_error(23, s);
+                    while(i < length(s) && k <= max_op){
+                        i++;
+                        /*
+                         * if ord(s[i]) in [33..41,43..127] then pp[k]:=pp[k]+s[i]
+                            else if (ord(s[i]) in [0..32,128..255]) and
+                            (ord(s[i-1]) in [33..41,43..127]) then inc(k);
+                         */
+                    }
+                    for(i = 0; i <= max_op; i++)
+                        code[plen].op[i] = value(pp[i]);
+                    plen++;
+                    break;
+                case ':':
+                    check_plen(plen);
+                    s1 = rstr(s, s.length()-1);
+                    for(i = 1; i <= s1.length())
+                        //if not (s1[i] in ['0'..'9']) then
+                            prog_error(1, s);
+                    code[plen].op[0] = value(s1);
+                    code[plen].op[max_op] = 2;
+                    if(show_code)
+                        print_code(n, plen);
+                    plen++;
+                    break;
+                case '!':
+                    check_plen(plen);
+                    s1 = trim(rstr(s, s.length()-1));
+                    k = 0;
+                    for(i = s1.length(); i >= 1; i--) {
+                        //in [';',#8,#9,#10,' ',','] then k:=i;
+                    }
+                    if(k > 0)
+                        s1 = lstr(s1, k-1);
+                    k = 0;
+                    for(i = 1; i <= numlabels; i++){
+                        if(!strcmp(labelname[i], s1)){
+                            if(labelnum[i] >= 0)
+                                prog_error(13, "!", s1, "(", cstr(labelnum[i]),")");
+                            k = i;
+                        }
+                        if(k == 0){
+                            numlabels++;
+                            if(numlabels > max_labels)
+                                prog_error(15, "");
+                            k = numlabels;
+                        }
+                        labelname[k] = s1;
+                        labelnum[k] = plen;
+                    }
+                    break;
+            }
+        }
     }
 }
 
 /*
- * {--first pass, compile--}
-   while (not eof(f)) and (s<>'#END') {and (plen<=maxcode)} do
-    begin
-     readln(f,s);
-     inc(linecount);
-     if locktype<3 then lock_pos:=0;
-     if lock_code<>'' then
-      for i:=1 to length(s) do
-       begin
-        inc(lock_pos); if lock_pos>length (lock_code) then lock_pos:=1;
-        case locktype of
-         3:s[i]:=char((ord(s[i])-1) xor (ord(lock_code[lock_pos]) xor lock_dat));
-         2:s[i]:=char(ord(s[i]) xor (ord(lock_code[lock_pos]) xor 1));
-         else s[i]:=char(ord(s[i]) xor ord(lock_code[lock_pos]));
-        end;
-        lock_dat:=ord(s[i]) and 15;
-       end;
-     s:=btrim(s);
-     orig_s:=s;
-     for i:=1 to length(s) do
-      if s[i] in [#0..#32,',',#128..#255] then s[i]:=' ';
-     if show_source and ((lock_code='') or debugging_compiler) then
-        writeln(zero_pad(linecount,3)+':'+zero_pad(plen,3)+' ',s);
-     if debugging_compiler then
-        begin if readkey=#27 then halt; end;
-     {-remove comments-}
-     k:=0;
-     for i:=length(s) downto 1 do
-         if s[i]=';' then k:=i;
-     if k>0 then s:=lstr(s,k-1);
-     s:=btrim(ucase(s));
-     for i:=0 to max_op do pp[i]:='';
-     if (length(s)>0) and (s[1]<>';') then
+ * '!':begin (*  !labels  *)
+             check_plen(plen);
+             s1:=btrim(rstr(s,length(s)-1));
+             k:=0;
+             for i:=length(s1) downto 1 do
+                 if s1[i] in [';',#8,#9,#10,' ',','] then k:=i;
+             if k>0 then s1:=lstr(s1,k-1);
+             k:=0;
+             for i:=1 to numlabels do
+              if (labelname[i]=s1) then
+               begin
+                if (labelnum[i]>=0) then prog_error(13,'"!'+s1+'" ('+cstr(labelnum[i])+')');
+                k:=i;
+               end;
+             if (k=0) then
+              begin
+               inc(numlabels);
+               if numlabels>max_labels then prog_error(15,'');
+               k:=numlabels;
+              end;
+             labelname[k]:=s1;
+             labelnum [k]:=plen;
+            end;
  */
 
 int main() {
