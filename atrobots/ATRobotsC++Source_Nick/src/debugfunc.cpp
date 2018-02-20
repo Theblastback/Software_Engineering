@@ -928,72 +928,72 @@ void compile(int n, string filename) {
                             }
                         }
                         else if(!strcmp(lstr(s2, 4), "LOCK")){
-                            is_locked = true;
+                            robot[n]->is_locked = true;
                             if(s2.length > 4)
                                 locktype = value(rstr(s2, length(s2)-4));
                             lock_code = trim(to_Uppercase(s3));
                             cout<< "Robot is of LOCKed format from this point forward. [",locktype,"]"<<endl;
-                            for(i = 1; i <= lock_code.length()){
+                            for(i = 1; i <= lock_code.length(); i++){
                                 lock_code[i] = char(ord(lock_code[i])- 65);
                             }
                         }else if(!strcmp(s2, "MSG"))
-                            name = msg;
+                            robot[n]->name = msg;
                         else if(!strcmp(s2, "TIME")){
-                            robot_time_limit = value(s3);
-                            if(robot_time_limit < 0)
-                                robot_time_limit = 0;
+                            robot[n]->robot_time_limit = value(s3);
+                            if(robot[n]->robot_time_limit < 0)
+                                robot[n]->robot_time_limit = 0;
                         }else if(!strcmp(s2, "CONFIG")){
                             if(!strcmp(lstr(s3,8), "SCANNER="))
-                                config.scanner = value(rstr(s3, s3.length()-8));
+                                robot[n]->config.scanner = value(rstr(s3, s3.length()-8));
                             else if(!strcmp(lstr(s3,7), "SHIELD="))
-                                config.shield = value(rstr(s3, s3.length()-7));
+                                robot[n]->config.shield = value(rstr(s3, s3.length()-7));
                             else if(!strcmp(lstr(s3,7), "WEAPON="))
-                                config.weapon = value(rstr(s3, s3.length()-7));
+                                robot[n]->config.weapon = value(rstr(s3, s3.length()-7));
                             else if(!strcmp(lstr(s3,6), "ARMOR="))
-                                config.armor = value(rstr(s3, s3.length()-6));
+                                robot[n]->config.armor = value(rstr(s3, s3.length()-6));
                             else if(!strcmp(lstr(s3,7), "ENGINE="))
-                                config.engine = value(rstr(s3, s3.length()-7));
+                                robot[n]->config.engine = value(rstr(s3, s3.length()-7));
                             else if(!strcmp(lstr(s3,10), "HEATSINKS="))
-                                config.heatsinks = value(rstr(s3, s3.length()-10));
+                                robot[n]->config.heatsinks = value(rstr(s3, s3.length()-10));
                             else if(!strcmp(lstr(s3,6), "MINES="))
-                                config.mines = value(rstr(s3, s3.length()-6));
+                                robot[n]->config.mines = value(rstr(s3, s3.length()-6));
                             else
                                 prog_error(20, s3);
 
-                            if(config.scanner < 0)
-                                conifg.scanner = 0;
-                            if(config.scanner > 5)
-                                config.scanner = 5;
+                            if(robot[n]->config.scanner < 0)
+                                robot[n]->conifg.scanner = 0;
+                            if(robot[n]->config.scanner > 5)
+                                robot[n]->config.scanner = 5;
 
-                            if(config.shield < 0)
-                                conifg.shield = 0;
-                            if(config.shield > 5)
-                                config.shield = 5;
+                            if(robot[n]->config.shield < 0)
+                                robot[n]->conifg.shield = 0;
+                            if(robot[n]->config.shield > 5)
+                                robot[n]->config.shield = 5;
 
-                            if(config.weapon < 0)
-                                conifg.weapon = 0;
-                            if(config.weapon > 5)
-                                config.weapon = 5;
+                            if(robot[n]->config.weapon < 0)
+                                robot[n]->conifg.weapon = 0;
+                            if(robot[n]->config.weapon > 5)
+                                robot[n]->config.weapon = 5;
 
-                            if(config.armor < 0)
-                                conifg.armor = 0;
-                            if(config.armor > 5)
-                                config.armor = 5;
+                            if(robot[n]->config.armor < 0)
+                                robot[n]->conifg.armor = 0;
+                            if(robot[n]->config.armor > 5)
+                                robot[n]->config.armor = 5;
 
-                            if(config.engine < 0)
-                                conifg.engine = 0;
-                            if(config.engine > 5)
-                                config.engine = 5;
+                            if(robot[n]->config.engine < 0)
+                                robot[n]->conifg.engine = 0;
+                            if(robot[n]->config.engine > 5)
+                                robot[n]->config.engine = 5;
 
-                            if(config.heatsinks < 0)
-                                conifg.heatsinks = 0;
-                            if(config.heatsinks > 5)
-                                config.heatsinks = 5;
+                            if(robot[n]->config.heatsinks < 0)
+                                robot[n]->conifg.heatsinks = 0;
+                            if(robot[n]->config.heatsinks > 5)
+                                robot[n]->config.heatsinks = 5;
 
-                            if(config.mines < 0)
-                                conifg.mines = 0;
-                            if(config.mines > 5)
-                                config.mines = 5;
+                            if(robot[n]->config.mines < 0)
+                                robot[n]->conifg.mines = 0;
+                            if(robot[n]->config.mines > 5)
+                                robot[n]->config.mines = 5;
                         }
                         else
                             cout<< "WARNING: unknown directive '", s2, "' "<<endl;
@@ -1001,7 +1001,7 @@ void compile(int n, string filename) {
                     }
                     break;
                 case '*':
-                    check_plen(plen);
+                    check_plen(robot[n]->plen);
                     for(i = 0; i <= max_op; i++)
                         pp[i] = '';
                     for(i = 2; i <= s.length(); i++)
@@ -1021,23 +1021,23 @@ void compile(int n, string filename) {
                          */
                     }
                     for(i = 0; i <= max_op; i++)
-                        code[plen].op[i] = value(pp[i]);
-                    plen++;
+                        robot[n]->code[robot[n]->plen].op[i] = value(pp[i]);
+                    robot[n]->plen++;
                     break;
                 case ':':
-                    check_plen(plen);
+                    check_plen(robot[n]->plen);
                     s1 = rstr(s, s.length()-1);
                     for(i = 1; i <= s1.length())
                         //if not (s1[i] in ['0'..'9']) then
                             prog_error(1, s);
-                    code[plen].op[0] = value(s1);
-                    code[plen].op[max_op] = 2;
+                    robot[n]->code[robot[n]->plen].op[0] = value(s1);
+                    robot[n]->code[robot[n]->plen].op[max_op] = 2;
                     if(show_code)
-                        print_code(n, plen);
-                    plen++;
+                        print_code(n, robot[n]->plen);
+                    robot[n]->plen++;
                     break;
                 case '!':
-                    check_plen(plen);
+                    check_plen(robot[n]->plen);
                     s1 = trim(rstr(s, s.length()-1));
                     k = 0;
                     for(i = s1.length(); i >= 1; i--) {
@@ -1059,39 +1059,78 @@ void compile(int n, string filename) {
                             k = numlabels;
                         }
                         labelname[k] = s1;
-                        labelnum[k] = plen;
+                        labelnum[k] = robot[n]->plen;
                     }
+                    break;
+                default:
+                    check_plen(robot[n]->plen);
+                    //parse instruction
+                    //remove comments
+                    k = 0;
+                    for(i = s.length(); i >= 1; i--)
+                        if(s[i] == ';')
+                            k = i;
+                    if(k > 0)
+                        s = lstr(s, k-1);
+                    //setup variables for parsing
+                    k = 0;
+                    for(j = 0; j <= max_op; j++)
+                        pp[j] = '';
+                    for(j = 1; j <= s.length(); j++){
+                        c = s[j];
+                        if(/*not (c in [' ',#8,#9,#10,','])) &&*/ k <= max_op)
+                            pp[k] = pp[k]+c;
+                        else if (/*lc in [' ',#8,#9,#10,','])*/){
+                            k = k+1;
+                        }
+                        lc = c;
+                    }
+                    parse1(n, robot[n]->plen, pp);
+                    robot[n]->plen++;
                     break;
             }
         }
-    }
-}
+        //f.close();?
+        /*
+         * Add our implied NOP if there's room. This was originally to make sure
+         * no one tries using an empty robot program, kinda pointless otherwise
+         */
+        if(robot[n]->plen <= maxcode) {
+            for (i = 0; i <= max_op; i++)
+                pp[i] = "";
+            pp[0] = "NOP";
+            parse1(n, robot[n]->plen, pp);
+        }else{
+            robot[n]->plen--;
+        }
 
-/*
- * '!':begin (*  !labels  *)
-             check_plen(plen);
-             s1:=btrim(rstr(s,length(s)-1));
-             k:=0;
-             for i:=length(s1) downto 1 do
-                 if s1[i] in [';',#8,#9,#10,' ',','] then k:=i;
-             if k>0 then s1:=lstr(s1,k-1);
-             k:=0;
-             for i:=1 to numlabels do
-              if (labelname[i]=s1) then
-               begin
-                if (labelnum[i]>=0) then prog_error(13,'"!'+s1+'" ('+cstr(labelnum[i])+')');
-                k:=i;
-               end;
-             if (k=0) then
-              begin
-               inc(numlabels);
-               if numlabels>max_labels then prog_error(15,'');
-               k:=numlabels;
-              end;
-             labelname[k]:=s1;
-             labelnum [k]:=plen;
-            end;
- */
+        //second pass, resolving !labels
+        if(numlabels > 0){
+            for(i = 0; i <= plen; i++){
+                for(j = 0; j <= max_op-1; j++){
+                    if(robot[n]->code[i].op[max_op] >> (j*4) == 3){
+                        k = robot[n]->code[i].op[j];
+                        if(k > 0 && k <= numlabels){
+                            l = labelnum[k];
+                            if(l<0)
+                                prog_error(19,'"!'+labelname[k]+'" ('+cstr(l)+')');
+                            if(l<0 || l > maxcode)
+                                prog_error(18, '"!'+labelname[k]+'" ('+cstr(l)+')');
+                            else{
+                                robot[n]->code[i].op[j] = l;
+                                mask = !(std::hex(F) << (j*4));
+                                robot[n]->code[i].op[max_op] = (robot[n]->code[i].op[max_op] & mask) or (4 << (j*4));
+                            }
+                        }
+                    }else{
+                        prog_error(17, cstr(k));
+                    }
+                }
+            }
+        }
+    }
+    textcolor(7);
+}
 
 int main() {
     log_error(4);
