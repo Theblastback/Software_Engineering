@@ -278,7 +278,7 @@ void parse1(int n, int p, parsetype s) {
 
             if (numvars > 0 && !found) {
                 for (j = 1; j <= numvars; j++) {
-                    if (s[i] == varname[j]) {
+                    if (strcmp(s[i], varname[j])) {
                         opcode = varloc[j];
                         microcode = 1;
                         found = true;
