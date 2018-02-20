@@ -64,8 +64,18 @@ string report_ext	= ".REP";
 #define MAX_ROBOT_LINES	8
 
 struct op_rec {
+<<<<<<< HEAD
 	short	op[MAX_OP+1];
 }
+=======
+<<<<<<< HEAD
+	short	op[MAX_OP];
+};
+=======
+	short	op[MAX_OP+1];
+}
+>>>>>>> bcc101b1d52f2bc686f99f62c67398c66579292a
+>>>>>>> Nick
 
 struct op_rec prog_type[MAX_CODE+1];
 
@@ -909,6 +919,14 @@ void shutdown() {
 
 	exit(EXIT_SUCCESS);
 }
+
+
+// delete_compile_report(
+
+// write_compile_report(
+
+
+// parse_param(
 
 
 void init() {
