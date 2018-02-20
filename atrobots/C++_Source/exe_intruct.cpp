@@ -38,8 +38,9 @@ void execute_instruction ( int n){
 
     while (step_loop && !(quit || gameover || bout_over)){
       if (keypressed){
-        c = upcase(readkey);
-        switch (c){
+        //with robot[0]^ do
+         upcase(readkey);
+         switch (c){
 
          case 'X':
          temp_mode = step_mode;
@@ -54,7 +55,7 @@ void execute_instruction ( int n){
          break;
 
          case 1 ... 9:
-         step_mode = value(c); //figure out value
+         step_mode =  value(c); //figure out value
          step_count = 0;
          step_loop = false;
          break;
@@ -66,96 +67,96 @@ void execute_instruction ( int n){
          break;
 
          case '-': //check these for set color, outtext and dec
-         if (mem_watch > 0){
+         if ( robot[n] -> mem_watch > 0){
            setcolor (0);
            for (int i = 0; i <= 9; i++){
-              outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :')
+              outtextxy(035,212+(10*i),decimal((robot[n] -> mem_watch+i),4) + ' :')
            }
-           mem_watch--;
+           robot[n] -> mem_watch--;
            update_debug_memory;
          }
          break;
          case '_':
-         if (mem_watch > 0){
+         if (robot[n] -> mem_watch > 0){
            setcolor (0);
            for (int i = 0; i <= 9; i++){
-              outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :')
-              mem_watch--;
+              outtextxy(035,212+(10*i),decimal((robot[n] -> mem_watch+i),4) + ' :')
+              robot[n] -> mem_watch--;
               update_debug_memory;
            }
          }
          break;
 
          case '+':
-         if (mem_watch < 1014){
+         if (robot[n] -> mem_watch < 1014){
            setcolor(0);
            for (int i = 0; i <= 9; i++){
-             outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :');
+             outtextxy(035,212+(10*i),decimal((robot[n] -> mem_watch+i),4) + ' :');
            }
-           mem_watch++;
+           robot[n] -> mem_watch++;
            update_debug_memory;
          }
          break;
          case '=':
-         if (mem_watch < 1014){
+         if (robot[n] -> mem_watch < 1014){
            setcolor(0);
            for (int i = 0; i <= 9; i++){
-             outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :');
+             outtextxy(035,212+(10*i),decimal((robot[n] -> mem_watch+i),4) + ' :');
            }
-           mem_watch++;
+           robot[n] -> mem_watch++;
            update_debug_memory;
          }
          break;
 
          case '[':
-         if(mem_watch > 0){
+         if(robot[n] -> mem_watch > 0){
            setcolor(0);
            for (int i = 0; i <= 9; i++){
-             outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :');
+             outtextxy(035,212+(10*i),decimal((robot[n] -> mem_watch+i),4) + ' :');
            }
-           mem_watch -= 10;
-           if (mem_watch < 0){
-             nem_watch = 0;
+           robot[n] -> mem_watch -= 10;
+           if (robot[n] -> mem_watch < 0){
+             robot[n] -> mem_watch = 0;
            }
            update_debug_memory
          }
          break;
          case '{':
-         if(mem_watch > 0){
+         if(robot[n] -> mem_watch > 0){
            setcolor(0);
            for (int i = 0; i <= 9; i++){
-             outtextxy(035,212+(10*i),decimal((mem_watch+i),4) + ' :');
+             outtextxy(035,212+(10*i),decimal((robot[n] -> mem_watch+i),4) + ' :');
            }
-           mem_watch -= 10;
-           if (mem_watch < 0){
-             nem_watch = 0;
+           robot[n] -> mem_watch -= 10;
+           if (robot[n] -> mem_watch < 0){
+             robot[n] -> mem_watch = 0;
            }
            update_debug_memory
          }
          break;
 
          case ']':
-         if (mem_watch < 1014){
+         if (robot[n] -> mem_watch < 1014){
            setcolor(0);
            for (int i = 0l i <= 9; i++){
-             outtextxy(035,212+(10*i), decimal((mem_watch+i), 4) + ' :');
+             outtextxy(035,212+(10*i), decimal((robot[n] -> mem_watch+i), 4) + ' :');
            }
-           mem_watch += 10;
-           if (mem_watch > 1014){
-             mem_watch = 1014;
+           robot[n] -> mem_watch += 10;
+           if (robot[n] -> mem_watch > 1014){
+             robot[n] -> mem_watch = 1014;
            }
            update_debug_memory;
          }
          break;
          case '}':
-         if (mem_watch < 1014){
+         if (robot[n] -> mem_watch < 1014){
            setcolor(0);
            for (int i = 0l i <= 9; i++){
-             outtextxy(035,212+(10*i), decimal((mem_watch+i), 4) + ' :');
+             outtextxy(035,212+(10*i), decimal((robot[n] -> mem_watch+i), 4) + ' :');
            }
-           mem_watch += 10;
-           if (mem_watch > 1014){
-             mem_watch = 1014;
+           robot[n] -> mem_watch += 10;
+           if (robot[n] -> mem_watch > 1014){
+             robot[n] -> mem_watch = 1014;
            }
            update_debug_memory;
          }
@@ -173,34 +174,34 @@ void execute_instruction ( int n){
    }
   }
 
-  if (! ((code[ip].op[max_op] && 7) in [0,1])){
+  if (! ((code[robot[n] -> ip].op[max_op] && 7) in [0,1])){
     time_used = 0;
   }
   else {
-    switch (get_val(n,ip,0)){ //assembly?
+    switch (get_val(n,robot[n] -> ip,0)){ //assembly?
       case 0: executed++; break; //NOP
       case 1: //ADD
-        put_val(n,ip,1,get_val(n,ip,1) + get_val(n,ip,2));
+        put_val(n,robot[n] -> ip,1,get_val(n, robot[n] -> ip,1) + get_val(n,robot[n] -> ip,2));
         executed++;
         break;
       case 2: //SUB
-        put_val(n,ip,1,get_val(n,ip,1) - get_val(n,ip,2));
+        put_val(n,robot[n] -> ip,1,get_val(n,robot[n] -> ip,1) - get_val(n,robot[n] -> ip,2));
         executed++;
         break;
       case 3://OR
-        put_val(n,ip,1,get_val(n,ip,1) | get_val(n,ip,2));
+        put_val(n,robot[n] -> ip,1,get_val(n,robot[n] -> ip,1) | get_val(n,robot[n] -> ip,2));
         executed++;
         break;
       case 4: //AND
-        put_val(n,ip,1,get_val(n,ip,1) & get_val(n,ip,2));
+        put_val(n,robot[n] -> ip,1,get_val(n,robot[n] -> ip,1) & get_val(n,robot[n] -> ip,2));
         executed ++;
         break;
       case 5: //XOR
-        put_val(n,ip,1,get_val(n,ip,1) ^ get_val(n,ip,2));
+        put_val(n,robot[n] -> ip,1,get_val(n,robot[n] -> ip,1) ^ get_val(n,robot[n] -> ip,2));
         executed++;
         break;
       case 6: //NOT
-        put_val(n,ip,1,!(get_val(n,ip,1)));
+        put_val(n,robot[n] -> ip,1,!(get_val(n,robot[n] -> ip,1)));
         executed++;
         break;
       case 7: //MPY
