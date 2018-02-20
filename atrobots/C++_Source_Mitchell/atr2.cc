@@ -103,7 +103,7 @@ struct robot_rec {
 	ostream	errorlog;
 }
 
-string parsetype[MAX_OP +1];
+typedef string[MAX_OP +1] parsetype;
 struct missile_rec {
 	double x, y, lx, ly, mult, mspd;
 	short source, a, hd, rad, lrad, max_rad;
@@ -122,7 +122,7 @@ string	f;
 short	numvars, numlabels, maxcode, lock_pos, lock_dat;
 string	varname[MAX_VARS -1];
 short	varloc[MAX_VARS -1];
-string	labalname[MAX_VARS -1];
+string	labelname[MAX_VARS -1];
 short	labelnum[MAX_VARS -1];
 bool	show_source, compile_only;
 string	lock_code;
@@ -581,12 +581,6 @@ void graph_mode(bool on) {
 }
 
 
-void prog_error(short n, string ss) {
-// Do stuff
-
-}
-
-
 void print_code(short n, short p) {
 	short i;
 
@@ -601,19 +595,11 @@ void print_code(short n, short p) {
 	cout << endl << endl;
 }
 
-// parse1(
 
 
 void check_plen(short plen) {
 	if (plen > MAX_CODE )
 		prog_error(16, "\nMaximum progrm length exceeded, (Limit: " + cstr(MAX_CODE + 1) + " compiled lines)");
-}
-
-
-// Crutial function. Needed to load and run bots
-void compile(short n, string filename) {
-
-
 }
 
 
@@ -2798,6 +2784,879 @@ short round(double x){
 	long temp = x + 0.5;
 
 	return (short)(temp & MAXINT);
+}
+
+void log_error(int i, int n, string ov) {
+    string s;
+
+    if (!logging_errors) {
+	return;
+    }
+
+    switch (i) {
+        case 1:
+            s =  "Stack full - Too many CALLs?" ;
+            break;
+
+        case 2:
+            s =  "Label not found. Hmmm." ;
+            break;
+
+        case 3:
+            s =  "Can't assign value - Tisk tisk." ;
+            break;
+
+        case 4:
+            s =  "Illegal memory reference" ;
+            break;
+
+        case 5:
+            s =  "Stack empty - Too many RETs?" ;
+            break;
+
+        case 6:
+            s =  "Illegal instruction. How bizarre." ;
+            break;
+
+        case 7:
+            s =  "Return out of range - Woops!" ;
+            break;
+
+        case 8:
+            s =  "Divide by zero" ;
+            break;
+
+        case 9:
+            s =  "Unresolved !label. WTF?" ;
+            break;
+
+        case 10:
+            s =  "Invalid Interrupt Call" ;
+            break;
+
+        case 11:
+            s =  "Invalid Port Access" ;
+            break;
+
+        case 12:
+            s =  "Com Queue empty" ;
+            break;
+
+        case 13:
+            s =  "No mine-layer, silly." ;
+            break;
+
+        case 14:
+            s =  "No mines left" ;
+            break;
+
+        case 15:
+            s =  "No shield installed - Arm the photon torpedoes instead. :/" ;
+            break;
+
+        case 16:
+            s =  "Invalid Microcode in instruction." ;
+            break;
+
+        default:
+            s =  "Unknown error." ;
+    }
+    robot[n] -> errorlog
+            << " <" << i << "> "<< s << " (Line #" << robot[n]->ip << ") [Cycle: " << robot[n]->game_cycle << ", Match: " << robot[n]->played << "/" << robot[n]->matches <<
+            "]" << endl;
+    robot[n] -> errorlog << " " << mneonic(robot[n]->code[robot[n]->ip].op[0], robot[n]->code[robot[n]->ip].op[3] & 15) << "  " <<
+            operand(robot[n]->code[robot[n]->ip].op[1], (robot[n]->code[robot[n]->ip].op[3] >> 4) & 15) << ", " <<
+            operand(robot[n]->code[robot[n]->ip].op[2], (robot[n]->code[robot[n]->ip].op[3] >> 8) & 15) << endl;
+    if ( ov.compare("") == 0)
+        robot[n] -> errorlog << "    (Values: "<< ov << ")" << endl;
+    else
+        robot[n] -> errorlog << " ";
+
+    robot[n] -> errorlog << " AX="<< addrear(cstr(robot[n]->ram[65]) + ",", 7) << endl;
+    robot[n] -> errorlog << " BX="<< addrear(cstr(robot[n]->ram[66]) + ",", 7) << endl;
+    robot[n] -> errorlog << " CX="<< addrear(cstr(robot[n]->ram[67]) + ",", 7) << endl;
+    robot[n] -> errorlog << " DX="<< addrear(cstr(robot[n]->ram[68]) + ",", 7) << endl;
+    robot[n] -> errorlog << " EX="<< addrear(cstr(robot[n]->ram[69]) + ",", 7) << endl;
+    robot[n] -> errorlog << " FX="<< addrear(cstr(robot[n]->ram[70]) + ",", 7) << endl;
+    robot[n] -> errorlog << " Flags = " << robot[n]->ram[64] << endl;
+    robot[n] -> errorlog << " AX="<< addrear(hex(robot[n]->ram[65]) + ",", 7) << endl;
+    robot[n] -> errorlog << " BX="<< addrear(hex(robot[n]->ram[66]) + ",", 7) << endl;
+    robot[n] -> errorlog << " CX="<< addrear(hex(robot[n]->ram[67]) + ",", 7) << endl;
+    robot[n] -> errorlog << " DX="<< addrear(hex(robot[n]->ram[68]) + ",", 7) << endl;
+    robot[n] -> errorlog << " EX="<< addrear(hex(robot[n]->ram[69]) + ",", 7) << endl;
+    robot[n] -> errorlog << " FX="<< addrear(hex(robot[n]->ram[70]) + ",", 7) << endl;
+    robot[n] -> errorlog << " Flags = "<< hex(robot[n]->ram[64]) << endl;
+
+    return;
+}
+
+void prog_error(int n, string ss) {
+    string s;
+    graph_mode(false);
+
+    textcolor(WHITE);
+
+    cout << "ERROR #" << to_string(n) << ": ";
+
+    switch (n) {
+        case 0:
+            s = ss;
+            break;
+        case 1:
+            s = "Invalid :label - " + ss + ", silly mortal.";
+            break;
+        case 2:
+            s = "Undefined identifier - " + ss + ". A typo perhaps?";
+            break;
+        case 3:
+            s = "Memory access out of range - " + ss + "";
+            break;
+        case 4:
+            s = "Not enough robots for combat. Maybe we should just drive in circles.";
+            break;
+        case 5:
+            s = "Robot names and settings must be specified. An empty arena is no fun.";
+            break;
+        case 6:
+            s = "Config file not found - " + ss + "";
+            break;
+        case 7:
+            s = "Cannot access a config file from a config file - " + ss + "";
+            break;
+        case 8:
+            s = "Robot not found " + ss + ". Perhaps you mistyped it?";
+            break;
+        case 9:
+            s = "Insufficient RAM to load robot: " + ss + "... This is not good.";
+            break;
+        case 10:
+            s = "Too many robots! We can only handle " + cstr(max_robots + 1) + "! Blah.. limits are limits.";
+            break;
+        case 11:
+            s = "You already have a perfectly good #def for " + ss + ", silly.";
+            break;
+        case 12:
+            s = "Variable name too long! (Max:" + cstr(max_var_len) + ") " + ss + "";
+            break;
+        case 13:
+            s = "!Label already defined " + ss + ", silly.";
+            break;
+        case 14:
+            s = "Too many variables! (Var Limit: " + cstr(max_vars) + ")";
+            break;
+        case 15:
+            s = "Too many !labels! (!Label Limit: " + cstr(max_labels) + ")";
+            break;
+        case 16:
+            s = "Robot program too long! Boldly we simplify, simplify along..." + ss;
+            break;
+        case 17:
+            s = "!Label missing error. !Label #" + ss + ".";
+            break;
+        case 18:
+            s = "!Label out of range: " + ss + "";
+            break;
+        case 19:
+            s = "!Label not found. " + ss + "";
+            break;
+        case 20:
+            s = "Invalid config option: " + ss + ". Inventing a new device?";
+            break;
+        case 21:
+            s = "Robot is attempting to cheat; Too many config points (" + ss + ")";
+            break;
+        case 22:
+            s = "Insufficient data in data statement: " + ss + "";
+            break;
+        case 23:
+            s = "Too many asterisks: " + ss + "";
+            break;
+        case 24:
+            s = "Invalid step count: " + ss + ". 1-9 are valid conditions.";
+            break;
+        case 25:
+            s = "'" + ss + "'";
+            break;
+        default:
+            s = ss;
+    }
+    cout << s << endl << endl;
+    exit(EXIT_FAILURE);
+
+}
+
+
+void parse1(int n, int p, parsetype s) {
+    int i, j, k, opcode, microcode;
+    bool found, indirect;
+    string ss;
+
+    for (i = 0; i <= max_op - 1; i++) {
+        k = 0;
+        found = false;
+        opcode = 0;
+        microcode = 0;
+        s[i] = trim(to_Uppercase(s[i]));
+        indirect = false;
+        /*
+        Microcode:
+           0 = instruction, number, constant
+           1 = variable, memory access
+           2 = :label
+           3 = !label (unresolved)
+           4 = !label (resolved)
+          8h mask = inderect addressing (enclosed in [])
+        */
+
+        if (s[i].compare("") == 0) {
+            opcode = 0;
+            microcode = 0;
+            found = true;
+        }
+        if ( !(lstr(s[i], 1).compare("[")) && !(rstr(s[i], 1).compare("]") ) {
+            s[i] = copy(s[i], 2, length(s[i]) - 2);
+            indirect = true;
+        }
+
+        //Labels
+        if (!found && s[i][1] = '!') {
+            ss = s[i];
+            ss = trim(rstr(ss, ss.length() - 1));
+            if (numlabels > 0) {
+                for (j = 1; j <= numlabels; j++) {
+                    if (ss == labelname[j]) {
+                        found = true;
+                        if (labelnum[j] >= 0) {
+                            opcode = labelnum[j]; //resolved label
+                            microcode = 4;
+                        } else {
+                            opcode = j; //unresolved label
+                            microcode = 3;
+                        }
+                    }
+                    if (!found) {
+                        numlabels++;
+                        if (numlabels > max_labels) {
+                            prog_error(15, '');
+                        } else {
+                            labelname[numblabels] = ss;
+                            labelnum[numlabels] = -1;
+                            opcode = numlabels;
+                            microcode = 3; //unresolved label
+                            found = true;
+                        }
+                    }
+                }
+            }
+
+            if ( (numvars > 0) && !found) {
+                for (j = 1; j <= numvars; j++) {
+                    if (!strcmp(s[i], varname[j])) {
+                        opcode = varloc[j];
+                        microcode = 1;
+                        found = true;
+                    }
+                    if (!strcmp(s[i], "NOP")) {
+                        opcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "ADD")) {
+                        opcode = 1;
+                        found = true;
+                    } else if (!strcmp(s[i], "SUB")) {
+                        opcode = 2;
+                        found = true;
+                    } else if (!strcmp(s[i], "OR")) {
+                        opcode = 3;
+                        found = true;
+                    } else if (!strcmp(s[i], "AND")) {
+                        opcode = 4;
+                        found = true;
+                    } else if (!strcmp(s[i], "XOR")) {
+                        opcode = 5;
+                        found = true;
+                    } else if (!strcmp(s[i], "NOT")) {
+                        opcode = 6;
+                        found = true;
+                    } else if (!strcmp(s[i], "MPY")) {
+                        opcode = 7;
+                        found = true;
+                    } else if (!strcmp(s[i], "DIV")) {
+                        opcode = 8;
+                        found = true;
+                    } else if (!strcmp(s[i], "MOD")) {
+                        opcode = 9;
+                        found = true;
+                    } else if (!strcmp(s[i], "RET")) {
+                        opcode = 10;
+                        found = true;
+                    } else if (!strcmp(s[i], "RETURN")) {
+                        opcode = 10;
+                        found = true;
+                    } else if (!strcmp(s[i], "GSB")) {
+                        opcode = 11;
+                        found = true;
+                    } else if (!strcmp(s[i], "GOSUB")) {
+                        opcode = 11;
+                        found = true;
+                    } else if (!strcmp(s[i], "CALL")) {
+                        opcode = 11;
+                        found = true;
+                    } else if (!strcmp(s[i], "JMP")) {
+                        opcode = 12;
+                        found = true;
+                    } else if (!strcmp(s[i], "JUMP")) {
+                        opcode = 12;
+                        found = true;
+                    } else if (!strcmp(s[i], "GOTO")) {
+                        opcode = 12;
+                        found = true;
+                    } else if (!strcmp(s[i], "JLS")) {
+                        opcode = 13;
+                        found = true;
+                    } else if (!strcmp(s[i], "JB")) {
+                        opcode = 13;
+                        found = true;
+                    } else if (!strcmp(s[i], "JGR")) {
+                        opcode = 14;
+                        found = true;
+                    } else if (!strcmp(s[i], "JA")) {
+                        opcode = 14;
+                        found = true;
+                    } else if (!strcmp(s[i], "JNE")) {
+                        opcode = 15;
+                        found = true;
+                    } else if (!strcmp(s[i], "JEQ")) {
+                        opcode = 16;
+                        found = true;
+                    } else if (!strcmp(s[i], "JE")) {
+                        opcode = 16;
+                        found = true;
+                    } else if (!strcmp(s[i], "XCHG")) {
+                        opcode = 17;
+                        found = true;
+                    } else if (!strcmp(s[i], "SWAP")) {
+                        opcode = 17;
+                        found = true;
+                    } else if (!strcmp(s[i], "DO")) {
+                        opcode = 18;
+                        found = true;
+                    } else if (!strcmp(s[i], "LOOP")) {
+                        opcode = 19;
+                        found = true;
+                    } else if (!strcmp(s[i], "CMP")) {
+                        opcode = 20;
+                        found = true;
+                    } else if (!strcmp(s[i], "TEST")) {
+                        opcode = 21;
+                        found = true;
+                    } else if (!strcmp(s[i], "SET")) {
+                        opcode = 22;
+                        found = true;
+                    } else if (!strcmp(s[i], "MOV")) {
+                        opcode = 22;
+                        found = true;
+                    } else if (!strcmp(s[i], "LOC")) {
+                        opcode = 23;
+                        found = true;
+                    } else if (!strcmp(s[i], "ADDR")) {
+                        opcode = 23;
+                        found = true;
+                    } else if (!strcmp(s[i], "GET")) {
+                        opcode = 24;
+                        found = true;
+                    } else if (!strcmp(s[i], "PUT")) {
+                        opcode = 25;
+                        found = true;
+                    } else if (!strcmp(s[i], "INT")) {
+                        opcode = 26;
+                        found = true;
+                    } else if (!strcmp(s[i], "IPO")) {
+                        opcode = 27;
+                        found = true;
+                    } else if (!strcmp(s[i], "IN")) {
+                        opcode = 27;
+                        found = true;
+                    } else if (!strcmp(s[i], "OPO")) {
+                        opcode = 28;
+                        found = true;
+                    } else if (!strcmp(s[i], "OUT")) {
+                        opcode = 28;
+                        found = true;
+                    } else if (!strcmp(s[i], "DEL")) {
+                        opcode = 29;
+                        found = true;
+                    } else if (!strcmp(s[i], "DELAY")) {
+                        opcode = 29;
+                        found = true;
+                    } else if (!strcmp(s[i], "PUSH")) {
+                        opcode = 30;
+                        found = true;
+                    } else if (!strcmp(s[i], "POP")) {
+                        opcode = 31;
+                        found = true;
+                    } else if (!strcmp(s[i], "ERR")) {
+                        opcode = 32;
+                        found = true;
+                    } else if (!strcmp(s[i], "ERROR")) {
+                        opcode = 32;
+                        found = true;
+                    } else if (!strcmp(s[i], "INC")) {
+                        opcode = 33;
+                        found = true;
+                    } else if (!strcmp(s[i], "DEC")) {
+                        opcode = 34;
+                        found = true;
+                    } else if (!strcmp(s[i], "SHL")) {
+                        opcode = 35;
+                        found = true;
+                    } else if (!strcmp(s[i], "SHR")) {
+                        opcode = 36;
+                        found = true;
+                    } else if (!strcmp(s[i], "ROL")) {
+                        opcode = 37;
+                        found = true;
+                    } else if (!strcmp(s[i], "ROR")) {
+                        opcode = 38;
+                        found = true;
+                    } else if (!strcmp(s[i], "JZ")) {
+                        opcode = 39;
+                        found = true;
+                    } else if (!strcmp(s[i], "JNZ")) {
+                        opcode = 40;
+                        found = true;
+                    } else if (!strcmp(s[i], "JAE")) {
+                        opcode = 41;
+                        found = true;
+                    } else if (!strcmp(s[i], "JGE")) {
+                        opcode = 41;
+                        found = true;
+                    } else if (!strcmp(s[i], "JLE")) {
+                        opcode = 42;
+                        found = true;
+                    } else if (!strcmp(s[i], "JBE")) {
+                        opcode = 42;
+                        found = true;
+                    } else if (!strcmp(s[i], "SAL")) {
+                        opcode = 43;
+                        found = true;
+                    } else if (!strcmp(s[i], "SAR")) {
+                        opcode = 44;
+                        found = true;
+                    } else if (!strcmp(s[i], "NEG")) {
+                        opcode = 45;
+                        found = true;
+                    } else if (!strcmp(s[i], "JTL")) {
+                        opcode = 46;
+                        found = true;
+                    }
+
+                        //Registers
+                    else if (!strcmp(s[i], "COLCNT")) {
+                        opcode = 8;
+                        microcode = 1;
+                        found = true;
+                    } else if (!strcmp(s[i], "METERS")) {
+                        opcode = 9;
+                        microcode = 1;
+                        found = true;
+                    } else if (!strcmp(s[i], "COMBASE")) {
+                        opcode = 10;
+                        microcode = 1;
+                        found = true;
+                    } else if (!strcmp(s[i], "COMEND")) {
+                        opcode = 11;
+                        microcode = 1;
+                        found = true;
+                    } else if (!strcmp(s[i], "FLAGS")) {
+                        opcode = 64;
+                        microcode = 1;
+                        found = true;
+                    } else if (!strcmp(s[i], "AX")) {
+                        opcode = 65;
+                        microcode = 1;
+                        found = true;
+                    } else if (!strcmp(s[i], "BX")) {
+                        opcode = 66;
+                        microcode = 1;
+                        found = true;
+                    } else if (!strcmp(s[i], "CX")) {
+                        opcode = 67;
+                        microcode = 1;
+                        found = true;
+                    } else if (!strcmp(s[i], "DX")) {
+                        opcode = 68;
+                        microcode = 1;
+                        found = true;
+                    } else if (!strcmp(s[i], "EX")) {
+                        opcode = 69;
+                        microcode = 1;
+                        found = true;
+                    } else if (!strcmp(s[i], "FX")) {
+                        opcode = 70;
+                        microcode = 1;
+                        found = true;
+                    } else if (!strcmp(s[i], "SP")) {
+                        opcode = 71;
+                        microcode = 1;
+                        found = true;
+                    }
+
+                        //Constants
+                    else if (!strcmp(s[i], "MAXINT")) {
+                        opcode = 32767;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "MININT")) {
+                        opcode = -32768;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_SPEDOMETER")) {
+                        opcode = 1;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_HEAT")) {
+                        opcode = 2;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_COMPASS")) {
+                        opcode = 3;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_TANGLE")) {
+                        opcode = 4;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_TURRET_OFS")) {
+                        opcode = 4;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_THEADING")) {
+                        opcode = 5;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_TURRET_ABS")) {
+                        opcode = 5;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_ARMOR")) {
+                        opcode = 6;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_DAMAGE")) {
+                        opcode = 6;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_SCAN")) {
+                        opcode = 7;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_ACCURACY")) {
+                        opcode = 8;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_RADAR")) {
+                        opcode = 9;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_RANDOM")) {
+                        opcode = 10;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_RAND")) {
+                        opcode = 10;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_THROTTLE")) {
+                        opcode = 11;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_TROTATE")) {
+                        opcode = 12;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_OFS_TURRET")) {
+                        opcode = 12;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_TAIM")) {
+                        opcode = 13;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_ABS_TURRET")) {
+                        opcode = 13;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_STEERING")) {
+                        opcode = 14;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_WEAP")) {
+                        opcode = 15;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_WEAPON")) {
+                        opcode = 15;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_FIRE")) {
+                        opcode = 15;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_SONAR")) {
+                        opcode = 16;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_ARC")) {
+                        opcode = 17;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_SCANARC")) {
+                        opcode = 17;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_OVERBURN")) {
+                        opcode = 18;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_TRANSPONDER")) {
+                        opcode = 19;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_SHUTDOWN")) {
+                        opcode = 20;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_CHANNEL")) {
+                        opcode = 21;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_MINELAYER")) {
+                        opcode = 22;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_MINETRIGGER")) {
+                        opcode = 23;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_SHIELD")) {
+                        opcode = 24;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "P_SHIELDS")) {
+                        opcode = 24;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_DESTRUCT")) {
+                        opcode = 0;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_RESET")) {
+                        opcode = 1;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_LOCATE")) {
+                        opcode = 2;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_KEEPSHIFT")) {
+                        opcode = 3;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_OVERBURN")) {
+                        opcode = 4;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_ID")) {
+                        opcode = 5;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_TIMER")) {
+                        opcode = 6;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_ANGLE")) {
+                        opcode = 7;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_TID")) {
+                        opcode = 8;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_TARGETID")) {
+                        opcode = 8;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_TINFO")) {
+                        opcode = 9;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_TARGETINFO")) {
+                        opcode = 9;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_GINFO")) {
+                        opcode = 10;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_GAMEINFO")) {
+                        opcode = 10;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_RINFO")) {
+                        opcode = 11;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_ROBOTINFO")) {
+                        opcode = 11;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_COLLISIONS")) {
+                        opcode = 12;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_RESETCOLCNT")) {
+                        opcode = 13;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_TRANSMIT")) {
+                        opcode = 14;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_RECEIVE")) {
+                        opcode = 15;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_DATAREADY")) {
+                        opcode = 16;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_CLEARCOM")) {
+                        opcode = 17;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_KILLS")) {
+                        opcode = 18;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_DEATHS")) {
+                        opcode = 18;
+                        microcode = 0;
+                        found = true;
+                    } else if (!strcmp(s[i], "I_CLEARMETERS")) {
+                        opcode = 19;
+                        microcode = 0;
+                        found = true;
+                    }
+
+                    //Memory addresses
+                    if (!found && s[i][1] == '@' && (atoi(s[i][2]) >= 0 && atoi(s[i][2] <= 9))) {
+                        opcode = atoi(rstr(s[i], strlen(s[i]) - 1));
+                        if (opcode < 0 || opcode > (max_ram + 1) + (((max_code + 1) << 3) - 1)) {
+                            prog_error(3, s[i]);
+                            microcode = 1;
+                            found = true;
+                        }
+                    }
+
+                    //Numbers
+                    if (!found && (atoi(s[i][1]) >= 0 && atoi(s[i][1] <= 9)) || s[i][1] == '-') {
+                        opcode = atoi(s[i]);
+                        found = true;
+                    }
+
+                    if (found) {
+                        robot[n]->code[p].op[i] = opcode;
+                        if (indirect) {
+                            microcode = microcode | 8;
+                        }
+                        robot[n]->code[p].op[MAX_OP] = robot[n]->code[p].op[MAX_OP] | (microcode << (i * 4));
+                    } else if (s[i] != '')
+                        prog_error(2, s[i]);
+                }
+            }
+            if (show_code)
+                print_code(n, p);
+            if (compile_by_line)
+                readkey;
+        }
+    }
+}
+
+void compile(int n, string filename) {
+    fstream f;
+    parsetype pp;
+    string s, s1, s2, s3, orig_s, msg;
+    int i, j, k, l, linecount, mask, locktype;
+    string ss[MAX_OP];
+    char c, lc;
+
+    lock_code = "";
+    lock_pos = 0;
+    locktype = 0;
+    lock_dat = 0;
+    //Needs to be a filestream in the main function
+
+    if (!exist(filename))
+        prog_error(8, filename);
+
+    textcolor(robot_color(n));
+    cout << "Compiling robot #", n + 1, ": ", filename << endl;
+
+    robot[n]->is_locked = false;
+    textcolor(robot_color(n));
+    numvars = 0;
+    numlabels = 0;
+    for (k = 0; k <= max_code; k++) {
+        for (i = 0; i <= max_op; i++) {
+            robot[n]->code[k].op[i] = 0;
+        }
+    }
+    robot[n]->plen = 0;
+
+    f.open(filename.c_str(), fstream::in);
+
+
+    s = "";
+    linecount = 0;
+
+    //First pass, compile
+    while (!f.eof() && (!s.compare("#END"))) {
+        getline(f, s);
+        linecount++;
+
+        if (locktype < 3)
+            lock_pos = 0;
+        if (!lock_code.compare(""))
+            for (i = 0; i < s.length(); i++) {
+                lock_pos++;
+                if (lock_pos > lock_code.length())
+                    lock_pos = 1;
+                switch (locktype) {
+                    case 3:
+                        s[i] = char(s[i] - 1) ^ (lock_code[lock_pos] ^ lock_dat));
+                        break;
+                    case 2:
+                        s[i] = char(s[i]) ^ (lock_code[lock_pos] ^ 1));
+                        break;
+                    default:
+                        lock_dat = char(s[i]) ^ lock_code[lock_pos];
+                }
+                lock_dat = s[i] & 15;
+            }
+        s = trim(s);
+        orig_s = s;
+
+        for (i = 0; i < s.length(); i++) {
+            if ( ((s[i] >= 0) && (s[i] <= 32)) || ((s[i] >= 128) && (s[i] <= 255)) )
+		s[i] = " ";
+        }
+
+        if (show_source && (( !lock_code.compare("")) || debugging_compiler))
+            cout << zero_pas(linecount, 3) + ":" + zero_pad(robot[n]->plen, 3) + " " << s << endl;
+
+
+	// Unfinished
+    }
 }
 
 int main(int argc, char ** argv) {
