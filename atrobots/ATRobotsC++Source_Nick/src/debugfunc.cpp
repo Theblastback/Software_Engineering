@@ -209,11 +209,11 @@ void prog_error(int n, string ss) {
 /*
 From ATRLOCK, just using as a place holder for now.
 */
- void to_Uppercase (string * s){
-    transform(s -> begin(), s -> end(), s -> begin(), (int (*)(int))std::toupper);
- }
+void to_Uppercase(string *s) {
+    transform(s->begin(), s->end(), s->begin(), (int (*)(int)) std::toupper);
+}
 
-void parse1(int n, int p, parsetype s){
+void parse1(int n, int p, parsetype s) {
     int i, j, k, opcode, microcode;
     bool found, indirect;
     string ss;
@@ -225,727 +225,591 @@ void parse1(int n, int p, parsetype s){
         microcode = 0;
         s[i] = trim(to_Uppercase(s[i]));
         indirect = false;
-     /*
-     Microcode:
-        0 = instruction, number, constant
-        1 = variable, memory access
-        2 = :label
-        3 = !label (unresolved)
-        4 = !label (resolved)
-       8h mask = inderect addressing (enclosed in [])
-     */
+        /*
+        Microcode:
+           0 = instruction, number, constant
+           1 = variable, memory access
+           2 = :label
+           3 = !label (unresolved)
+           4 = !label (resolved)
+          8h mask = inderect addressing (enclosed in [])
+        */
 
-     if(s[i] == ''){
-        opcode = 0;
-        microcode = 0;
-        found = true;
-     }
-     if(lstr(s[i], 1) == '[' && rstr(s[i], 1) == ']'){
-        s[i] = cope(s[i], 2, length(s[i])-2);
-        indirect = true;
-     }
+        if (s[i] == '') {
+            opcode = 0;
+            microcode = 0;
+            found = true;
+        }
+        if (lstr(s[i], 1) == '[' && rstr(s[i], 1) == ']') {
+            s[i] = cope(s[i], 2, length(s[i]) - 2);
+            indirect = true;
+        }
 
-     //Labels
-     if(!found && s[i][1] = '!'){
-        ss = s[i];
-        ss = trim(rstr(ss, length(ss)-1));
-        if(numlabels > 0){
-            for(j = 1; j <= numlabels; j++){
-                if(ss == labelname[j]){
-                    found = true;
-                    if(labelnum[j] >= 0){
-                        opcode = labelnum[j]; //resolved label
-                        microcode = 4;
-                    }else{
-                    opcode = j; //unresolved label
-                    microcode = 3;
-                    }
-                }
-                if(!found){
-                    numlabels++;
-                    if(numlabels > max_labels){
-                        prog_error(15, '');
-                    }else{
-                        labelname[numblabels] = ss;
-                        labelnum[numlabels] = -1;
-                        opcode = numlabels;
-                        microcode = 3; //unresolved label
+        //Labels
+        if (!found && s[i][1] = '!') {
+            ss = s[i];
+            ss = trim(rstr(ss, length(ss) - 1));
+            if (numlabels > 0) {
+                for (j = 1; j <= numlabels; j++) {
+                    if (ss == labelname[j]) {
                         found = true;
+                        if (labelnum[j] >= 0) {
+                            opcode = labelnum[j]; //resolved label
+                            microcode = 4;
+                        } else {
+                            opcode = j; //unresolved label
+                            microcode = 3;
+                        }
+                    }
+                    if (!found) {
+                        numlabels++;
+                        if (numlabels > max_labels) {
+                            prog_error(15, '');
+                        } else {
+                            labelname[numblabels] = ss;
+                            labelnum[numlabels] = -1;
+                            opcode = numlabels;
+                            microcode = 3; //unresolved label
+                            found = true;
+                        }
                     }
                 }
             }
-        }
 
-        if (numvars > 0 && !found) {
-            for (j = 1; j <= numvars; j++) {
-                if (s[i] == varname[j]) {
-                    opcode = varloc[j];
-                    microcode = 1;
-                    found = true;
-                }
-                //Instructions
-                switch (s[i]) {
-                    case "NOP":
+            if (numvars > 0 && !found) {
+                for (j = 1; j <= numvars; j++) {
+                    if (s[i] == varname[j]) {
+                        opcode = varloc[j];
+                        microcode = 1;
+                        found = true;
+                    }
+                    if (strcmp(s[i], "NOP")) {
                         opcode = 0;
                         found = true;
-                        break;
-                    case "ADD":
+                    } else if (strcmp(s[i], "ADD")) {
                         opcode = 1;
                         found = true;
-                        break;
-                    case "SUB":
+                    } else if (strcmp(s[i], "SUB")) {
                         opcode = 2;
                         found = true;
-                        break;
-                    case "OR":
+                    } else if (strcmp(s[i], "OR")) {
                         opcode = 3;
                         found = true;
-                        break;
-                    case "AND":
+                    } else if (strcmp(s[i], "AND")) {
                         opcode = 4;
                         found = true;
-                        break;
-                    case "XOR":
+                    } else if (strcmp(s[i], "XOR")) {
                         opcode = 5;
                         found = true;
-                        break;
-                    case "NOT":
+                    } else if (strcmp(s[i], "NOT")) {
                         opcode = 6;
                         found = true;
-                        break;
-                    case "MPY":
+                    } else if (strcmp(s[i], "MPY")) {
                         opcode = 7;
                         found = true;
-                        break;
-                    case "DIV":
+                    } else if (strcmp(s[i], "DIV")) {
                         opcode = 8;
                         found = true;
-                        break;
-                    case "MOD":
+                    } else if (strcmp(s[i], "MOD")) {
                         opcode = 9;
                         found = true;
-                        break;
-                    case "RET":
+                    } else if (strcmp(s[i], "RET")) {
                         opcode = 10;
                         found = true;
-                        break;
-                    case "RETURN":
+                    } else if (strcmp(s[i], "RETURN")) {
                         opcode = 10;
                         found = true;
-                        break;
-                    case "GSB":
+                    } else if (strcmp(s[i], "GSB")) {
                         opcode = 11;
                         found = true;
-                        break;
-                    case "GOSUB":
+                    } else if (strcmp(s[i], "GOSUB")) {
                         opcode = 11;
                         found = true;
-                        break;
-                    case "CALL":
+                    } else if (strcmp(s[i], "CALL")) {
                         opcode = 11;
                         found = true;
-                        break;
-                    case "JMP":
+                    } else if (strcmp(s[i], "JMP")) {
                         opcode = 12;
                         found = true;
-                        break;
-                    case "JUMP":
+                    } else if (strcmp(s[i], "JUMP")) {
                         opcode = 12;
                         found = true;
-                        break;
-                    case "GOTO":
+                    } else if (strcmp(s[i], "GOTO")) {
                         opcode = 12;
                         found = true;
-                        break;
-                    case "JLS":
+                    } else if (strcmp(s[i], "JLS")) {
                         opcode = 13;
                         found = true;
-                        break;
-                    case "JB":
+                    } else if (strcmp(s[i], "JB")) {
                         opcode = 13;
                         found = true;
-                        break;
-                    case "JGR":
+                    } else if (strcmp(s[i], "JGR")) {
                         opcode = 14;
                         found = true;
-                        break;
-                    case "JA":
+                    } else if (strcmp(s[i], "JA")) {
                         opcode = 14;
                         found = true;
-                        break;
-                    case "JNE":
+                    } else if (strcmp(s[i], "JNE")) {
                         opcode = 15;
                         found = true;
-                        break;
-                    case "JEQ":
+                    } else if (strcmp(s[i], "JEQ")) {
                         opcode = 16;
                         found = true;
-                        break;
-                    case "JE":
+                    } else if (strcmp(s[i], "JE")) {
                         opcode = 16;
                         found = true;
-                        break;
-                    case "XCHG":
+                    } else if (strcmp(s[i], "XCHG")) {
                         opcode = 17;
                         found = true;
-                        break;
-                    case "SWAP":
+                    } else if (strcmp(s[i], "SWAP")) {
                         opcode = 17;
                         found = true;
-                        break;
-                    case "DO":
+                    } else if (strcmp(s[i], "DO")) {
                         opcode = 18;
                         found = true;
-                        break;
-                    case "LOOP":
+                    } else if (strcmp(s[i], "LOOP")) {
                         opcode = 19;
                         found = true;
-                        break;
-                    case "CMP":
+                    } else if (strcmp(s[i], "CMP")) {
                         opcode = 20;
                         found = true;
-                        break;
-                    case "TEST":
+                    } else if (strcmp(s[i], "TEST")) {
                         opcode = 21;
                         found = true;
-                        break;
-                    case "SET":
+                    } else if (strcmp(s[i], "SET")) {
                         opcode = 22;
                         found = true;
-                        break;
-                    case "MOV":
+                    } else if (strcmp(s[i], "MOV")) {
                         opcode = 22;
                         found = true;
-                        break;
-                    case "LOC":
+                    } else if (strcmp(s[i], "LOC")) {
                         opcode = 23;
                         found = true;
-                        break;
-                    case "ADDR":
+                    } else if (strcmp(s[i], "ADDR")) {
                         opcode = 23;
                         found = true;
-                        break;
-                    case "GET":
+                    } else if (strcmp(s[i], "GET")) {
                         opcode = 24;
                         found = true;
-                        break;
-                    case "PUT":
+                    } else if (strcmp(s[i], "PUT")) {
                         opcode = 25;
                         found = true;
-                        break;
-                    case "INT":
+                    } else if (strcmp(s[i], "INT")) {
                         opcode = 26;
                         found = true;
-                        break;
-                    case "IPO":
+                    } else if (strcmp(s[i], "IPO")) {
                         opcode = 27;
                         found = true;
-                        break;
-                    case "IN":
+                    } else if (strcmp(s[i], "IN")) {
                         opcode = 27;
                         found = true;
-                        break;
-                    case "OPO":
+                    } else if (strcmp(s[i], "OPO")) {
                         opcode = 28;
                         found = true;
-                        break;
-                    case "OUT":
+                    } else if (strcmp(s[i], "OUT")) {
                         opcode = 28;
                         found = true;
-                        break;
-                    case "DEL":
+                    } else if (strcmp(s[i], "DEL")) {
                         opcode = 29;
                         found = true;
-                        break;
-                    case "DELAY":
+                    } else if (strcmp(s[i], "DELAY")) {
                         opcode = 29;
                         found = true;
-                        break;
-                    case "PUSH":
+                    } else if (strcmp(s[i], "PUSH")) {
                         opcode = 30;
                         found = true;
-                        break;
-                    case "POP":
+                    } else if (strcmp(s[i], "POP")) {
                         opcode = 31;
                         found = true;
-                        break;
-                    case "ERR":
+                    } else if (strcmp(s[i], "ERR")) {
                         opcode = 32;
                         found = true;
-                        break;
-                    case "ERROR":
+                    } else if (strcmp(s[i], "ERROR")) {
                         opcode = 32;
                         found = true;
-                        break;
-                    case "INC":
+                    } else if (strcmp(s[i], "INC")) {
                         opcode = 33;
                         found = true;
-                        break;
-                    case "DEC":
+                    } else if (strcmp(s[i], "DEC")) {
                         opcode = 34;
                         found = true;
-                        break;
-                    case "SHL":
+                    } else if (strcmp(s[i], "SHL")) {
                         opcode = 35;
                         found = true;
-                        break;
-                    case "SHR":
+                    } else if (strcmp(s[i], "SHR")) {
                         opcode = 36;
                         found = true;
-                        break;
-                    case "ROL":
+                    } else if (strcmp(s[i], "ROL")) {
                         opcode = 37;
                         found = true;
-                        break;
-                    case "ROR":
+                    } else if (strcmp(s[i], "ROR")) {
                         opcode = 38;
                         found = true;
-                        break;
-                    case "JZ":
+                    } else if (strcmp(s[i], "JZ")) {
                         opcode = 39;
                         found = true;
-                        break;
-                    case "JNZ":
+                    } else if (strcmp(s[i], "JNZ")) {
                         opcode = 40;
                         found = true;
-                        break;
-                    case "JAE":
+                    } else if (strcmp(s[i], "JAE")) {
                         opcode = 41;
                         found = true;
-                        break;
-                    case "JGE":
+                    } else if (strcmp(s[i], "JGE")) {
                         opcode = 41;
                         found = true;
-                        break;
-                    case "JLE":
+                    } else if (strcmp(s[i], "JLE")) {
                         opcode = 42;
                         found = true;
-                        break;
-                    case "JBE":
+                    } else if (strcmp(s[i], "JBE")) {
                         opcode = 42;
                         found = true;
-                        break;
-                    case "SAL":
+                    } else if (strcmp(s[i], "SAL")) {
                         opcode = 43;
                         found = true;
-                        break;
-                    case "SAR":
+                    } else if (strcmp(s[i], "SAR")) {
                         opcode = 44;
                         found = true;
-                        break;
-                    case "NEG":
+                    } else if (strcmp(s[i], "NEG")) {
                         opcode = 45;
                         found = true;
-                        break;
-                    case "JTL":
+                    } else if (strcmp(s[i], "JTL")) {
                         opcode = 46;
                         found = true;
-                        break;
+                    }
 
                         //Registers
-                    case "COLCNT":
+                    else if (strcmp(s[i], "COLCNT")) {
                         opcode = 8;
                         microcode = 1;
                         found = true;
-                        break;
-                    case "METERS":
+                    } else if (strcmp(s[i], "METERS")) {
                         opcode = 9;
                         microcode = 1;
                         found = true;
-                        break;
-                    case "COMBASE":
+                    } else if (strcmp(s[i], "COMBASE")) {
                         opcode = 10;
                         microcode = 1;
                         found = true;
-                        break;
-                    case "COMEND":
+                    } else if (strcmp(s[i], "COMEND")) {
                         opcode = 11;
                         microcode = 1;
                         found = true;
-                        break;
-                    case "FLAGS":
+                    } else if (strcmp(s[i], "FLAGS")) {
                         opcode = 64;
                         microcode = 1;
                         found = true;
-                        break;
-                    case "AX":
+                    } else if (strcmp(s[i], "AX")) {
                         opcode = 65;
                         microcode = 1;
                         found = true;
-                        break;
-                    case "BX":
+                    } else if (strcmp(s[i], "BX")) {
                         opcode = 66;
                         microcode = 1;
                         found = true;
-                        break;
-                    case "CX":
+                    } else if (strcmp(s[i], "CX")) {
                         opcode = 67;
                         microcode = 1;
                         found = true;
-                        break;
-                    case "DX":
+                    } else if (strcmp(s[i], "DX")) {
                         opcode = 68;
                         microcode = 1;
                         found = true;
-                        break;
-                    case "EX":
+                    } else if (strcmp(s[i], "EX")) {
                         opcode = 69;
                         microcode = 1;
                         found = true;
-                        break;
-                    case "FX":
+                    } else if (strcmp(s[i], "FX")) {
                         opcode = 70;
                         microcode = 1;
                         found = true;
-                        break;
-                    case "SP":
+                    } else if (strcmp(s[i], "SP")) {
                         opcode = 71;
                         microcode = 1;
                         found = true;
-                        break;
+                    }
 
                         //Constants
-                    case "MAXINT":
+                    else if (strcmp(s[i], "MAXINT")) {
                         opcode = 32767;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "MININT":
+                    } else if (strcmp(s[i], "MININT")) {
                         opcode = -32768;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_SPEDOMETER":
+                    } else if (strcmp(s[i], "P_SPEDOMETER")) {
                         opcode = 1;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_HEAT":
+                    } else if (strcmp(s[i], "P_HEAT")) {
                         opcode = 2;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_COMPASS":
+                    } else if (strcmp(s[i], "P_COMPASS")) {
                         opcode = 3;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_TANGLE":
+                    } else if (strcmp(s[i], "P_TANGLE")) {
                         opcode = 4;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_TURRET_OFS":
+                    } else if (strcmp(s[i], "P_TURRET_OFS")) {
                         opcode = 4;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_THEADING":
+                    } else if (strcmp(s[i], "P_THEADING")) {
                         opcode = 5;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_TURRET_ABS":
+                    } else if (strcmp(s[i], "P_TURRET_ABS")) {
                         opcode = 5;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_ARMOR":
+                    } else if (strcmp(s[i], "P_ARMOR")) {
                         opcode = 6;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_DAMAGE":
+                    } else if (strcmp(s[i], "P_DAMAGE")) {
                         opcode = 6;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_SCAN":
+                    } else if (strcmp(s[i], "P_SCAN")) {
                         opcode = 7;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_ACCURACY":
+                    } else if (strcmp(s[i], "P_ACCURACY")) {
                         opcode = 8;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_RADAR":
+                    } else if (strcmp(s[i], "P_RADAR")) {
                         opcode = 9;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_RANDOM":
+                    } else if (strcmp(s[i], "P_RANDOM")) {
                         opcode = 10;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_RAND":
+                    } else if (strcmp(s[i], "P_RAND")) {
                         opcode = 10;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_THROTTLE":
+                    } else if (strcmp(s[i], "P_THROTTLE")) {
                         opcode = 11;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_TROTATE":
+                    } else if (strcmp(s[i], "P_TROTATE")) {
                         opcode = 12;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_OFS_TURRET":
+                    } else if (strcmp(s[i], "P_OFS_TURRET")) {
                         opcode = 12;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_TAIM":
+                    } else if (strcmp(s[i], "P_TAIM")) {
                         opcode = 13;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_ABS_TURRET":
+                    } else if (strcmp(s[i], "P_ABS_TURRET")) {
                         opcode = 13;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_STEERING":
+                    } else if (strcmp(s[i], "P_STEERING")) {
                         opcode = 14;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_WEAP":
+                    } else if (strcmp(s[i], "P_WEAP")) {
                         opcode = 15;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_WEAPON":
+                    } else if (strcmp(s[i], "P_WEAPON")) {
                         opcode = 15;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_FIRE":
+                    } else if (strcmp(s[i], "P_FIRE")) {
                         opcode = 15;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_SONAR":
+                    } else if (strcmp(s[i], "P_SONAR")) {
                         opcode = 16;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_ARC":
+                    } else if (strcmp(s[i], "P_ARC")) {
                         opcode = 17;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_SCANARC":
+                    } else if (strcmp(s[i], "P_SCANARC")) {
                         opcode = 17;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_OVERBURN":
+                    } else if (strcmp(s[i], "P_OVERBURN")) {
                         opcode = 18;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_TRANSPONDER":
+                    } else if (strcmp(s[i], "P_TRANSPONDER")) {
                         opcode = 19;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_SHUTDOWN":
+                    } else if (strcmp(s[i], "P_SHUTDOWN")) {
                         opcode = 20;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_CHANNEL":
+                    } else if (strcmp(s[i], "P_CHANNEL")) {
                         opcode = 21;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_MINELAYER":
+                    } else if (strcmp(s[i], "P_MINELAYER")) {
                         opcode = 22;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_MINETRIGGER":
+                    } else if (strcmp(s[i], "P_MINETRIGGER")) {
                         opcode = 23;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_SHIELD":
+                    } else if (strcmp(s[i], "P_SHIELD")) {
                         opcode = 24;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "P_SHIELDS":
+                    } else if (strcmp(s[i], "P_SHIELDS")) {
                         opcode = 24;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_DESTRUCT":
+                    } else if (strcmp(s[i], "I_DESTRUCT")) {
                         opcode = 0;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_RESET":
+                    } else if (strcmp(s[i], "I_RESET")) {
                         opcode = 1;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_LOCATE":
+                    } else if (strcmp(s[i], "I_LOCATE")) {
                         opcode = 2;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_KEEPSHIFT":
+                    } else if (strcmp(s[i], "I_KEEPSHIFT")) {
                         opcode = 3;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_OVERBURN":
+                    } else if (strcmp(s[i], "I_OVERBURN")) {
                         opcode = 4;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_ID":
+                    } else if (strcmp(s[i], "I_ID")) {
                         opcode = 5;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_TIMER":
+                    } else if (strcmp(s[i], "I_TIMER")) {
                         opcode = 6;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_ANGLE":
+                    } else if (strcmp(s[i], "I_ANGLE")) {
                         opcode = 7;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_TID":
+                    } else if (strcmp(s[i], "I_TID")) {
                         opcode = 8;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_TARGETID":
+                    } else if (strcmp(s[i], "I_TARGETID")) {
                         opcode = 8;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_TINFO":
+                    } else if (strcmp(s[i], "I_TINFO")) {
                         opcode = 9;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_TARGETINFO":
+                    } else if (strcmp(s[i], "I_TARGETINFO")) {
                         opcode = 9;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_GINFO":
+                    } else if (strcmp(s[i], "I_GINFO")) {
                         opcode = 10;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_GAMEINFO":
+                    } else if (strcmp(s[i], "I_GAMEINFO")) {
                         opcode = 10;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_RINFO":
+                    } else if (strcmp(s[i], "I_RINFO")) {
                         opcode = 11;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_ROBOTINFO":
+                    } else if (strcmp(s[i], "I_ROBOTINFO")) {
                         opcode = 11;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_COLLISIONS":
+                    } else if (strcmp(s[i], "I_COLLISIONS")) {
                         opcode = 12;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_RESETCOLCNT":
+                    } else if (strcmp(s[i], "I_RESETCOLCNT")) {
                         opcode = 13;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_TRANSMIT":
+                    } else if (strcmp(s[i], "I_TRANSMIT")) {
                         opcode = 14;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_RECEIVE":
+                    } else if (strcmp(s[i], "I_RECEIVE")) {
                         opcode = 15;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_DATAREADY":
+                    } else if (strcmp(s[i], "I_DATAREADY")) {
                         opcode = 16;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_CLEARCOM":
+                    } else if (strcmp(s[i], "I_CLEARCOM")) {
                         opcode = 17;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_KILLS":
+                    } else if (strcmp(s[i], "I_KILLS")) {
                         opcode = 18;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_DEATHS":
+                    } else if (strcmp(s[i], "I_DEATHS")) {
                         opcode = 18;
                         microcode = 0;
                         found = true;
-                        break;
-                    case "I_CLEARMETERS":
+                    } else if (strcmp(s[i], "I_CLEARMETERS")) {
                         opcode = 19;
                         microcode = 0;
                         found = true;
-                        break;
-                }
+                    }
 
-                //Memory addresses
-                if (!found && s[i][1] == '@' && (atoi(s[i][2]) >= 0 && atoi(s[i][2] <= 9))) {
-                    opcode = atoi(rstr(s[i], strlen(s[i]) - 1));
-                    if (opcode < 0 || opcode > (max_ram + 1) + (((max_code + 1) << 3) - 1)) {
-                        prog_error(3, s[i]);
-                        microcode = 1;
+                    //Memory addresses
+                    if (!found && s[i][1] == '@' && (atoi(s[i][2]) >= 0 && atoi(s[i][2] <= 9))) {
+                        opcode = atoi(rstr(s[i], strlen(s[i]) - 1));
+                        if (opcode < 0 || opcode > (max_ram + 1) + (((max_code + 1) << 3) - 1)) {
+                            prog_error(3, s[i]);
+                            microcode = 1;
+                            found = true;
+                        }
+                    }
+
+                    //Numbers
+                    if (!found && (atoi(s[i][1]) >= 0 && atoi(s[i][1] <= 9)) || s[i][1] == '-') {
+                        opcode = atoi(s[i]);
                         found = true;
                     }
-                }
 
-                //Numbers
-                if (!found && (atoi(s[i][1]) >= 0 && atoi(s[i][1] <= 9)) || s[i][1] == '-') {
-                    opcode = atoi(s[i]);
-                    found = true;
+                    if (found) {
+                        robot[n]->code[p].op[i] = opcode;
+                        if (indirect) {
+                            microcode = microcode | 8;
+                        }
+                        robot[n]->code[p].op[max_op] = robot[n]->code[p].op[max_op] | (microcode << (i * 4));
+                    } else if (s[i] != '')
+                        prog_error(2, s[i]);
                 }
-
-                if (found) {
-                    robot[n]->code[p].op[i] = opcode;
-                    if (indirect) {
-                        microcode = microcode | 8;
-                    }
-                    robot[n]->code[p].op[max_op] = robot[n]->code[p].op[max_op] | (microcode << (i * 4));
-                } else if (s[i] != '')
-                    prog_error(2, s[i]);
             }
+            if (show_code)
+                print_code(n, p);
+            if (compile_by_line)
+                readkey;
         }
-        if (show_code)
-            print_code(n, p);
-        if (compile_by_line)
-            readkey;
     }
 }
 
-void compile(int n, string filename){
+void compile(int n, string filename) {
     parsetype pp;
     string s, s1, s2, s3, orig_s, msg;
     int i, j, k, l, linecount, mask, locktype;
@@ -957,17 +821,17 @@ void compile(int n, string filename){
     locktype = 0;
     lock_dat = 0;
     //Needs to be a filestream in the main function
-    if(!filestream)
+    if (!filestream)
         prog_error(8, filename);
     textcolor(robot_color(n));
-    cout<< "Compiling robot #", n+1, ": ", filename<<endl;
+    cout << "Compiling robot #", n + 1, ": ", filename << endl;
 
     robot[n]->is_locked = false;
     textcolor(robot_color(n));
     numvars = 0;
     numlabels = 0;
-    for(k = 0; k <= max_code; k++){
-        for(i = 0; i <= max_op; i++){
+    for (k = 0; k <= max_code; k++) {
+        for (i = 0; i <= max_op; i++) {
             robot[n]->code[k].op[i] = 0;
         }
     }
@@ -982,19 +846,19 @@ void compile(int n, string filename){
     linecount = 0;
 
     //First pass, compile
-    while(!feof(f) && s != "#END"){
+    while (!feof(f) && s != "#END") {
         //readln(f, s);
         linecount++;
-        if(locktype < 3)
+        if (locktype < 3)
             lock_pos = 0;
-        if(lock_code != '')
-            for(i = 1; i <= strlen(s); i++){
+        if (lock_code != '')
+            for (i = 1; i <= strlen(s); i++) {
                 lock_pos++;
-                if(lock_pos > strlen(lock_code))
+                if (lock_pos > strlen(lock_code))
                     lock_pos = 1;
-                switch(locktype){
+                switch (locktype) {
                     case 3:
-                        s[i] = char((ord(s[i])-1) xor (ord(lock_code[lock_pos]) xor lock_dat));
+                        s[i] = char((ord(s[i]) - 1) xor (ord(lock_code[lock_pos]) xor lock_dat));
                         break;
                     case 2:
                         s[i] = char(ord(s[i]) xor (ord(lock_code[lock_pos]) xor 1));
@@ -1006,13 +870,12 @@ void compile(int n, string filename){
             }
         s = trim(s);
         orig_s = s;
-        for(i = 1; i <= strlen(s); i++){
+        for (i = 1; i <= strlen(s); i++) {
             //if s[i] in [#0..#32,',',#128..#255] then s[i]:=' ';
         }
-        if(show_source && ((lock_code='') || debugging_compiler))
-            cout<< zero_pas(linecount, 3) + ":" + zero_pad(robot[n]->plen, 3)+' ', s << endl;
+        if (show_source && ((lock_code = '') || debugging_compiler))
+            cout << zero_pas(linecount, 3) + ":" + zero_pad(robot[n]->plen, 3) + ' ', s << endl;
     }
-
 }
 
 /*
