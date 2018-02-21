@@ -1132,6 +1132,222 @@ void compile(int n, string filename) {
     textcolor(7);
 }
 
+void do_robot(int n){
+    int i, j, k, l, tthd, heat_mult, ttx, tty;
+    if(n < 0 || n > num_robots)
+        return EXIT_SUCCESS;
+    if(robot[n]->armor <= 0)
+        return EXIT_SUCCESS;
+    robot[n]->time_left = time_slice;
+    if(robot[n]->time_left > robot[n]->robot_time_limit && robot[n]->robot_time_limit > 0)
+        robot[n]->time_left = robot[n]->robot_time_limit;
+    if(robot[n]->time_left>robot[n]->max_time && robot[n]->max_time > 0)
+        robot[n]->time_left = robot[n]->max_time;
+    robot[n]->executed = 0;
+    //execute timeslice
+    while(robot[n]->time_left > 0 && !robot[n]->cooling && robot[n]->executed < 20+time_slice && robot[n]->armor > 0){
+        if(robot[n]->delay_left < 0)
+            robot[n]->delay_left = 0;
+        if(robot[n]->delay_left > 0) {
+            robot[n]->delay_left--;
+            robot[n]->time_left--;
+        }
+        if(robot[n]->time_left >= 0 && robot[n]->delay_left == 0)
+            execute_instruction(n);
+        if(robot[n]->heat >= robot[n]->shutdown){
+            robot[n]->cooling = true;
+            robot[n]->shields_up = false;
+        }
+        if(robot[n]->heat >= 500){
+            damage(n, 1000, true);
+        }
+    }
+    robot[n]->thd = (robot[n]->thd + 1024) and 255;
+    robot[n]->hd = (robot[n]->hd + 1024) and 255;
+    robot[n]->shift = (robot[n]->shift + 1024) and 255;
+    if(robot[n]->tspd < -75)
+        robot[n]->tspd = -75;
+    if(robot[n]->tspd > 100)
+        robot[n]->tspd = 100;
+    if(robot[n]->spd < -75)
+        robot[n]->spd = -75;
+    if(robot[n]->spd > 100)
+        robot[n]->spd = 100;
+    if(robot[n]->heat < 0)
+        robot[n]->heat = 0;
+    if(robot[n]->last_damage < robot[n]->maxint)
+        robot[n]->last_damage++;
+    if(robot[n]->last_hit < robot[n]->maxint)
+        robot[n]->last_hit++;
+
+    //update heat
+    if(robot[n]->shields_up && (game_cycle and 3 == 0))
+        robot[n]->heat++;
+    if(!robot[n]->shields_up){
+        if(robot[n]->heat > 0)
+            switch(robot[n]->config.heatsinks){
+                case 5:
+                    if(game_cycle and 1 == 0)
+                        robot[n]->heat--;
+                    break;
+                case 4:
+                    if(game_cycle % 3 == 0)
+                        robot[n]->heat--;
+                    break;
+                case 3:
+                    if(game_cycle and 3 == 0)
+                        robot[n]->heat--;
+                    break;
+                case 2:
+                    if(game_cycle and 7 == 0)
+                        robot[n]->heat--;
+                    break;
+                case 1:
+                    break;
+                default:
+                    if(game_cycle and 3 == 0)
+                        robot[n]->heat++;
+            }
+        if(robot[n]->overburn && (game_cycle % 3 == 0))
+            robot[n]->heat++;
+        if(robot[n]->head > 0)
+            robot[n]->heat--;
+        if(robot[n]->heat > 0 && (game_cycle and 7 == 0) && (abs(robot[n]->tspd) <= 25))
+            robot[n]->heat--;
+        if(robot[n]->heat <= robot[n]->shutdown-50 || (robot[n]->heat <= 0))
+            robot[n]->cooling = false;
+    }
+    if(robot[n]->cooling)
+        robot[n]->tspd = 0;
+    heat_mult = 1;
+    switch(robot[n]->heat){
+        case 80..99:
+            heat_mult = 0.98;
+            break;
+        case 100..149:
+            heat_mult = 0.95;
+            break;
+        case 150..199:
+            heat_mult = 0.85;
+            break;
+        case 200..249:
+            heat_mult = 0.75;
+            break;
+        case 250..maxint:
+            heat_mult = 0.50;
+    }
+    if(robot[n]->overburn)
+        heat_mult = heat_mult * 1.3;
+    if(robot[n]->heat >= 475 && (game_cycle and 03 == 0))
+        damage(n, 1, true);
+    else if(robot[n]->heat >= 450 && (game_cycle and 07 == 0))
+        damage(n, 1, true);
+    else if(robot[n]->heat >= 400 && (game_cycle and 15 == 0))
+        damage(n, 1, true);
+    else if(robot[n]->heat >= 350 && (game_cycle and 31 == 0))
+        damage(n, 1, true);
+    else if(robot[n]->heat >= 300 && (game_cycle and 63 == 0))
+        damage(n, 1, true);
+
+    //update robot in physical world
+    //acceleration
+    if(abs(robot[n]->spd-robot[n]->tspd) <= robot[n]->acceleration)
+        robot[n]->spd = robot[n]->tspd;
+    else{
+        if(robot[n]->tspd > robot[n]->spd) {
+            robot[n]->spd++;
+            robot[n]->acceleration++;
+        }else{
+            robot[n]->spd--;
+            robot[n]->acceleration--;
+        }
+    }
+    tthd = robot[n]->hd+robot[n]->shift;
+    if(abs(robot[n]->hd-robot[n]->thd) <= robot[n]->turn_rate || (abs(robot[n]->hd-robot[n]->thd) >= 256-robot[n]->turn_rate))
+        robot[n]->hd = robot[n]->thd;
+    else if(robot[n]->hd != robot[n]->thd){
+        k = 0;
+        if((robot[n]->thd > robot[n]->hd) && (abs(robot[n]->hd-robot[n]->thd) <= 128) ||
+                (robot[n]->thd < robot[n]->hd) && (abs(robot[n]->hd-robot[n]->thd) >= 128))
+            k = 1;
+        if(k = 1)
+            robot[n]->hd = (robot[n]->hd + robot[n]->turn_rate) and 255;
+        else
+            robot[n]->hd = (robot[n]->hd + 256 - robot[n]->turn_rate) and 255;
+    }
+    robot[n]->hd = robot[n]->hd and 255;
+    if(robot[n]->keepshift)
+        robot[n]->shift = (tthd - robot[n]->hd + 1024) and 255;
+    robot[n]->speed = robot[n]->spd/100*(max_vel*heat_mult*robot[n]->speedadj);
+    robot[n]->xv = sint[robot[n]->hd]*robot[n]->speed;
+    robot[n]->yv = -cost[robot[n]->hd]*robot[n]->speed;
+    if(robot[n]->hd == 0 || robot[n]->hd == 128)
+        robot[n]->xv = 0;
+    if(robot[n]->hd == 64 || robot[n]->hd == 192)
+        robot[n]->yv = 0;
+    if(robot[n]->xv != 0)
+        robot[n]->ttx = robot[n]->x + robot[n]->xv;
+    else
+        robot[n]->ttx = robot[n]->x;
+    if(robot[n]->yv != 0)
+        robot[n]->tty = robot[n]->y + robot[n]->yv;
+    else
+        robot[n]->tty = y;
+    if(robot[n]->ttx < 0 || (robot[n]->tty < 0) || (robot[n]->ttx > 1000) || (robot[n]->tty > 1000)){
+        robot[n]->ram[8]++;
+        robot[n]->tspd = 0;
+        if(abs(robot[n]->speed) >= max_vel/2)
+            damage(n, 1, true);
+        robot[n]->spd = 0;
+    }
+    for(i = 0; i <= num_robots; i++)
+        if(i != n && robot[i]->armor > 0 && distance(robot[n]->ttx, robot[n]->tty, robot[i]->x, robot[i]->y) < crash_range){
+            robot[n]->tspd = 0;
+            robot[n]->spd = 0;
+            robot[n]->ttx = x;
+            robot[n]->tty = y;
+            robot[i]->tspd = 0;
+            robot[i]->spd = 0;
+            robot[n]->ram[8]++;
+            robot[i]->ram[8];
+            if(abs(robot[n]->speed) >= max_vel/2){
+                damage(n, 1, true);
+                damage(i, 1, true);
+            }
+        }
+    if(robot[n]->ttx < 0)
+        robot[n]->ttx = 0;
+    if(robot[n]->tty < 0)
+        robot[n]->tty = 0;
+    if(robot[n]->ttx > 1000)
+        robot[n]->ttx = 1000;
+    if(robot[n]->tty > 1000)
+        robot[n]->tty = 1000;
+    robot[n]->meters = robot[n]->meters + distance(robot[n]->x, robot[n]->y, robot[n]->ttx, robot[n]->tty);
+    if(robot[n]->meters > maxint)
+        robot[n]->meters = robot[n]->meters-maxint;
+    robot[n]->ram[9] = trunc(robot[n]->meters);
+    robot[n]->x = robot[n]->ttx;
+    robot[n]->y = robot[n]->tty;
+
+    //draw robot
+    if(robot[n]->armor < 0)
+        robot[n]->armor = 0;
+    if(robot[n]->heat < 0)
+        robot[n]->heat = 0;
+    if(graphix){
+        if(robot[n]->armor != robot[n]->larmor)
+            update_armor(n);
+        if(robot[n]->heat/5 != robot[n]->lheat/5)
+            update_heat(n);
+        draw_robot(n);
+    }
+    robot[n]->lheat = robot[n]->heat;
+    robot[n]->larmor = robot[n]->armor;
+
+    robot[n]->cycles_lives++;
+}
+
 int main() {
     log_error(4);
 }
