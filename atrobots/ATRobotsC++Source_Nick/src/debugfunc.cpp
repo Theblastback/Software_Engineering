@@ -1238,15 +1238,15 @@ void do_robot(int n){
     }
     if(robot[n]->overburn)
         heat_mult = heat_mult * 1.3;
-    if(robot[n]->heat >= 475 && (game_cycle and 03 == 0))
+    if(robot[n]->heat >= 475 && (game_cycle and 3 == 0))
         damage(n, 1, true);
-    else if(robot[n]->heat >= 450 && (game_cycle and 07 == 0))
+    if(robot[n]->heat >= 450 && (game_cycle and 7 == 0))
         damage(n, 1, true);
-    else if(robot[n]->heat >= 400 && (game_cycle and 15 == 0))
+    if(robot[n]->heat >= 400 && (game_cycle and 15 == 0))
         damage(n, 1, true);
-    else if(robot[n]->heat >= 350 && (game_cycle and 31 == 0))
+    if(robot[n]->heat >= 350 && (game_cycle and 31 == 0))
         damage(n, 1, true);
-    else if(robot[n]->heat >= 300 && (game_cycle and 63 == 0))
+    if(robot[n]->heat >= 300 && (game_cycle and 63 == 0))
         damage(n, 1, true);
 
     //update robot in physical world
