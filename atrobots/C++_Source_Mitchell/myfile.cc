@@ -100,10 +100,10 @@ void file_seek(FILE * h, unsigned short amount, unsigned char position, FILE * n
 	else if ( position == 2 )
 		fseek(h, amount, SEEK_END);
 
-	new_pos = amount;
+	new_pos = h;
 }
 
-void file_seek(FILE * h, int amount, unsigned char position, FILE * new_pos) {
+void long_seek(FILE * h, int amount, unsigned char position, FILE * new_pos) {
 	if ( position == 0 )
 		fseek(h, amount, SEEK_SET);
 	else if ( position == 1 )

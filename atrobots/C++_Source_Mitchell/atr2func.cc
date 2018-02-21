@@ -416,7 +416,7 @@ void calibrate_timing() {
 }
 
 
-void time_delay(short n) {
+void time_delay(unsigned short n) {
 	int i, l;
 
 	if ( delay_per_sec == 0 )
@@ -631,7 +631,7 @@ short str2int(string s) {
 }
 
 
-double distance(double x1, double y1, double x2, double y2) {
+double _distance(double x1, double y1, double x2, double y2) {
 	return (sqrt(pow(y1-y2, 2) + pow(x1-x2, 2)));
 }
 
@@ -695,11 +695,12 @@ string bin(short n) {
 	return bin_string;
 }
 
-string decimal(short num) {
+string decimal(int num, int length) {
 	string dec_string = to_string(num);
 
-	return dec_string;
+	return (dec_string.substr(0, length));
 }
+
 
 char readkey() {
 	int code;
