@@ -720,3 +720,22 @@ char readkey() {
 	}
 	return 0;
 }
+
+bool keypressed() {
+	int code;
+	bool ret = false;
+	SDL_Event event;
+
+	SDL_PollEvent(&event);
+	switch (event.type) {
+	case SDL_KEYDOWN:
+	case SDL_KEYUP:
+		code = event.key.keysym.sym;
+		// See if code is in range of keys
+		if ((code > 31) && (code < 128))
+			ret = true;
+		break;
+	}
+
+	return ret;
+}
