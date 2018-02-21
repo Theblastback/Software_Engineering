@@ -458,8 +458,12 @@ void check_registration() {
 }
 
 
-
+/*
 // ror same as >>, but wrap discarded bits
+short ror(short n, short k) {
+	short wrapped = 0;
+	fo
+*/
 // rol same as <<, but wrap discared bits
 // sal same as <<
 // sar same as >>, but copy signed bit over
@@ -695,4 +699,23 @@ string decimal(short num) {
 	string dec_string = to_string(num);
 
 	return dec_string;
+}
+
+char readkey() {
+	int code;
+	SDL_Event event;
+
+	while ( SDL_PollEvent(&event) ) {
+		switch (event.type) {
+		case SDL_KEYDOWN:
+		case SDL_KEYUP:
+			code = event.key.keysym.sym;
+			// See if code is in range of keys
+			if ( (code > 31) && ( code < 128 ) )
+				return (char)code;
+
+		}
+		SDL_Delay(1); // To prevent lagging of pc
+	}
+	return 0;
 }

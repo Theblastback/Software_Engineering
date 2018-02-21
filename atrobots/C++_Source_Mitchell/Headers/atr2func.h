@@ -50,7 +50,7 @@ string	reg_name;
 
 string reg_num;
 double	sint[256], cost[256];
-
+unsigned char pressed_key;
 
 extern void	arc(short, short, unsigned short, unsigned short, unsigned short);
 extern void	circle(short, short, unsigned short);
@@ -79,7 +79,7 @@ extern string	ltrim(string);
 extern string	rtrim(string);
 extern string	btrim(string);
 
-extern void	flushkey(); // Not yet implemented
+extern char	readkey();
 
 extern void	calibrate_timing();
 extern void	time_delay(unsigned short);

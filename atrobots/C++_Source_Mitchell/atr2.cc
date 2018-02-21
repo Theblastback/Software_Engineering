@@ -900,6 +900,26 @@ void shutdown() {
 void init() {
 	short i;
 
+	if ( SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+		cerr << "ERROR: Could not init SDL: " << SDL_GetError();
+		exit(EXIT_FAILURE);
+	}
+
+
+	if ( TTF_Init() == -1 ) {
+		cout << "ERROR: Could not init TTF: " << TTY_GetError();
+		SDL_Quit();
+	}
+
+
+	// Init mixer here
+
+
+
+
+	SDL_EnableUNICODE(1);
+
+
 	if ( debugging_compiler || compile_by_line || show_code ) {
 		cout << "!!! Warning !!! Compiler Debugging enabled !!!";
 		flushkey();
@@ -2314,6 +2334,44 @@ void true_main() {
 		write_report();
 
 }
+
+
+void execute_instruction(short n) {
+	short i, j, k;
+	short time_used, loc;
+	bool inc_ip;
+	char c;
+
+	robot[n] -> ram[0] = robot[n] -> tspd;
+	robot[n] -> ram[1] = robot[n] -> thd;
+	robot[n] -> ram[2] = robot[n] -> shift;
+	robot[n] -> ram[3] = robot[n] -> accuracy;
+
+	time_used =1;
+	inc_ip = true;
+	loc = 0;
+
+	if ( (robot[n] -> ip > robot[n] -> plen) || (robot[n] -> ip < 0) )
+		robot[n] -> ip = 0;
+
+	if ( invalid_microcode(n, robot[n] -> ip) ) {
+		robot_error(n, 15, hex(robot[n] -> code[robot[n] -> ip].op[MAX_OP])
+
+	if ( graphix && (step_mode > 0) && (n == 0) ) {
+		step_count++;
+		update_cycle_window();
+		update_debug_window();
+		if ( ((step_count % step_mode) == 0) )
+			step_loop = true;
+		else
+			step_loop = false;
+
+		while ( step_loop && (!(quit|gameover|bout_over)) ) {
+			if (
+
+
+
+
 
 
 void do_robot(short n){
