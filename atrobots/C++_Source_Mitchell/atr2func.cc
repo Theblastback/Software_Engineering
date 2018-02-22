@@ -8,16 +8,16 @@ SDL_Renderer	*renderer_main;
 SDL_Color	bg_color;
 SDL_Color	fg_color;
 TTF_Font	*text_type;
-int		delay_per_sec;
+int32_t		delay_per_sec;
 bool		registered, graphix, sound_on;
 string		reg_name;
 string		reg_num;
 double		sint[256], cost[256];
-unsigned char	pressed_key;
+uint8_t	pressed_key;
 
 
-int get_rgb(short color) {
-	int rgb;
+int32_t get_rgb(int16_t color) {
+	int32_t rgb;
 
 	switch ( color ) {
 	case BLACK:
@@ -89,10 +89,10 @@ int get_rgb(short color) {
 }
 
 
-void arc(short cent_x, short cent_y, unsigned short st_angle, unsigned short end_angle, unsigned short radius) {
+void arc(int16_t cent_x, int16_t cent_y, uint16_t st_angle, uint16_t end_angle, uint16_t radius) {
 	// Utilizing the premade tables in this program
 	// Converting a 360 degree circle to a 255 degree means every 1.4 degrees equals 1 degree
-	short x1, x2, y1, y2;
+	int16_t x1, x2, y1, y2;
 
 	SDL_SetRenderDrawColor(renderer_main, fg_color.r, fg_color.g, fg_color.b, 0xff);
 
@@ -103,7 +103,7 @@ void arc(short cent_x, short cent_y, unsigned short st_angle, unsigned short end
 	x2 = (cost[st_angle] * radius) + cent_x;
 	y2 = (sint[st_angle] * radius) + cent_y;
 
-	for ( unsigned short angle = st_angle + 1; angle <= end_angle; angle++ ) {
+	for ( uint16_t angle = st_angle + 1; angle <= end_angle; angle++ ) {
 		x1 = x2;
 		y1 = y2;
 
@@ -115,17 +115,17 @@ void arc(short cent_x, short cent_y, unsigned short st_angle, unsigned short end
 }
 
 
-void circle(short cent_x, short cent_y, unsigned short radius) {
-	int rad_2 = radius * radius;
-	int area = rad_2 << 2;
-	int rad_r = radius << 1;
+void circle(int16_t cent_x, int16_t cent_y, uint16_t radius) {
+	int32_t rad_2 = radius * radius;
+	int32_t area = rad_2 << 2;
+	int32_t rad_r = radius << 1;
 
 
 	SDL_SetRenderDrawColor(renderer_main, fg_color.r, fg_color.g, fg_color.b, 0xff);
 
-	for ( int i = 0; i < area; i++ ) {
-		int x = (i % rad_r) - radius;
-		int y = (i / rad_r) - radius;
+	for ( int32_t i = 0; i < area; i++ ) {
+		int32_t x = (i % rad_r) - radius;
+		int32_t y = (i / rad_r) - radius;
 
 		if ( ((x*x) + (y*y)) <= rad_2 )
 			SDL_RenderDrawPoint(renderer_main, (cent_x + x), (cent_y + y));
@@ -136,8 +136,8 @@ void circle(short cent_x, short cent_y, unsigned short radius) {
 
 // SetFillStyle controls color of bar
 
-void setfillstyle(short color) {
-	int bg = get_rgb(color);
+void setfillstyle(int16_t color) {
+	int32_t bg = get_rgb(color);
 
 	bg_color.r = bg >> 24;
 	bg_color.g = (bg << 8) >> 24;
@@ -146,8 +146,8 @@ void setfillstyle(short color) {
 
 
 // SetColor controls color of line functions, rectangle function
-void setcolor(short color) {
-	int fg = get_rgb(color);
+void setcolor(int16_t color) {
+	int32_t fg = get_rgb(color);
 
 	fg_color.r = fg >> 24;
 	fg_color.g = (fg << 8) >> 24;
@@ -156,8 +156,8 @@ void setcolor(short color) {
 
 
 // SetTextColor (orwhatever its called) Determines the text color XXX Terminals only XXX
-void textcolor(short color) {
-/*	int rgb = get_rgb(color);
+void textcolor(int16_t color) {
+/*	int32_t rgb = get_rgb(color);
 
 	text_color.r = rgb >> 24;
 	text_color.g = (rgb << 8) >> 24;
@@ -169,9 +169,9 @@ void textcolor(short color) {
 	#endif
 }
 
-void outtextxy(short x_coor, short y_coor, string text) {
+void outtextxy(int16_t x_coor, int16_t y_coor, string text) {
 	SDL_Rect src;
-	int W, H;
+	int32_t W, H;
 
 	SDL_SetRenderDrawColor(renderer_main, fg_color.r, fg_color.g, fg_color.b, 0xff);
 
@@ -194,7 +194,7 @@ void outtextxy(short x_coor, short y_coor, string text) {
 }
 
 
-void bar(short x_coor, short y_coor, short w_coor, short h_coor) {
+void bar(int16_t x_coor, int16_t y_coor, int16_t w_coor, int16_t h_coor) {
 	SDL_Rect src = {x_coor, y_coor, x_coor, h_coor};
 
 	SDL_SetRenderDrawColor(renderer_main, bg_color.r, bg_color.g, bg_color.b, 0xff);
@@ -202,13 +202,13 @@ void bar(short x_coor, short y_coor, short w_coor, short h_coor) {
 	SDL_RenderFillRect(renderer_main, &src);
 }
 
-void line(short x1, short y1, short x2, short y2) {
+void line(int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
 	SDL_SetRenderDrawColor(renderer_main, fg_color.r, fg_color.g, fg_color.b, 0xff);
 
 	SDL_RenderDrawLine(renderer_main, x1, y1, x2, y2);
 }
 
-void putpixel(short x, short y, short color) {
+void putpixel(int16_t x, int16_t y, int16_t color) {
 	setcolor(color);
 
 	SDL_SetRenderDrawColor(renderer_main, fg_color.r, fg_color.g, fg_color.b, 0xff);
@@ -216,7 +216,7 @@ void putpixel(short x, short y, short color) {
 }
 
 
-void textxy(short x, short y, string s) {
+void textxy(int16_t x, int16_t y, string s) {
 	setfillstyle(0);
 
 	bar(x, y, x + s.length() * 8, y + 7);
@@ -226,14 +226,14 @@ void textxy(short x, short y, string s) {
 
 
 
-void coltextxy(short x, short y, string s, unsigned char c) {
+void coltextxy(int16_t x, int16_t y, string s, uint8_t c) {
 	setcolor(c);
 	textxy(x, y, s);
 }
 
 
 
-char hexnum(unsigned char num) {
+char hexnum(uint8_t num) {
 	switch (num) {
 	case '0': return '0';
 	case '1': return '1';
@@ -257,8 +257,8 @@ char hexnum(unsigned char num) {
 
 
 
-string hexb(unsigned char num) {
-	unsigned short number = hexnum(num >> 4) + hexnum(num & 15);
+string hexb(uint8_t num) {
+	uint16_t number = hexnum(num >> 4) + hexnum(num & 15);
 
 	string temp = to_string(number);
 	return temp;
@@ -266,8 +266,8 @@ string hexb(unsigned char num) {
 
 
 
-string hex(unsigned short num) {
-	unsigned char number = num >> 8;
+string hex(uint16_t num) {
+	uint8_t number = num >> 8;
 	string temp = hexb(number) + hexb(num & 255);
 
 	return temp;
@@ -276,7 +276,7 @@ string hex(unsigned short num) {
 
 
 double valuer(string i) {
-	long int n = strtol(i.c_str(), NULL, 0);
+	int64_t n = strtol(i.c_str(), NULL, 0);
 
 	if ( (n == LONG_MAX) || (n == LONG_MIN) )
 		return 0;
@@ -286,13 +286,13 @@ double valuer(string i) {
 
 
 
-int value(string i) {
-	long int n = strtol(i.c_str(), NULL, 0);
+int32_t value(string i) {
+	int64_t n = strtol(i.c_str(), NULL, 0);
 
 	if ( (n == LONG_MAX) || (n == LONG_MIN) )
 		return 0;
 	else
-		return ((int)n);
+		return ((int32_t)n);
 }
 
 
@@ -301,13 +301,13 @@ inline string cstrr(double i) {
 	return temp;
 }
 
-inline string cstr(int i) {
+inline string cstr(int32_t i) {
 	string temp = to_string(i);
 	return temp;
 }
 
 
-string zero_pad(int n, unsigned int l) {
+string zero_pad(int32_t n, uint32_t l) {
 	string s;
 
 	s = cstr(n);
@@ -317,7 +317,7 @@ string zero_pad(int n, unsigned int l) {
 	return s;
 }
 
-string zero_pads(string s, unsigned int l) {
+string zero_pads(string s, uint32_t l) {
 	string s1 = s;
 
 	while (s1.length() <= l)
@@ -328,7 +328,7 @@ string zero_pads(string s, unsigned int l) {
 
 
 string ucase(string s) {
-	for (unsigned int i = 0; i < s.length(); i++)
+	for (uint32_t i = 0; i < s.length(); i++)
 		s.at(i) = toupper(s.at(i));
 
 	return s;
@@ -336,15 +336,15 @@ string ucase(string s) {
 
 
 string lcase(string s) {
-	for (unsigned int i = 0; i < s.length(); i++)
+	for (uint32_t i = 0; i < s.length(); i++)
 		s.at(i) = tolower(s.at(i));
 
 	return s;
 }
 
 
-string space(unsigned char i) {
-	unsigned char k;
+string space(uint8_t i) {
+	uint8_t k;
 	string s = "";
 
 	if ( i )
@@ -355,8 +355,8 @@ string space(unsigned char i) {
 }
 
 
-string repchar(char c, unsigned char i) {
-	unsigned char k;
+string repchar(char c, uint8_t i) {
+	uint8_t k;
 	string s = "";
 
 	if ( i )
@@ -393,7 +393,7 @@ string btrim(string s1) {
 
 
 
-short get_seconds_past_hour() {
+int16_t get_seconds_past_hour() {
 	time_t since_start;
 	struct tm * info_time;
 
@@ -407,7 +407,7 @@ short get_seconds_past_hour() {
 void calibrate_timing() {
 // THE RTC IS LOCATED AT MEM ADDRESSES 0000:046C is current seconds past the hour
 // 0000:046E is the current hour in 24 hour time format
-	int k;
+	int32_t k;
 
 	delay_per_sec = 0;
 	k = get_seconds_past_hour();
@@ -423,8 +423,8 @@ void calibrate_timing() {
 }
 
 
-void time_delay(unsigned short n) {
-	int i, l;
+void time_delay(uint16_t n) {
+	int32_t i, l;
 
 	if ( delay_per_sec == 0 )
 		calibrate_timing();
@@ -436,8 +436,8 @@ void time_delay(unsigned short n) {
 }
 
 void check_registration() {
-	unsigned short w;
-	unsigned short i;
+	uint16_t w;
+	uint16_t i;
 	fstream f;
 	string s = "ATR2.REG";
 
@@ -467,18 +467,18 @@ void check_registration() {
 
 
 // ror same as >>, but wrap discarded bits
-short ror(short n, short k) {
+int16_t ror(int16_t n, int16_t k) {
 	while (k) {
-		n = ((unsigned short) n >> 1 ) | ((unsigned short) n << 15);
+		n = ((uint16_t) n >> 1 ) | ((uint16_t) n << 15);
 		k--;
 	}
 	return n;
 }
 
 // rol same as <<, but wrap discarded bits
-short rol(short n, short k) {
+int16_t rol(int16_t n, int16_t k) {
 	while(k) {
-		n = ((unsigned short) n << 1 ) | ((unsigned short) n >> 15);
+		n = ((uint16_t) n << 1 ) | ((uint16_t) n >> 15);
 		k--;
 	}
 
@@ -486,12 +486,12 @@ short rol(short n, short k) {
 }
 
 // sal same as <<
-short sal(short n, short k) {
+int16_t sal(int16_t n, int16_t k) {
 	return (n << k);
 }
 
 // sar same as >>, but copy signed bit over
-short sar(short n, short k) {
+int16_t sar(int16_t n, int16_t k) {
 	n = n / (1 << k);
 
 	return n;
@@ -502,7 +502,7 @@ short sar(short n, short k) {
 
 
 
-void viewport(short x1, short y1, short x2, short y2) {
+void viewport(int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
 	if ( !graphix )
 		return;
 
@@ -516,7 +516,7 @@ void main_viewport() {
 
 
 void make_tables() {
-	short i;
+	int16_t i;
 
 	for (i = 0; i <= 255; i++) {
 		sint[i] = sin((i/128) * M_PI);
@@ -525,7 +525,7 @@ void make_tables() {
 }
 
 
-short robot_color(short n) {
+int16_t robot_color(int16_t n) {
 	// Please excuse all of the one line operations here. It's to reduce space
 
 	switch (n % 14) {
@@ -547,8 +547,8 @@ short robot_color(short n) {
 	}
 }
 
-void box(short x1, short y1, short x2, short y2) {
-	short i;
+void box(int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
+	int16_t i;
 
 	if ( !graphix )
 		return;
@@ -578,8 +578,8 @@ void box(short x1, short y1, short x2, short y2) {
 	line(x2, y1+1, x2, y2);
 }
 
-void hole(short x1, short y1, short x2, short y2) {
-	short i;
+void hole(int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
+	int16_t i;
 
 	if ( !graphix )
 		return;
@@ -613,8 +613,8 @@ void hole(short x1, short y1, short x2, short y2) {
 }
 
 
-short hex2int(string s) {
-	unsigned short w, i;
+int16_t hex2int32_t(string s) {
+	uint16_t w, i;
 
 	i = 0;
 	w = 0;
@@ -647,7 +647,7 @@ short hex2int(string s) {
 
 
 
-short str2int(string s) {
+int16_t str2int(string s) {
 	long value = strtol(s.c_str(), NULL, 0);
 
 	if ( (value < SHRT_MIN) )
@@ -655,7 +655,7 @@ short str2int(string s) {
 	else if (value > SHRT_MAX)
 		return 32767;
 	else
-		return (short)value;
+		return (int16_t)value;
 }
 
 
@@ -665,7 +665,7 @@ double _distance(double x1, double y1, double x2, double y2) {
 
 
 double find_angle(double xx, double yy, double tx, double ty) {
-	short v, z;
+	int16_t v, z;
 	double q = 0;
 
 	v = abs(tx - xx);
@@ -700,8 +700,8 @@ double find_angle(double xx, double yy, double tx, double ty) {
 }
 
 
-short find_anglei(double xx, double yy, double tx, double ty) {
-	short i = (short)round(find_angle(xx, yy, tx, ty) / M_PI * 128 + 256);
+int16_t find_anglei(double xx, double yy, double tx, double ty) {
+	int16_t i = (int16_t)round(find_angle(xx, yy, tx, ty) / M_PI * 128 + 256);
 
 	while ( i < 0 )
 		i += 255;
@@ -711,8 +711,8 @@ short find_anglei(double xx, double yy, double tx, double ty) {
 }
 
 
-string bin(short n) {
-	short i;
+string bin(int16_t n) {
+	int16_t i;
 	string bin_string = "";
 
 	for (i = 0; i <= 15; i++) {
@@ -723,7 +723,7 @@ string bin(short n) {
 	return bin_string;
 }
 
-string decimal(int num, int length) {
+string decimal(int32_t num, int32_t length) {
 	string dec_string = to_string(num);
 
 	return (dec_string.substr(0, length));
@@ -731,7 +731,7 @@ string decimal(int num, int length) {
 
 
 char readkey() {
-	int code;
+	int32_t code;
 	SDL_Event event;
 
 	while ( SDL_PollEvent(&event) ) {
@@ -750,7 +750,7 @@ char readkey() {
 }
 
 bool keypressed() {
-	int code;
+	int32_t code;
 	bool ret = false;
 	SDL_Event event;
 

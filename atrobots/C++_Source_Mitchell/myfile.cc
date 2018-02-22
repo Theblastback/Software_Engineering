@@ -1,9 +1,9 @@
 #include "Headers/myfile.h"
 
 string	the_name;
-unsigned char the_eof;
+uint8_t the_eof;
 
-string lstr(string s1, int l){
+string lstr(string s1, int32_t l){
 	if (s1.length() <= 1) {
 		return s1;
 	} else {
@@ -11,9 +11,9 @@ string lstr(string s1, int l){
 	}
 }
 
-int file_size(string fn){
+int32_t file_size(string fn){
 	FILE * f;
-	int size;
+	int32_t size;
 
 	if( !exist(fn) ) {
 		return -1;
@@ -45,7 +45,7 @@ void rename_file(string fn, string fn2) {
 }
 
 
-// Changed param 1 from unsigned short pointer (memory address) to file pointer
+// Changed param 1 from word pointer (memory address) to file point32_ter
 void open_filein(FILE * fp, string fn) {
 	fp = fopen(fn.c_str(), "rb");
 
@@ -75,19 +75,19 @@ void create_fileout(FILE * fp, string fn) {
 }
 
 
-void read_file(FILE * fp, void * ploc, short *bytes) {
+void read_file(FILE * fp, void * ploc, int16_t *bytes) {
 	*bytes = fread(ploc, 1, *bytes, fp);
 }
 
-void write_file(FILE * fp, void * ploc, short * bytes) {
+void write_file(FILE * fp, void * ploc, int16_t * bytes) {
 	*bytes = fwrite(ploc, 1, *bytes, fp);
 }
 
-void read_long(FILE * fp, void * ploc, unsigned short *bytes) {
+void read_long(FILE * fp, void * ploc, uint16_t *bytes) {
 	*bytes = fread(ploc, 1, *bytes, fp);
 }
 
-void write_long(FILE * fp, void * ploc, unsigned short * bytes) {
+void write_long(FILE * fp, void * ploc, uint16_t * bytes) {
 	*bytes = fwrite(ploc, 1, *bytes, fp);
 }
 
@@ -95,7 +95,7 @@ void close_file(FILE * fp) {
 	fclose(fp);
 }
 
-void file_seek(FILE * h, unsigned short amount, unsigned char position, FILE * new_pos) {
+void file_seek(FILE * h, uint16_t amount, uint8_t position, FILE * new_pos) {
 	if ( position == 0 )
 		fseek(h, amount, SEEK_SET);
 	else if ( position == 1 )
@@ -106,7 +106,7 @@ void file_seek(FILE * h, unsigned short amount, unsigned char position, FILE * n
 	new_pos = h;
 }
 
-void long_seek(FILE * h, int amount, unsigned char position, FILE * new_pos) {
+void long_seek(FILE * h, int32_t amount, uint8_t position, FILE * new_pos) {
 	if ( position == 0 )
 		fseek(h, amount, SEEK_SET);
 	else if ( position == 1 )

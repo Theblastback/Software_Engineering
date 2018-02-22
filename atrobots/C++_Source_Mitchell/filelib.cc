@@ -1,22 +1,22 @@
 #include "Headers/filelib.h"
 
-unsigned short	textattr;
+uint16_t		textattr;
 string		workstr;
 
 
 // Copy function was included in base pascal compiler. Recoding it here
-string copy(string name, unsigned short start, unsigned short count) {
+string copy(string name, uint16_t start, uint16_t count) {
 	string temp = "";
 
 	start--; // To compensate for c++ strings starting at 0, not 1
-	for ( unsigned short index = 0; index < count; index++ )
+	for ( uint16_t index = 0; index < count; index++ )
 		temp = temp + name.at(index);
-
+	
 	return temp;
 }
 
 
-string addfront(string b, unsigned short l) {
+string addfront(string b, uint16_t l) {
 	while ( b.length() < l )
 		b = " " + b;
 
@@ -24,7 +24,7 @@ string addfront(string b, unsigned short l) {
 }
 
 
-string addrear(string b, unsigned short l) {
+string addrear(string b, uint16_t l) {
 	while ( b.length() < l )
 		b = b + " ";
 
@@ -32,7 +32,7 @@ string addrear(string b, unsigned short l) {
 }
 
 
-string lstr(string s1, unsigned short l) {
+string lstr(string s1, uint16_t l) {
 	if ( s1.length() <= l )
 		return s1;
 	else
@@ -40,7 +40,7 @@ string lstr(string s1, unsigned short l) {
 }
 
 
-string rstr(string s1, unsigned short l) {
+string rstr(string s1, uint16_t l) {
 	if ( s1.length() <= l )
 		return s1;
 	else
@@ -81,7 +81,7 @@ bool valid(string thisfile) {
 
 
 string name_form(string name) {
-	unsigned short k;
+	uint16_t k;
 	string s1, s2;
 
 	s1 = "";
@@ -111,7 +111,7 @@ string name_form(string name) {
 
 
 string exten(string name) {
-	unsigned short k;
+	uint16_t k;
 	string s1, s2;
 
 	s1 = "";
@@ -137,7 +137,7 @@ string exten(string name) {
 
 
 std::string base_name(std::string name) {
-	unsigned short k;
+	uint16_t k;
 	string s1;
 
 	s1 = "";
@@ -163,7 +163,7 @@ std::string base_name(std::string name) {
 	AnyFile		= 0x3f
 */
 
-string attribs (unsigned char b) {
+string attribs (uint8_t b) {
 
 	string s1;
 
@@ -195,7 +195,7 @@ string attribs (unsigned char b) {
 
 string path(string fn) {
 
-	unsigned short i, k;
+	uint16_t i, k;
 
 	k = 0;
 
@@ -211,7 +211,7 @@ string path(string fn) {
 
 
 string no_path(string fn) {
-	unsigned short i, k;
+	uint16_t i, k;
 
 	k = 0;
 
@@ -227,8 +227,8 @@ string no_path(string fn) {
 }
 
 
-int file_length(string fn) {
-	int file_size;
+int32_t file_length(string fn) {
+	int32_t file_size;
 
 	fstream sr(fn, fstream::binary | fstream::ate);
 

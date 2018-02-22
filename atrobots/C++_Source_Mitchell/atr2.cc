@@ -3,7 +3,7 @@
 #include "Headers/atr2func.h"
 #include <time.h>
 #include <iostream>
-
+#include <cstdint>
 
 // Begin global variable/definition listings
 std::string progname		= "AT-Robots";
@@ -20,8 +20,8 @@ std::string report_ext	= ".REP";
 
 #define PI 3.141592
 
-#define MININT -32768
-#define MAXINT 32767
+#define MININT	-32768
+#define MAXINT	32767
 
 // Debugging/compiler
 bool show_code = false;
@@ -67,7 +67,7 @@ bool debugging_compiler = false;
 
 class op_rec {
 public:
-	short	op[MAX_OP+1];
+	int16_t	op[MAX_OP+1];
 };
 
 typedef op_rec prog_type;
@@ -75,29 +75,29 @@ typedef op_rec prog_type;
 
 class config_rec {
 public:
-	short scanner, weapon, armor, engine, heatsinks, shield, mines;
+	int16_t scanner, weapon, armor, engine, heatsinks, shield, mines;
 };
 
 class mine_rec {
 public:
 	double x, y;
-	short detect, yield;
+	int16_t detect, yield;
 	bool detonate;
 };
 
 class robot_rec {
 public:
 	bool		is_locked;
-	short		mem_watch;
+	int16_t		mem_watch;
 	double	x, y, lx, ly, xv, yv, speed, shotstrength, damageadj, speedadj, meters;
 
-	short	hd, thd, lhd, spd, tspd, armor, larmor, heat, lheat, ip, plen, scanarc,
+	int16_t	hd, thd, lhd, spd, tspd, armor, larmor, heat, lheat, ip, plen, scanarc,
 		accuracy, shift, err, delay_left, robot_time_limit, max_time, time_left,
 		lshift, arc_count, sonar_count, scanrange, last_damage, last_hit, transponder,
 		shutdown, channel, lendarc, endarc, lstartarc, startarc, mines;
 
-	short	tx[MAX_ROBOT_LINES], ltx[MAX_ROBOT_LINES], ty[MAX_ROBOT_LINES], lty[MAX_ROBOT_LINES];
-	int	wins, trials, kills, deaths, startkills, shots_fired, match_shots, hits,
+	int16_t	tx[MAX_ROBOT_LINES], ltx[MAX_ROBOT_LINES], ty[MAX_ROBOT_LINES], lty[MAX_ROBOT_LINES];
+	int32_t	wins, trials, kills, deaths, startkills, shots_fired, match_shots, hits,
 		damage_total, cycles_lived, error_count;
 	robot_rec();
 
@@ -106,7 +106,7 @@ public:
 	std::string	fn;
 	bool	shields_up, lshields, overburn, keepshift, cooling, won;
 	prog_type	code[MAX_CODE + 1];
-	short		ram[MAX_RAM +1];
+	int16_t		ram[MAX_RAM +1];
 	mine_rec	mine[MAX_MINES +1];
 	std::ofstream	errorlog;
 };
@@ -114,15 +114,15 @@ public:
 class missile_rec {
 public:
 	double x, y, lx, ly, mult, mspd;
-	short source, a, hd, rad, lrad, max_rad;
+	int16_t source, a, hd, rad, lrad, max_rad;
 };
 
 // Begin global variables
-int paramcount;
+int32_t paramcount;
 char **paramstr;
 
 // Robot variables
-short num_robots;
+int16_t num_robots;
 typedef robot_rec * robot_ptr;
 
 robot_ptr robot[MAX_ROBOTS + 5]; // Array started at -2, so I shifted it over
@@ -130,41 +130,41 @@ missile_rec missile[MAX_MISSILES + 1];
 
 // Compiler variables
 std::string	f;
-short	numvars, numlabels, maxcode, lock_pos, lock_dat;
+int16_t	numvars, numlabels, maxcode, lock_pos, lock_dat;
 std::string	varname[MAX_VARS -1];
-short	varloc[MAX_VARS -1];
+int16_t	varloc[MAX_VARS -1];
 std::string	labelname[MAX_VARS -1];
-short	labelnum[MAX_VARS -1];
+int16_t	labelnum[MAX_VARS -1];
 bool	show_source, compile_only;
 std::string	lock_code;
 
 // Simulator/graphics variables
 bool	bout_over;
-short	step_mode;	// 0 = off; for 0 < step_mode <= 9 = # of game cycles per step
-short	temp_mode;	// Stores previous step_mode for return to step
-short	step_count;	// Step counter used as break flag
+int16_t	step_mode;	// 0 = off; for 0 < step_mode <= 9 = # of game cycles per step
+int16_t	temp_mode;	// Stores previous step_mode for return to step
+int16_t	step_count;	// Step counter used as break flag
 bool	step_loop;	// Break flag for stepping
 
 bool	old_shields, insane_missiles, debug_info, windoze, no_gfx, logging_errors,
 	timing, show_arcs;
-short	game_delay, time_slice, insanity, update_timer, max_gx, max_gy, stats_mode;
+int16_t	game_delay, time_slice, insanity, update_timer, max_gx, max_gy, stats_mode;
 int	game_limit, game_cycle, matches, played, executed;
 
 // General settings
 bool	quit, report, show_cnotice;
-short	kill_count, report_type;
+int16_t	kill_count, report_type;
 
 
 // Begin functions
 
 // Functions that need to be declared prior to being written
-void prog_error(short, std::string);
-void compile(short, std::string);
+void prog_error(int16_t, std::string);
+void compile(int16_t, std::string);
 void setscreen();
-void do_robot(short);
-void do_mine(short, short);
-void do_missile(short);
-void create_robot(short, std::string);
+void do_robot(int16_t);
+void do_mine(int16_t, int16_t);
+void do_missile(int16_t);
+void create_robot(int16_t, std::string);
 
 void parse_param(std::string s) {
 	fstream f;
@@ -294,7 +294,7 @@ void parse_param(std::string s) {
 }
 
 
-std::string operand(short n, short m) {
+std::string operand(int16_t n, int16_t m) {
 	std::string s = cstr(n);
 
 	switch (m & 7) {	// Microcode
@@ -321,7 +321,7 @@ std::string operand(short n, short m) {
 }
 
 
-std::string mnemonic(short n, short m) {
+std::string mnemonic(int16_t n, int16_t m) {
 	std::string s = cstr(n);
 
 	if ( m == 0 )
@@ -382,7 +382,7 @@ std::string mnemonic(short n, short m) {
 }
 
 
-short max_shown() {
+int16_t max_shown() {
 	switch(stats_mode) {
 	case 1:
 		return 12;
@@ -394,7 +394,7 @@ short max_shown() {
 }
 
 
-bool graph_check(short n) {
+bool graph_check(int16_t n) {
 	bool ok = true;
 
 	if (!graphix || (n < 0) || (n > num_robots) || (n >= max_shown()))
@@ -403,7 +403,7 @@ bool graph_check(short n) {
 	return ok;
 }
 
-void robot_graph(short n) {
+void robot_graph(int16_t n) {
 	switch (stats_mode) {
 	case 1:
 		viewport(480, 4 + n * 35, 635, 37 + n * 35);
@@ -424,7 +424,7 @@ void robot_graph(short n) {
 	setcolor(robot_color(n));
 }
 
-void update_armor(short n) {
+void update_armor(int16_t n) {
 	if ( graph_check(n) && (step_mode <= 0) ) {
 		robot_graph(n);
 		if (robot[n] -> armor > 0) {
@@ -455,7 +455,7 @@ void update_armor(short n) {
 	}
 }
 
-void update_heat(short n) {
+void update_heat(int16_t n) {
 	if ( graph_check(n) && (step_mode <= 0) ) {
 		robot_graph(n);
 		if ( robot[n] -> heat > 5 ) {
@@ -486,7 +486,7 @@ void update_heat(short n) {
 	}
 }
 
-void robot_error(short n, short i, std::string ov) {
+void robot_error(int16_t n, int16_t i, std::string ov) {
 	if (graph_check(n) && (step_mode <= 0)) {
 		if (stats_mode == 0) {
 			robot_graph(n);
@@ -499,7 +499,7 @@ void robot_error(short n, short i, std::string ov) {
 	}
 }
 
-void update_lives(short n) {
+void update_lives(int16_t n) {
 	if ( graph_check(n) && (stats_mode == 0) ) {
 		robot_graph(n);
 		setcolor(robot_color(n) - 8);
@@ -529,7 +529,7 @@ void update_cycle_window() {
 
 // Initialize the entire screen
 void setscreen() {
-	short i;
+	int16_t i;
 
 	if ( !graphix )
 		return;
@@ -630,8 +630,8 @@ void graph_mode(bool on) {
 }
 
 
-void print_code(short n, short p) {
-	short i;
+void print_code(int16_t n, int16_t p) {
+	int16_t i;
 
 	std::cout << (hex(p) + ": ");
 	for ( i = 0; i <= MAX_OP; i++ )
@@ -645,13 +645,13 @@ void print_code(short n, short p) {
 }
 
 
-void check_plen(short plen) {
+void check_plen(int16_t plen) {
 	if (plen > MAX_CODE )
 		prog_error(16, "\nMaximum progrm length exceeded, (Limit: " + cstr(MAX_CODE + 1) + " compiled lines)");
 }
 
 
-void robot_config(short n) {
+void robot_config(int16_t n) {
 
 	// Doing case statements like this to reduce line count
 	switch (robot[n] -> config.scanner) {
@@ -726,8 +726,8 @@ void robot_config(short n) {
 }
 
 
-void reset_software(short n) {
-	short i;
+void reset_software(int16_t n) {
+	int16_t i;
 
 	for (i = 0; i <= MAX_RAM; i++)
 		robot[n] -> ram[i] = 0;
@@ -749,8 +749,8 @@ void reset_software(short n) {
 }
 
 
-void reset_hardware(short n) {
-	short i;
+void reset_hardware(int16_t n) {
+	int16_t i;
 	double d, dd;
 
 	// robot[n] -> dereference
@@ -815,8 +815,8 @@ void reset_hardware(short n) {
 	robot_config(n);
 }
 
-void init_robot(short n) {
-	short i, k;
+void init_robot(int16_t n) {
+	int16_t i, k;
 
 	robot[n] -> wins = 0;
 	robot[n] -> trials = 0;
@@ -864,8 +864,8 @@ void init_robot(short n) {
 }
 
 
-void create_robot(short n, std::string filename) {
-	short i, k;
+void create_robot(int16_t n, std::string filename) {
+	int16_t i, k;
 
 	for (i = 0; i <= MAX_ROBOTS + 4; i++)
 		robot[i] = new robot_rec();
@@ -895,7 +895,7 @@ void create_robot(short n, std::string filename) {
 
 
 void shutdown() {
-	short i;
+	int16_t i;
 
 	graph_mode(false);
 	if (show_cnotice) {
@@ -927,7 +927,7 @@ void shutdown() {
 
 
 void init() {
-	short i;
+	int16_t i;
 
 	if ( SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		cerr << "ERROR: Could not init SDL: " << SDL_GetError();
@@ -1066,8 +1066,8 @@ void init() {
 
 
 
-void draw_robot(short n) {
-	short i, t;
+void draw_robot(int16_t n) {
+	int16_t i, t;
 	double xx, yy;
 
 	if ( (n < 0) || (n > num_robots) )
@@ -1181,8 +1181,8 @@ void draw_robot(short n) {
 
 
 // The direct memory access from ram has been replaced with a psuedo ram array
-short get_from_ram(short n, short i, short j) {
-	short  k, l;
+int16_t get_from_ram(int16_t n, int16_t i, int16_t j) {
+	int16_t  k, l;
 
 	if ( (i < 0) || (i > (MAX_RAM) +(((MAX_CODE + 1) <<3)-1)) ) {
 		k = 0;
@@ -1199,8 +1199,8 @@ short get_from_ram(short n, short i, short j) {
 }
 
 
-short get_val(short n, short c, short o) {
-	short i, j, k;
+int16_t get_val(int16_t n, int16_t c, int16_t o) {
+	int16_t i, j, k;
 
 	k = 0;
 	j = (robot[n] -> code[c].op[MAX_OP] << (4 * 0)) & 15;
@@ -1216,8 +1216,8 @@ short get_val(short n, short c, short o) {
 	return k;
 }
 
-void put_val(short n, short c, short o, short v) {
-	short i, j;
+void put_val(int16_t n, int16_t c, int16_t o, int16_t v) {
+	int16_t i, j;
 	i = 0; j = 0;
 
 	j = (robot[n] -> code[c].op[MAX_OP] >> (4 * o)) & 15;
@@ -1239,7 +1239,7 @@ void put_val(short n, short c, short o, short v) {
 		robot_error(n, 3, "");
 }
 
-void push(short n, short v) {
+void push(int16_t n, int16_t v) {
 	if ( (robot[n] -> ram[71] >= STACK_BASE) && (robot[n] -> ram[71] < (STACK_BASE + STACK_SIZE)) ) {
 		robot[n] -> ram[robot[n] -> ram[71]] = v ;
 		(robot[n] -> ram[71])++;
@@ -1247,8 +1247,8 @@ void push(short n, short v) {
 		robot_error(n, 1, cstr(robot[n] -> ram[71]));
 }
 
-short pop(short n) {
-	short k;
+int16_t pop(int16_t n) {
+	int16_t k;
 	if ( (robot[n] -> ram[71] > STACK_BASE) && (robot[n] -> ram[71] <= (STACK_BASE + STACK_SIZE)) ) {
 		(robot[n] -> ram[71])--;
 		k = robot[n] -> ram[robot[n] -> ram[71]];
@@ -1259,8 +1259,8 @@ short pop(short n) {
 }
 
 
-short find_label(short n, short l, short m) {
-	short i, j, k;
+int16_t find_label(int16_t n, int16_t l, int16_t m) {
+	int16_t i, j, k;
 
 	k = -1;
 	if ( m == 3 )
@@ -1278,8 +1278,8 @@ short find_label(short n, short l, short m) {
 }
 
 
-void init_mine(short n, short detectrange, short size) {
-	short i, k;
+void init_mine(int16_t n, int16_t detectrange, int16_t size) {
+	int16_t i, k;
 
 	k = -1;
 	for ( i = 0; i <= MAX_MINES; i++ ) {
@@ -1298,8 +1298,8 @@ void init_mine(short n, short detectrange, short size) {
 	}
 }
 
-short count_missiles() {
-	short i, k;
+int16_t count_missiles() {
+	int16_t i, k;
 
 	k = 0;
 	for ( i = 0; i <= MAX_MISSILES; i++ ) {
@@ -1311,8 +1311,8 @@ short count_missiles() {
 }
 
 
-void init_missile(double xx, double yy, double xxv, double yyx, short dir, short s, short blast, bool ob) {
-	short i, k;
+void init_missile(double xx, double yy, double xxv, double yyx, int16_t dir, int16_t s, int16_t blast, bool ob) {
+	int16_t i, k;
 	double m;
 
 	k = -1;
@@ -1365,8 +1365,8 @@ void init_missile(double xx, double yy, double xxv, double yyx, short dir, short
 	}
 }
 
-void damage(short n, short d, bool physical) {
-	short i, k, h, dd;
+void damage(int16_t n, int16_t d, bool physical) {
+	int16_t i, k, h, dd;
 	double m;
 
 	if ( (n < 0) || (n > num_robots) || (robot[n] -> armor <= 0) )
@@ -1451,9 +1451,9 @@ void damage(short n, short d, bool physical) {
 }
 
 
-short scan(short n) {
+int16_t scan(int16_t n) {
 	double r, d, acc;
-	short dir, range, i, j, k, nn, xx, yy, sign;
+	int16_t dir, range, i, j, k, nn, xx, yy, sign;
 
 	nn = -1;
 	range = MAXINT;
@@ -1526,8 +1526,8 @@ short scan(short n) {
 }
 
 
-void com_transmit(short n, short chan, short data) {
-	short i;
+void com_transmit(int16_t n, int16_t chan, int16_t data) {
+	int16_t i;
 
 	for ( i = 0; i <= num_robots; i++ ) {
 		if ( (robot[i] -> armor > 0) && (i != n) && (robot[i] -> channel == chan) ) {
@@ -1547,8 +1547,8 @@ void com_transmit(short n, short chan, short data) {
 	}
 }
 
-short com_receive(short i) {
-	short k;
+int16_t com_receive(int16_t i) {
+	int16_t k;
 
 	if ( robot[i] -> ram[10] != robot[i] -> ram[11] ) {
 		if ( (robot[i] -> ram[10] < 0) || (robot[i] -> ram[10] > MAX_QUEUE) )
@@ -1567,8 +1567,8 @@ short com_receive(short i) {
 	return k;
 }
 
-short in_port(short n, short p, short *time_used) {
-	short v, i, j, k, l, nn;
+int16_t in_port(int16_t n, int16_t p, int16_t *time_used) {
+	int16_t v, i, j, k, l, nn;
 
 	v = 0;
 
@@ -1675,8 +1675,8 @@ short in_port(short n, short p, short *time_used) {
 }
 
 
-void out_port(short n, short p, short v, short *time_used) {
-	short i;
+void out_port(int16_t n, int16_t p, int16_t v, int16_t *time_used) {
+	int16_t i;
 
 	switch (p) {
 		case 11: robot[n] -> tspd = v; break;
@@ -1740,8 +1740,8 @@ void out_port(short n, short p, short v, short *time_used) {
 }
 
 
-void call_int(short n, short int_num, short * time_used) {
-	short i, j, k;
+void call_int(int16_t n, int16_t int_num, int16_t * time_used) {
+	int16_t i, j, k;
 
 	switch ( int_num ) {
 	case 0: damage(n, 1000, true); break;
@@ -1751,7 +1751,7 @@ void call_int(short n, short int_num, short * time_used) {
 		break;
 	case 2:
 		*time_used = 5;
-		robot[n] -> ram[69] = robot[n] -> x + 0.5; // double to signed short may cause problems
+		robot[n] -> ram[69] = robot[n] -> x + 0.5; // double to signed int16_t may cause problems
 		robot[n] -> ram[70] = robot[n] -> y + 0.5;
 		break;
 	case 3:
@@ -1789,7 +1789,7 @@ void call_int(short n, short int_num, short * time_used) {
 		else if ( k > 1000 )
 			k = 1000;
 
-		robot[n] -> ram[65] = (short)((find_angle( (short)robot[n] -> x + 0.5, (short)robot[n] -> y + 0.5, j, k) / PI * 128 + 256) + 0.5) & 255;
+		robot[n] -> ram[65] = (int16_t)((find_angle( (int16_t)robot[n] -> x + 0.5, (int16_t)robot[n] -> y + 0.5, j, k) / PI * 128 + 256) + 0.5) & 255;
 		*time_used = 32;
 		break;
 	case 8:
@@ -1865,8 +1865,8 @@ void call_int(short n, short int_num, short * time_used) {
 }
 
 
-void jump(short n, short o, bool * inc_ip) {
-	short loc;
+void jump(int16_t n, int16_t o, bool * inc_ip) {
+	int16_t loc;
 
 	loc = find_label(n, get_val(n, robot[n] -> ip, o), robot[n] -> code[robot[n] -> ip].op[MAX_OP] >> (o * 4));
 	if ( (loc >= 0) && (loc <= robot[n] -> plen) ) {
@@ -1880,7 +1880,7 @@ void jump(short n, short o, bool * inc_ip) {
 
 
 bool gameover() {
-	short n, k;
+	int16_t n, k;
 
 	if ( (game_cycle >= game_limit) && ( game_limit > 0 ) )
 		return true;
@@ -1910,9 +1910,9 @@ void toggle_graphix() {
 		setscreen();
 }
 
-bool invalid_microcode(short n, short ip) {
+bool invalid_microcode(int16_t n, int16_t ip) {
 	bool invalid;
-	short i, k;
+	int16_t i, k;
 
 	for ( i = 0; i <= 2; i++ ) {
 		k = (robot[n] -> code[ip].op[MAX_OP] >> (i << 2)) & 7;
@@ -1949,7 +1949,7 @@ void process_keypress(char c) {
 }
 
 
-std::string victor_string(short k, short n) {
+std::string victor_string(int16_t k, int16_t n) {
 	std::string s = "";
 
 	if ( k == 1 )
@@ -1964,7 +1964,7 @@ std::string victor_string(short k, short n) {
 
 
 void show_statistics() {
-	short i, j, k, n, sx, sy;
+	int16_t i, j, k, n, sx, sy;
 
 	if ( windoze == false )
 		return;
@@ -2048,7 +2048,7 @@ void show_statistics() {
 
 
 void score_robots() {
-	short i, k, n;
+	int16_t i, k, n;
 	k = 0;
 
 
@@ -2066,7 +2066,7 @@ void score_robots() {
 }
 
 void init_bout() {
-	short i;
+	int16_t i;
 
 	game_cycle = 0;
 
@@ -2097,7 +2097,7 @@ void init_bout() {
 
 // Primary function that runs the games.
 void bout() {
-	short i, k;
+	int16_t i, k;
 	unsigned char c;
 
 	if ( quit )
@@ -2262,7 +2262,7 @@ void bout() {
 
 
 void write_report() {
-	short i;
+	int16_t i;
 	fstream f;
 
 	f.open(main_filename + report_ext, fstream::out);
@@ -2314,7 +2314,7 @@ void begin_window() {
 }
 
 void true_main() {
-	short i, k, n, w;
+	int16_t i, k, n, w;
 
 	if ( graphix )
 		begin_window();
@@ -2380,9 +2380,9 @@ void true_main() {
 }
 
 
-void execute_instruction(short n) {
-	short i, j, k;
-	short time_used, loc;
+void execute_instruction(int16_t n) {
+	int16_t i, j, k;
+	int16_t time_used, loc;
 	bool inc_ip;
 	char c;
 
@@ -2817,8 +2817,8 @@ void execute_instruction(short n) {
 	}
 }
 
-void do_robot(short n) {
-	short i, k, tthd, heat_mult, ttx, tty;
+void do_robot(int16_t n) {
+	int16_t i, k, tthd, heat_mult, ttx, tty;
 	if (n < 0 || n > num_robots)
 		return;
 	if (robot[n]->armor <= 0)
@@ -3047,8 +3047,8 @@ void do_robot(short n) {
 		robot[n]->cycles_lived++;
 	}
 
-void do_mine(short n, short m) {
-	short i, k;
+void do_mine(int16_t n, int16_t m) {
+	int16_t i, k;
 	double d;
 	bool source_alive;
 
@@ -3076,7 +3076,7 @@ void do_mine(short n, short m) {
 				if (robot[i]->armor > 0) {
 					k = _distance(_.x, _.y, robot[i]->x, robot[i]->y) + 0.5;
 					if (k < _.yield) {
-						damage(i, short(abs(_.yield -k) + 0.5), false);
+						damage(i, int16_t(abs(_.yield -k) + 0.5), false);
 						if ((n >= 0) && (n <= num_robots) && (i != n))
 							robot[n]->damage_total += abs(_.yield -k) + 0.5;
 					}
@@ -3107,9 +3107,9 @@ void do_mine(short n, short m) {
 	}
 }
 
-void do_missile(short n) {
+void do_missile(int16_t n) {
 	double llx, lly, r, d, xv, yv;
-	short i, k, l, xx, yy, tx, ty, dd, dam;
+	int16_t i, k, l, xx, yy, tx, ty, dd, dam;
 	bool source_alive;
 
 
@@ -3199,8 +3199,8 @@ void do_missile(short n) {
 		if ( graphix ) {
 			main_viewport();
 			setcolor(BLACK);
-			line(short(llx * SCREEN_SCALE + 0.5) + SCREEN_X, short(lly * SCREEN_SCALE + 0.5) + SCREEN_Y,
-				short(_.ly * SCREEN_SCALE + 0.5)+SCREEN_X, short(_.ly * SCREEN_SCALE + 0.5) + SCREEN_Y);
+			line(int16_t(llx * SCREEN_SCALE + 0.5) + SCREEN_X, int16_t(lly * SCREEN_SCALE + 0.5) + SCREEN_Y,
+				int16_t(_.ly * SCREEN_SCALE + 0.5)+SCREEN_X, int16_t(_.ly * SCREEN_SCALE + 0.5) + SCREEN_Y);
 
 			if ( _.a == 1 ) {
 				if ( _.mult > robot[_.source] -> shotstrength )
@@ -3208,8 +3208,8 @@ void do_missile(short n) {
 				else
 					setcolor(WHITE);
 
-				line(short(_.x + SCREEN_SCALE + 0.5) + SCREEN_X, short(_.y * SCREEN_SCALE + 0.5) + SCREEN_Y,
-					short(_.lx * SCREEN_SCALE + 0.5) + SCREEN_X, short(_.ly * SCREEN_SCALE + 0.5) + SCREEN_Y);
+				line(int16_t(_.x + SCREEN_SCALE + 0.5) + SCREEN_X, int16_t(_.y * SCREEN_SCALE + 0.5) + SCREEN_Y,
+					int16_t(_.lx * SCREEN_SCALE + 0.5) + SCREEN_X, int16_t(_.ly * SCREEN_SCALE + 0.5) + SCREEN_Y);
 			}
 		}
 	}
@@ -3222,7 +3222,7 @@ void do_missile(short n) {
 		if ( graphix ) {
 			main_viewport();
 			setcolor(BLACK);
-			circle(short(_.x * SCREEN_SCALE + 0.5) + SCREEN_X, short(_.y * SCREEN_SCALE + 0.5) + SCREEN_Y, _.lrad);
+			circle(int16_t(_.x * SCREEN_SCALE + 0.5) + SCREEN_X, int16_t(_.y * SCREEN_SCALE + 0.5) + SCREEN_Y, _.lrad);
 			if ( _.mult > 1 )
 				setcolor(14 + (game_cycle & 1));
 			else
@@ -3234,13 +3234,13 @@ void do_missile(short n) {
 				setcolor(11);
 
 			if ( _.a > 0 )
-				circle(short(_.x * SCREEN_SCALE + 0.5) + SCREEN_X, short(_.y * SCREEN_SCALE + 0.5) + SCREEN_Y, _.lrad);
+				circle(int16_t(_.x * SCREEN_SCALE + 0.5) + SCREEN_X, int16_t(_.y * SCREEN_SCALE + 0.5) + SCREEN_Y, _.lrad);
 		}
 	}
 }
 
 
-void log_error(short i, short n, std::string ov) {
+void log_error(int16_t i, int16_t n, std::string ov) {
     std::string s;
 
     if (!logging_errors) {
@@ -3344,7 +3344,7 @@ void log_error(short i, short n, std::string ov) {
     return;
 }
 
-void prog_error(short n, std::string ss) {
+void prog_error(int16_t n, std::string ss) {
     std::string s;
     graph_mode(false);
 
@@ -3441,8 +3441,8 @@ void prog_error(short n, std::string ss) {
 }
 
 
-void parse1(int n, int p, string * s) {
-    int i, j, opcode, microcode;
+void parse1(int32_t n, int32_t p, string * s) {
+    int32_t i, j, opcode, microcode;
     bool found, indirect;
     std::string ss;
 
@@ -4005,7 +4005,7 @@ void parse1(int n, int p, string * s) {
 
                     //Memory addresses
                     if (!found && (s[i][0] == '@') && ((s[i][1] >= '0') && (s[i][1] <= '9'))) {
-                        opcode = str2int((rstr(s[i], s[i].length() - 1)));
+                        opcode = str2int((rstr(s[i], (uint16_t)s[i].length() - 1)));
                         if (opcode < 0 || opcode > (MAX_RAM + 1) + (((MAX_CODE + 1) << 3) - 1)) {
                             prog_error(3, s[i]);
                             microcode = 1;
@@ -4038,11 +4038,11 @@ void parse1(int n, int p, string * s) {
     }
 }
 
-void compile(short n, std::string filename) {
+void compile(int16_t n, std::string filename) {
     fstream f;
     string pp[MAX_OP + 1];
     std::string s, s1, s2, s3, orig_s, msg;
-    short i, j, k, l, linecount, mask, locktype;
+    int16_t i, j, k, l, linecount, mask, locktype;
     std::string ss[MAX_OP];
     char c, lc;
 
@@ -4083,9 +4083,9 @@ void compile(short n, std::string filename) {
         if (locktype < 3)
             lock_pos = 0;
         if (!lock_code.compare(""))
-            for (i = 0; (unsigned short)i < s.length(); i++) {
+            for (i = 0; (uint16_t)i < s.length(); i++) {
                 lock_pos++;
-                if ( (unsigned short)lock_pos > lock_code.length())
+                if ( (uint16_t)lock_pos > lock_code.length())
                     lock_pos = 1;
                 switch (locktype) {
                     case 3:
@@ -4102,7 +4102,7 @@ void compile(short n, std::string filename) {
         s = btrim(s);
         orig_s = s;
 
-        for (i = 0; (unsigned short)i < s.length(); i++) {
+        for (i = 0; (uint16_t)i < s.length(); i++) {
             if ( ((s[i] >= 0) && (s[i] <= 32)) || ((s[i] >= 128) && (s[i] <= 255)) )
 		s.insert(i, " ");
         }
@@ -4133,7 +4133,7 @@ void compile(short n, std::string filename) {
 			  s1 = ucase(btrim(rstr(s, s.length() - 1)));
 			  msg = btrim(rstr(orig_s, orig_s.length() - 5));
 			  k = 0;
-			  for (i = 0; (unsigned short)i < s1.length(); i++)
+			  for (i = 0; (uint16_t)i < s1.length(); i++)
 				  if ( (k == 0) && (s1[i] == ' '))
 					  k = i;
 			  k--;
@@ -4168,8 +4168,8 @@ void compile(short n, std::string filename) {
 					  if (s2.length() > 4)
 						  locktype = value(rstr(s2, s2.length() - 4));
 					  lock_code = btrim(ucase(s3));
-					  std::cout << "Robot is of LOCKed format from this point forward. [" << locktype << "]" << endl;
-					  for (i = 1; (unsigned short)i < lock_code.length(); i++) {
+					  std::cout << "Robot is of LOCKed format from this point32_tforward. [" << locktype << "]" << endl;
+					  for (i = 1; (uint16_t)i < lock_code.length(); i++) {
 						  lock_code[i] = char(lock_code[i] - 65);
 					  }
 				  } else if (!s2.compare("MSG"))
@@ -4241,7 +4241,7 @@ void compile(short n, std::string filename) {
 			  check_plen(robot[n]->plen);
 			  for (i = 0; i < MAX_OP; i++)
 				  pp[i] = "";
-			  for (i = 1; (unsigned short)i < s.length(); i++)
+			  for (i = 1; (uint16_t)i < s.length(); i++)
 				  if (s[i] == '*')
 					  prog_error(23, s);
 			  k = 0;
@@ -4249,7 +4249,7 @@ void compile(short n, std::string filename) {
 			  s1 = "";
 			  if (s.length() <= 2)
 				  prog_error(23, s);
-			  while ( ((unsigned short)i < s.length()) && (k <= MAX_OP) ) {
+			  while ( ((uint16_t)i < s.length()) && (k <= MAX_OP) ) {
 				  i++;
 				if ( ((s[i] >= 33) && (s[i] <= 41)) || ((s[i] >= 43) && (s[i] <= 127)) )
 					pp[k] = pp[k] + s[i];
@@ -4266,7 +4266,7 @@ void compile(short n, std::string filename) {
 		  case ':':
 			  check_plen(robot[n]->plen);
 			  s1 = rstr(s, s.length() - 1);
-			  for (i = 0; (unsigned short)i <= s1.length(); i++)
+			  for (i = 0; (uint16_t)i <= s1.length(); i++)
 				if ( !((s1[i] >= '0') && (s[i] <= '9')) )
 				  prog_error(1, s);
 			  robot[n]->code[robot[n]->plen].op[0] = value(s1);
@@ -4316,7 +4316,7 @@ void compile(short n, std::string filename) {
 			  k = 0;
 			  for (j = 0; j <= MAX_OP; j++)
 				  pp[j] = "";
-			  for (j = 0; (unsigned short)j < s.length(); j++) {
+			  for (j = 0; (uint16_t)j < s.length(); j++) {
 				  c = s[j];
 				  if ( (!((c == '[') || (c == 8) || (c == 9) || (c == 10) || (c == '.'))) && k <= MAX_OP)
 					  pp[k] = pp[k] + c;
