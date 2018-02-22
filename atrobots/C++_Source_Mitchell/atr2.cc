@@ -4049,7 +4049,7 @@ void compile(short n, std::string filename) {
 						  locktype = value(rstr(s2, s2.length() - 4));
 					  lock_code = btrim(ucase(s3));
 					  std::cout << "Robot is of LOCKed format from this point forward. [" << locktype << "]" << endl;
-					  for (i = 1; i <= lock_code.length(); i++) {
+					  for (i = 0; i <= lock_code.length(); i++) {
 						  lock_code[i] = char(lock_code[i] - 65);
 					  }
 				  } else if (!strcmp(s2.c_str(), "MSG"))
@@ -4121,7 +4121,7 @@ void compile(short n, std::string filename) {
 			  check_plen(robot[n]->plen);
 			  for (i = 0; i < MAX_OP; i++)
 				  pp[i] = "";
-			  for (i = 1; i < s.length(); i++)
+			  for (i = 0; i < s.length(); i++)
 				  if (s[i] == '*')
 					  prog_error(23, s);
 			  k = 0;
