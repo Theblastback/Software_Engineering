@@ -157,13 +157,14 @@ short	kill_count, report_type;
 
 // Begin functions
 
+// Functions that need to be declared prior to being written
 void prog_error(short, std::string);
 void compile(short, std::string);
 void setscreen();
 void do_robot(short);
 void do_mine(short, short);
 void do_missile(short);
-
+void create_robot(short, std::string);
 
 void parse_param(std::string s) {
 	fstream f;
@@ -394,25 +395,12 @@ short max_shown() {
 
 
 bool graph_check(short n) {
-	switch (stats_mode) {
-	case 1:
-		viewport(480, 4 + (n*35), 635, 37 + (n * 35));
-		max_gx = 155;
-		max_gy = 33;
-		break;
-	case 2:
-		viewport(480, 4 + (n*13), 635, 15 + (n * 13));
-		max_gx = 155;
-		max_gy = 11;
-		break;
-	default:
-		viewport(480, 4 + (n * 70), 635, 70 + (n * 70));
-		max_gx = 155;
-		max_gy = 66;
-	}
+	bool ok = true;
 
-	setfillstyle(robot_color(n));
-	setcolor(robot_color(n));
+	if (!graphix || (n < 0) || (n > num_robots) || (n >= max_shown()))
+		ok = false;
+
+	return ok;
 }
 
 void robot_graph(short n) {
@@ -923,7 +911,7 @@ void shutdown() {
 		}
 	}
 
-	for (int i; i <= MAX_ROBOTS + 4; i++)
+	for (i; i <= MAX_ROBOTS + 4; i++)
 		delete robot[i];
 
 	TTF_Quit();
@@ -947,10 +935,7 @@ void init() {
 		SDL_Quit();
 	}
 
-
-	// Init mixer here
-
-
+	// Load text type here *sdl_ttf critical*
 
 
 
@@ -1109,7 +1094,7 @@ void draw_robot(short n) {
 	robot[n] -> ty[3] = yy + 0.5;
 
 	robot[n] -> tx[4] = (xx + sint[t] * ROBOT_SCALE * 0.8) + 0.5;
-	robot[n] -> ty[4] = (yy - cost[y] * ROBOT_SCALE * 0.8) + 0.5;
+	robot[n] -> ty[4] = (yy - cost[t] * ROBOT_SCALE * 0.8) + 0.5;
 
 	robot[n] -> tx[5] = (xx + sint[(t + robot[n] -> scanarc + 1024) & 255] * robot[n] -> scanrange * SCREEN_SCALE) + 0.5;
 	robot[n] -> ty[5] = (yy - cost[(t + robot[n] -> scanarc + 1024) & 255] * robot[n] -> scanrange * SCREEN_SCALE) + 0.5;
@@ -1258,7 +1243,7 @@ void push(short n, short v) {
 
 short pop(short n) {
 	short k;
-	if ( (robot[n] -> ram[71] > STACK_BASE) && (robot[n] -> ram[71] <= (STACK_BASE + STACK_SIZE)) {
+	if ( (robot[n] -> ram[71] > STACK_BASE) && (robot[n] -> ram[71] <= (STACK_BASE + STACK_SIZE)) ) {
 		(robot[n] -> ram[71])--;
 		k = robot[n] -> ram[robot[n] -> ram[71]];
 	} else
@@ -1349,7 +1334,7 @@ void init_missile(double xx, double yy, double xxv, double yyx, short dir, short
 			missile[k].max_rad = blast;
 			missile[k].a = 2;
 		} else {
-			if ( (missile[k].s >= 0) && (s <= num_robots) )
+			if ( (s >= 0) && (s <= num_robots) )
 				missile[k].mult = missile[k].mult * (robot[s] -> shotstrength);
 
 			m = missile[k].mult;
@@ -1557,8 +1542,8 @@ void com_transmit(short n, short chan, short data) {
 	}
 }
 
-short com_receive(short n) {
-	short i, k;
+short com_receive(short i) {
+	short k;
 
 	if ( robot[i] -> ram[10] != robot[i] -> ram[11] ) {
 		if ( (robot[i] -> ram[10] < 0) || (robot[i] -> ram[10] > MAX_QUEUE) )
@@ -1572,7 +1557,7 @@ short com_receive(short n) {
 		if ( robot[i] -> ram[10] > MAX_QUEUE )
 			robot[i] -> ram[10] = 0;
 	} else
-		robot_error(n, 12, "");
+		robot_error(i, 12, "");
 
 	return k;
 }
@@ -1898,7 +1883,7 @@ bool gameover() {
 	if ( (game_cycle & 31) == 0 ) {
 		k = 0;
 		for ( n = 0; n <= num_robots; n ++ )
-			if ( robot[i] -> armor > 0 )
+			if ( robot[n] -> armor > 0 )
 				k++;
 
 		if ( k <= 1 )
@@ -2059,6 +2044,8 @@ void show_statistics() {
 
 void score_robots() {
 	short i, k, n;
+	k = 0;
+
 
 	for ( i = 0; i <= num_robots; i++ ) {
 		robot[i] -> trials += 1;
@@ -2253,7 +2240,7 @@ void bout() {
 
 		if ( graphix ) {
 			if ( ((game_cycle % k) == 0) || (game_cycle == 10) )
-				update_cycle_window;
+				update_cycle_window();
 			else {
 				if ( update_timer != get_seconds_past_hour() >> 1 )
 					update_cycle_window();
@@ -3057,7 +3044,63 @@ void do_robot(short n) {
 	}
 
 void do_mine(short n, short m) {
-  
+	short i, j, k, l;
+	double d, r;
+	bool source_alive;
+
+	// I am not in the mood to constantly retype that;
+	auto _ = robot[n]->mine[m];
+	
+	if ((_.x >= 0) && (_.x <= 100) && (_.y >= 0) && (_.y <= 1000) && (_.yield > 0)) {
+		for (i = 0; i <= num_robots; i++) {
+			if ((robot[n]->armor > 0) && (i != n)) {
+				d = _distance(_.x, _.y, robot[i]->x, robot[i]->y);
+				if (d <= _.detect)
+					_.detonate = true;
+			}
+		}
+		if (_.detonate) { // Blow up the mine
+			init_missile(_.x, _.y, 0, 0, 0, n, MINE_CIRCLE, false);
+			kill_count = 0;
+
+			if (robot[n]->armor > 0)
+				source_alive = true;
+			else
+				source_alive = false;
+
+			for (i = 0; i <= num_robots; i++) {
+				if (robot[i]->armor > 0) {
+					k = _distance(_.x, _.y, robot[i]->x, robot[i]->y) + 0.5;
+					if (k < _.yield) {
+						damage(i, short(abs(_.yield -k) + 0.5), false);
+						if ((n >= 0) && (n <= num_robots) && (i != n))
+							robot[n]->damage_total += abs(_.yield -k) + 0.5;
+					}
+				}
+			}
+			if ((kill_count > 0) && (source_alive) && (robot[n]->armor <= 0))
+				kill_count--;
+			if (kill_count > 0) {
+				robot[n]->kills += kill_count;
+				update_lives(n);
+			}
+
+			// Blot over where the mine used to be
+			if (graphix) {
+				putpixel((_.x * SCREEN_SCALE + 0.5) + SCREEN_X, (_.y * SCREEN_SCALE + 0.5) + SCREEN_Y, BLACK);
+				_.yield = 0;
+				_.x = -1;
+				_.y = -1;
+			}
+		} else { // Begin drawing mine
+			if (graphix && ((game_cycle & 1) == 0) ) {
+				main_viewport();
+				setcolor(robot_color(n));
+				line((_.x*SCREEN_SCALE + 0.5) + SCREEN_X, (_.y*SCREEN_SCALE + 0.5) + SCREEN_Y - 1, (_.x*SCREEN_SCALE + 0.5) + SCREEN_X, (_.y*SCREEN_SCALE + 0.5) + SCREEN_Y + 1);
+				line((_.x*SCREEN_SCALE + 0.5) + SCREEN_X + 1, (_.y*SCREEN_SCALE + 0.5) + SCREEN_Y, (_.x*SCREEN_SCALE + 0.5) + SCREEN_X - 1, (_.y*SCREEN_SCALE + 0.5) + SCREEN_Y);
+			}
+		}
+	}
 }
 
 void do_missile(short n) {
@@ -3281,7 +3324,7 @@ void parse1(int n, int p, string * s) {
         found = false;
         opcode = 0;
         microcode = 0;
-        s[i] = trim(ucase(s[i]));
+        s[i] = btrim(ucase(s[i]));
         indirect = false;
         /*
         Microcode:
@@ -3298,17 +3341,17 @@ void parse1(int n, int p, string * s) {
             microcode = 0;
             found = true;
         }
-        if ( !(lstr(s[i], 1).compare("[")) && !(rstr(s[i], 1).compare("]") ) {
-            s[i] = copy(s[i], 2, length(s[i]) - 2);
+        if ( !(lstr(s[i], 1).compare("[")) && !(rstr(s[i], 1).compare("]")) ) {
+            s[i] = copy(s[i], 2, s[i].length() - 2);
             indirect = true;
         }
 
         //Labels
-        if (!found && s[i][1] = '!') {
+        if (!found && (s[i][1] == '!')) {
             ss = s[i];
-            ss = trim(rstr(ss, ss.length() - 1));
+            ss = btrim(rstr(ss, ss.length() - 1));
             if (numlabels > 0) {
-                for (j = 1; j <= numlabels; j++) {
+                for (j = 0; j <= numlabels; j++) {
                     if (ss == labelname[j]) {
                         found = true;
                         if (labelnum[j] >= 0) {
@@ -3321,10 +3364,10 @@ void parse1(int n, int p, string * s) {
                     }
                     if (!found) {
                         numlabels++;
-                        if (numlabels > max_labels) {
+                        if (numlabels > MAX_LABELS) {
                             prog_error(15, "");
                         } else {
-                            labelname[numblabels] = ss;
+                            labelname[numlabels] = ss;
                             labelnum[numlabels] = -1;
                             opcode = numlabels;
                             microcode = 3; //unresolved label
@@ -3336,506 +3379,507 @@ void parse1(int n, int p, string * s) {
 
             if ( (numvars > 0) && !found) {
                 for (j = 1; j <= numvars; j++) {
-                    if (!strcmp(s[i], varname[j])) {
+                    if (!strcmp(s[i].c_str(), varname[j].c_str())) {
                         opcode = varloc[j];
                         microcode = 1;
                         found = true;
                     }
-                    if (!strcmp(s[i], "NOP")) {
+                    if (!strcmp(s[i].c_str(), "NOP")) {
                         opcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "ADD")) {
+                    } else if (!strcmp(s[i].c_str(), "ADD")) {
                         opcode = 1;
                         found = true;
-                    } else if (!strcmp(s[i], "SUB")) {
+                    } else if (!strcmp(s[i].c_str(), "SUB")) {
                         opcode = 2;
                         found = true;
-                    } else if (!strcmp(s[i], "OR")) {
+                    } else if (!strcmp(s[i].c_str(), "OR")) {
                         opcode = 3;
                         found = true;
-                    } else if (!strcmp(s[i], "AND")) {
+                    } else if (!strcmp(s[i].c_str(), "AND")) {
                         opcode = 4;
                         found = true;
-                    } else if (!strcmp(s[i], "XOR")) {
+                    } else if (!strcmp(s[i].c_str(), "XOR")) {
                         opcode = 5;
                         found = true;
-                    } else if (!strcmp(s[i], "NOT")) {
+                    } else if (!strcmp(s[i].c_str(), "NOT")) {
                         opcode = 6;
                         found = true;
-                    } else if (!strcmp(s[i], "MPY")) {
+                    } else if (!strcmp(s[i].c_str(), "MPY")) {
                         opcode = 7;
                         found = true;
-                    } else if (!strcmp(s[i], "DIV")) {
+                    } else if (!strcmp(s[i].c_str(), "DIV")) {
                         opcode = 8;
                         found = true;
-                    } else if (!strcmp(s[i], "MOD")) {
+                    } else if (!strcmp(s[i].c_str(), "MOD")) {
                         opcode = 9;
                         found = true;
-                    } else if (!strcmp(s[i], "RET")) {
+                    } else if (!strcmp(s[i].c_str(), "RET")) {
                         opcode = 10;
                         found = true;
-                    } else if (!strcmp(s[i], "RETURN")) {
+                    } else if (!strcmp(s[i].c_str(), "RETURN")) {
                         opcode = 10;
                         found = true;
-                    } else if (!strcmp(s[i], "GSB")) {
+                    } else if (!strcmp(s[i].c_str(), "GSB")) {
                         opcode = 11;
                         found = true;
-                    } else if (!strcmp(s[i], "GOSUB")) {
+                    } else if (!strcmp(s[i].c_str(), "GOSUB")) {
                         opcode = 11;
                         found = true;
-                    } else if (!strcmp(s[i], "CALL")) {
+                    } else if (!strcmp(s[i].c_str(), "CALL")) {
                         opcode = 11;
                         found = true;
-                    } else if (!strcmp(s[i], "JMP")) {
+                    } else if (!strcmp(s[i].c_str(), "JMP")) {
                         opcode = 12;
                         found = true;
-                    } else if (!strcmp(s[i], "JUMP")) {
+                    } else if (!strcmp(s[i].c_str(), "JUMP")) {
                         opcode = 12;
                         found = true;
-                    } else if (!strcmp(s[i], "GOTO")) {
+                    } else if (!strcmp(s[i].c_str(), "GOTO")) {
                         opcode = 12;
                         found = true;
-                    } else if (!strcmp(s[i], "JLS")) {
+                    } else if (!strcmp(s[i].c_str(), "JLS")) {
                         opcode = 13;
                         found = true;
-                    } else if (!strcmp(s[i], "JB")) {
+                    } else if (!strcmp(s[i].c_str(), "JB")) {
                         opcode = 13;
                         found = true;
-                    } else if (!strcmp(s[i], "JGR")) {
+                    } else if (!strcmp(s[i].c_str(), "JGR")) {
                         opcode = 14;
                         found = true;
-                    } else if (!strcmp(s[i], "JA")) {
+                    } else if (!strcmp(s[i].c_str(), "JA")) {
                         opcode = 14;
                         found = true;
-                    } else if (!strcmp(s[i], "JNE")) {
+                    } else if (!strcmp(s[i].c_str(), "JNE")) {
                         opcode = 15;
                         found = true;
-                    } else if (!strcmp(s[i], "JEQ")) {
+                    } else if (!strcmp(s[i].c_str(), "JEQ")) {
                         opcode = 16;
                         found = true;
-                    } else if (!strcmp(s[i], "JE")) {
+                    } else if (!strcmp(s[i].c_str(), "JE")) {
                         opcode = 16;
                         found = true;
-                    } else if (!strcmp(s[i], "XCHG")) {
+                    } else if (!strcmp(s[i].c_str(), "XCHG")) {
                         opcode = 17;
                         found = true;
-                    } else if (!strcmp(s[i], "SWAP")) {
+                    } else if (!strcmp(s[i].c_str(), "SWAP")) {
                         opcode = 17;
                         found = true;
-                    } else if (!strcmp(s[i], "DO")) {
+                    } else if (!strcmp(s[i].c_str(), "DO")) {
                         opcode = 18;
                         found = true;
-                    } else if (!strcmp(s[i], "LOOP")) {
+                    } else if (!strcmp(s[i].c_str(), "LOOP")) {
                         opcode = 19;
                         found = true;
-                    } else if (!strcmp(s[i], "CMP")) {
+                    } else if (!strcmp(s[i].c_str(), "CMP")) {
                         opcode = 20;
                         found = true;
-                    } else if (!strcmp(s[i], "TEST")) {
+                    } else if (!strcmp(s[i].c_str(), "TEST")) {
                         opcode = 21;
                         found = true;
-                    } else if (!strcmp(s[i], "SET")) {
+                    } else if (!strcmp(s[i].c_str(), "SET")) {
                         opcode = 22;
                         found = true;
-                    } else if (!strcmp(s[i], "MOV")) {
+                    } else if (!strcmp(s[i].c_str(), "MOV")) {
                         opcode = 22;
                         found = true;
-                    } else if (!strcmp(s[i], "LOC")) {
+                    } else if (!strcmp(s[i].c_str(), "LOC")) {
                         opcode = 23;
                         found = true;
-                    } else if (!strcmp(s[i], "ADDR")) {
+                    } else if (!strcmp(s[i].c_str(), "ADDR")) {
                         opcode = 23;
                         found = true;
-                    } else if (!strcmp(s[i], "GET")) {
+                    } else if (!strcmp(s[i].c_str(), "GET")) {
                         opcode = 24;
                         found = true;
-                    } else if (!strcmp(s[i], "PUT")) {
+                    } else if (!strcmp(s[i].c_str(), "PUT")) {
                         opcode = 25;
                         found = true;
-                    } else if (!strcmp(s[i], "INT")) {
+                    } else if (!strcmp(s[i].c_str(), "INT")) {
                         opcode = 26;
                         found = true;
-                    } else if (!strcmp(s[i], "IPO")) {
+                    } else if (!strcmp(s[i].c_str(), "IPO")) {
                         opcode = 27;
                         found = true;
-                    } else if (!strcmp(s[i], "IN")) {
+                    } else if (!strcmp(s[i].c_str(), "IN")) {
                         opcode = 27;
                         found = true;
-                    } else if (!strcmp(s[i], "OPO")) {
+                    } else if (!strcmp(s[i].c_str(), "OPO")) {
                         opcode = 28;
                         found = true;
-                    } else if (!strcmp(s[i], "OUT")) {
+                    } else if (!strcmp(s[i].c_str(), "OUT")) {
                         opcode = 28;
                         found = true;
-                    } else if (!strcmp(s[i], "DEL")) {
+                    } else if (!strcmp(s[i].c_str(), "DEL")) {
                         opcode = 29;
                         found = true;
-                    } else if (!strcmp(s[i], "DELAY")) {
+                    } else if (!strcmp(s[i].c_str(), "DELAY")) {
                         opcode = 29;
                         found = true;
-                    } else if (!strcmp(s[i], "PUSH")) {
+                    } else if (!strcmp(s[i].c_str(), "PUSH")) {
                         opcode = 30;
                         found = true;
-                    } else if (!strcmp(s[i], "POP")) {
+                    } else if (!strcmp(s[i].c_str(), "POP")) {
                         opcode = 31;
                         found = true;
-                    } else if (!strcmp(s[i], "ERR")) {
+                    } else if (!strcmp(s[i].c_str(), "ERR")) {
                         opcode = 32;
                         found = true;
-                    } else if (!strcmp(s[i], "ERROR")) {
+                    } else if (!strcmp(s[i].c_str(), "ERROR")) {
                         opcode = 32;
                         found = true;
-                    } else if (!strcmp(s[i], "INC")) {
+                    } else if (!strcmp(s[i].c_str(), "INC")) {
                         opcode = 33;
                         found = true;
-                    } else if (!strcmp(s[i], "DEC")) {
+                    } else if (!strcmp(s[i].c_str(), "DEC")) {
                         opcode = 34;
                         found = true;
-                    } else if (!strcmp(s[i], "SHL")) {
+                    } else if (!strcmp(s[i].c_str(), "SHL")) {
                         opcode = 35;
                         found = true;
-                    } else if (!strcmp(s[i], "SHR")) {
+                    } else if (!strcmp(s[i].c_str(), "SHR")) {
                         opcode = 36;
                         found = true;
-                    } else if (!strcmp(s[i], "ROL")) {
+                    } else if (!strcmp(s[i].c_str(), "ROL")) {
                         opcode = 37;
                         found = true;
-                    } else if (!strcmp(s[i], "ROR")) {
+                    } else if (!strcmp(s[i].c_str(), "ROR")) {
                         opcode = 38;
                         found = true;
-                    } else if (!strcmp(s[i], "JZ")) {
+                    } else if (!strcmp(s[i].c_str(), "JZ")) {
                         opcode = 39;
                         found = true;
-                    } else if (!strcmp(s[i], "JNZ")) {
+                    } else if (!strcmp(s[i].c_str(), "JNZ")) {
                         opcode = 40;
                         found = true;
-                    } else if (!strcmp(s[i], "JAE")) {
+                    } else if (!strcmp(s[i].c_str(), "JAE")) {
                         opcode = 41;
                         found = true;
-                    } else if (!strcmp(s[i], "JGE")) {
+                    } else if (!strcmp(s[i].c_str(), "JGE")) {
                         opcode = 41;
                         found = true;
-                    } else if (!strcmp(s[i], "JLE")) {
+                    } else if (!strcmp(s[i].c_str(), "JLE")) {
                         opcode = 42;
                         found = true;
-                    } else if (!strcmp(s[i], "JBE")) {
+                    } else if (!strcmp(s[i].c_str(), "JBE")) {
                         opcode = 42;
                         found = true;
-                    } else if (!strcmp(s[i], "SAL")) {
+                    } else if (!strcmp(s[i].c_str(), "SAL")) {
                         opcode = 43;
                         found = true;
-                    } else if (!strcmp(s[i], "SAR")) {
+                    } else if (!strcmp(s[i].c_str(), "SAR")) {
                         opcode = 44;
                         found = true;
-                    } else if (!strcmp(s[i], "NEG")) {
+                    } else if (!strcmp(s[i].c_str(), "NEG")) {
                         opcode = 45;
                         found = true;
-                    } else if (!strcmp(s[i], "JTL")) {
+                    } else if (!strcmp(s[i].c_str(), "JTL")) {
                         opcode = 46;
                         found = true;
                     }
 
                         //Registers
-                    else if (!strcmp(s[i], "COLCNT")) {
+                    else if (!strcmp(s[i].c_str(), "COLCNT")) {
                         opcode = 8;
                         microcode = 1;
                         found = true;
-                    } else if (!strcmp(s[i], "METERS")) {
+                    } else if (!strcmp(s[i].c_str(), "METERS")) {
                         opcode = 9;
                         microcode = 1;
                         found = true;
-                    } else if (!strcmp(s[i], "COMBASE")) {
+                    } else if (!strcmp(s[i].c_str(), "COMBASE")) {
                         opcode = 10;
                         microcode = 1;
                         found = true;
-                    } else if (!strcmp(s[i], "COMEND")) {
+                    } else if (!strcmp(s[i].c_str(), "COMEND")) {
                         opcode = 11;
                         microcode = 1;
                         found = true;
-                    } else if (!strcmp(s[i], "FLAGS")) {
+                    } else if (!strcmp(s[i].c_str(), "FLAGS")) {
                         opcode = 64;
                         microcode = 1;
                         found = true;
-                    } else if (!strcmp(s[i], "AX")) {
+                    } else if (!strcmp(s[i].c_str(), "AX")) {
                         opcode = 65;
                         microcode = 1;
                         found = true;
-                    } else if (!strcmp(s[i], "BX")) {
+                    } else if (!strcmp(s[i].c_str(), "BX")) {
                         opcode = 66;
                         microcode = 1;
                         found = true;
-                    } else if (!strcmp(s[i], "CX")) {
+                    } else if (!strcmp(s[i].c_str(), "CX")) {
                         opcode = 67;
                         microcode = 1;
                         found = true;
-                    } else if (!strcmp(s[i], "DX")) {
+                    } else if (!strcmp(s[i].c_str(), "DX")) {
                         opcode = 68;
                         microcode = 1;
                         found = true;
-                    } else if (!strcmp(s[i], "EX")) {
+                    } else if (!strcmp(s[i].c_str(), "EX")) {
                         opcode = 69;
                         microcode = 1;
                         found = true;
-                    } else if (!strcmp(s[i], "FX")) {
+                    } else if (!strcmp(s[i].c_str(), "FX")) {
                         opcode = 70;
                         microcode = 1;
                         found = true;
-                    } else if (!strcmp(s[i], "SP")) {
+                    } else if (!strcmp(s[i].c_str(), "SP")) {
                         opcode = 71;
                         microcode = 1;
                         found = true;
                     }
 
                         //Constants
-                    else if (!strcmp(s[i], "MAXINT")) {
+                    else if (!strcmp(s[i].c_str(), "MAXINT")) {
                         opcode = 32767;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "MININT")) {
+                    } else if (!strcmp(s[i].c_str(), "MININT")) {
                         opcode = -32768;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_SPEDOMETER")) {
+                    } else if (!strcmp(s[i].c_str(), "P_SPEDOMETER")) {
                         opcode = 1;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_HEAT")) {
+                    } else if (!strcmp(s[i].c_str(), "P_HEAT")) {
                         opcode = 2;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_COMPASS")) {
+                    } else if (!strcmp(s[i].c_str(), "P_COMPASS")) {
                         opcode = 3;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_TANGLE")) {
+                    } else if (!strcmp(s[i].c_str(), "P_TANGLE")) {
                         opcode = 4;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_TURRET_OFS")) {
+                    } else if (!strcmp(s[i].c_str(), "P_TURRET_OFS")) {
                         opcode = 4;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_THEADING")) {
+                    } else if (!strcmp(s[i].c_str(), "P_THEADING")) {
                         opcode = 5;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_TURRET_ABS")) {
+                    } else if (!strcmp(s[i].c_str(), "P_TURRET_ABS")) {
                         opcode = 5;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_ARMOR")) {
+                    } else if (!strcmp(s[i].c_str(), "P_ARMOR")) {
                         opcode = 6;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_DAMAGE")) {
+                    } else if (!strcmp(s[i].c_str(), "P_DAMAGE")) {
                         opcode = 6;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_SCAN")) {
+                    } else if (!strcmp(s[i].c_str(), "P_SCAN")) {
                         opcode = 7;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_ACCURACY")) {
+                    } else if (!strcmp(s[i].c_str(), "P_ACCURACY")) {
                         opcode = 8;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_RADAR")) {
+                    } else if (!strcmp(s[i].c_str(), "P_RADAR")) {
                         opcode = 9;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_RANDOM")) {
+                    } else if (!strcmp(s[i].c_str(), "P_RANDOM")) {
                         opcode = 10;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_RAND")) {
+                    } else if (!strcmp(s[i].c_str(), "P_RAND")) {
                         opcode = 10;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_THROTTLE")) {
+                    } else if (!strcmp(s[i].c_str(), "P_THROTTLE")) {
                         opcode = 11;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_TROTATE")) {
+                    } else if (!strcmp(s[i].c_str(), "P_TROTATE")) {
                         opcode = 12;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_OFS_TURRET")) {
+                    } else if (!strcmp(s[i].c_str(), "P_OFS_TURRET")) {
                         opcode = 12;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_TAIM")) {
+                    } else if (!strcmp(s[i].c_str(), "P_TAIM")) {
                         opcode = 13;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_ABS_TURRET")) {
+                    } else if (!strcmp(s[i].c_str(), "P_ABS_TURRET")) {
                         opcode = 13;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_STEERING")) {
+                    } else if (!strcmp(s[i].c_str(), "P_STEERING")) {
                         opcode = 14;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_WEAP")) {
+                    } else if (!strcmp(s[i].c_str(), "P_WEAP")) {
                         opcode = 15;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_WEAPON")) {
+                    } else if (!strcmp(s[i].c_str(), "P_WEAPON")) {
                         opcode = 15;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_FIRE")) {
+                    } else if (!strcmp(s[i].c_str(), "P_FIRE")) {
                         opcode = 15;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_SONAR")) {
+                    } else if (!strcmp(s[i].c_str(), "P_SONAR")) {
                         opcode = 16;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_ARC")) {
+                    } else if (!strcmp(s[i].c_str(), "P_ARC")) {
                         opcode = 17;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_SCANARC")) {
+                    } else if (!strcmp(s[i].c_str(), "P_SCANARC")) {
                         opcode = 17;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_OVERBURN")) {
+                    } else if (!strcmp(s[i].c_str(), "P_OVERBURN")) {
                         opcode = 18;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_TRANSPONDER")) {
+                    } else if (!strcmp(s[i].c_str(), "P_TRANSPONDER")) {
                         opcode = 19;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_SHUTDOWN")) {
+                    } else if (!strcmp(s[i].c_str(), "P_SHUTDOWN")) {
                         opcode = 20;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_CHANNEL")) {
+                    } else if (!strcmp(s[i].c_str(), "P_CHANNEL")) {
                         opcode = 21;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_MINELAYER")) {
+                    } else if (!strcmp(s[i].c_str(), "P_MINELAYER")) {
                         opcode = 22;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_MINETRIGGER")) {
+                    } else if (!strcmp(s[i].c_str(), "P_MINETRIGGER")) {
                         opcode = 23;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_SHIELD")) {
+                    } else if (!strcmp(s[i].c_str(), "P_SHIELD")) {
                         opcode = 24;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "P_SHIELDS")) {
+                    } else if (!strcmp(s[i].c_str(), "P_SHIELDS")) {
                         opcode = 24;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_DESTRUCT")) {
+                    } else if (!strcmp(s[i].c_str(), "I_DESTRUCT")) {
                         opcode = 0;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_RESET")) {
+                    } else if (!strcmp(s[i].c_str(), "I_RESET")) {
                         opcode = 1;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_LOCATE")) {
+                    } else if (!strcmp(s[i].c_str(), "I_LOCATE")) {
                         opcode = 2;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_KEEPSHIFT")) {
+                    } else if (!strcmp(s[i].c_str(), "I_KEEPSHIFT")) {
                         opcode = 3;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_OVERBURN")) {
+                    } else if (!strcmp(s[i].c_str(), "I_OVERBURN")) {
                         opcode = 4;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_ID")) {
+                    }
+			  if (!strcmp(s[i].c_str(), "I_ID")) {
                         opcode = 5;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_TIMER")) {
+                    } else if (!strcmp(s[i].c_str(), "I_TIMER")) {
                         opcode = 6;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_ANGLE")) {
+                    } else if (!strcmp(s[i].c_str(), "I_ANGLE")) {
                         opcode = 7;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_TID")) {
+                    } else if (!strcmp(s[i].c_str(), "I_TID")) {
                         opcode = 8;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_TARGETID")) {
+                    } else if (!strcmp(s[i].c_str(), "I_TARGETID")) {
                         opcode = 8;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_TINFO")) {
+                    } else if (!strcmp(s[i].c_str(), "I_TINFO")) {
                         opcode = 9;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_TARGETINFO")) {
+                    } else if (!strcmp(s[i].c_str(), "I_TARGETINFO")) {
                         opcode = 9;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_GINFO")) {
+                    } else if (!strcmp(s[i].c_str(), "I_GINFO")) {
                         opcode = 10;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_GAMEINFO")) {
+                    } else if (!strcmp(s[i].c_str(), "I_GAMEINFO")) {
                         opcode = 10;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_RINFO")) {
+                    } else if (!strcmp(s[i].c_str(), "I_RINFO")) {
                         opcode = 11;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_ROBOTINFO")) {
+                    } else if (!strcmp(s[i].c_str(), "I_ROBOTINFO")) {
                         opcode = 11;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_COLLISIONS")) {
+                    } else if (!strcmp(s[i].c_str(), "I_COLLISIONS")) {
                         opcode = 12;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_RESETCOLCNT")) {
+                    } else if (!strcmp(s[i].c_str(), "I_RESETCOLCNT")) {
                         opcode = 13;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_TRANSMIT")) {
+                    } else if (!strcmp(s[i].c_str(), "I_TRANSMIT")) {
                         opcode = 14;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_RECEIVE")) {
+                    } else if (!strcmp(s[i].c_str(), "I_RECEIVE")) {
                         opcode = 15;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_DATAREADY")) {
+                    } else if (!strcmp(s[i].c_str(), "I_DATAREADY")) {
                         opcode = 16;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_CLEARCOM")) {
+                    } else if (!strcmp(s[i].c_str(), "I_CLEARCOM")) {
                         opcode = 17;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_KILLS")) {
+                    } else if (!strcmp(s[i].c_str(), "I_KILLS")) {
                         opcode = 18;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_DEATHS")) {
+                    } else if (!strcmp(s[i].c_str(), "I_DEATHS")) {
                         opcode = 18;
                         microcode = 0;
                         found = true;
-                    } else if (!strcmp(s[i], "I_CLEARMETERS")) {
+                    } else if (!strcmp(s[i].c_str(), "I_CLEARMETERS")) {
                         opcode = 19;
                         microcode = 0;
                         found = true;
                     }
 
                     //Memory addresses
-                    if (!found && s[i][1] == '@' && (atoi(s[i][2]) >= 0 && atoi(s[i][2] <= 9))) {
-                        opcode = atoi(rstr(s[i], strlen(s[i]) - 1));
+                    if (!found && (s[i][0] == '@') && ((s[i][1] >= '0') && (s[i][1] <= '9'))) {
+                        opcode = str2int((rstr(s[i], s[i].length() - 1)));
                         if (opcode < 0 || opcode > (MAX_RAM + 1) + (((MAX_CODE + 1) << 3) - 1)) {
                             prog_error(3, s[i]);
                             microcode = 1;
@@ -3844,8 +3888,8 @@ void parse1(int n, int p, string * s) {
                     }
 
                     //Numbers
-                    if (!found && (atoi(s[i][1]) >= 0 && atoi(s[i][1] <= 9)) || s[i][1] == '-') {
-                        opcode = atoi(s[i]);
+                    if (!found && ((s[i][0] == '-') || ((s[i][0] >= '0') && (s[i][0] <= '9'))) ) {
+                        opcode = str2int(s[i]);
                         found = true;
                     }
 
@@ -3854,15 +3898,16 @@ void parse1(int n, int p, string * s) {
                         if (indirect) {
                             microcode = microcode | 8;
                         }
+
                         robot[n]->code[p].op[MAX_OP] = robot[n]->code[p].op[MAX_OP] | (microcode << (i * 4));
-                    } else if (s[i] != "")
+                    } else if (s[i].compare(""))
                         prog_error(2, s[i]);
                 }
             }
             if (show_code)
                 print_code(n, p);
             if (compile_by_line)
-                readkey;
+                readkey();
         }
     }
 }
@@ -3885,14 +3930,14 @@ void compile(short n, std::string filename) {
         prog_error(8, filename);
 
     textcolor(robot_color(n));
-    std::cout << "Compiling robot #", n + 1, ": ", filename << endl;
+    std::cout << "Compiling robot #" << to_string(n + 1) << ": " << filename << endl;
 
     robot[n]->is_locked = false;
     textcolor(robot_color(n));
     numvars = 0;
     numlabels = 0;
     for (k = 0; k <= MAX_CODE; k++) {
-        for (i = 0; i <= max_op; i++) {
+        for (i = 0; i <= MAX_OP; i++) {
             robot[n]->code[k].op[i] = 0;
         }
     }
@@ -3918,69 +3963,71 @@ void compile(short n, std::string filename) {
                     lock_pos = 1;
                 switch (locktype) {
                     case 3:
-                        s[i] = char(s[i] - 1) ^ (lock_code[lock_pos] ^ lock_dat));
+                        s[i] = char((s[i] - 1) ^ (lock_code[lock_pos] ^ lock_dat));
                         break;
                     case 2:
-                        s[i] = char(s[i]) ^ (lock_code[lock_pos] ^ 1));
+                        s[i] = char(s[i] ^ (lock_code[lock_pos] ^ 1));
                         break;
                     default:
-                        lock_dat = char(s[i]) ^ lock_code[lock_pos];
+                        lock_dat = char(s[i] ^ lock_code[lock_pos]);
                 }
                 lock_dat = s[i] & 15;
             }
-        s = trim(s);
+        s = btrim(s);
         orig_s = s;
 
         for (i = 0; i < s.length(); i++) {
             if ( ((s[i] >= 0) && (s[i] <= 32)) || ((s[i] >= 128) && (s[i] <= 255)) )
-		s[i] = " ";
+		s[i] = char(" ");
         }
 
         if (show_source && (( !lock_code.compare("")) || debugging_compiler))
-            std::cout << zero_pas(linecount, 3) + ":" + zero_pad(robot[n]->plen, 3) + " " << s << endl;
+            std::cout << zero_pad(linecount, 3) + ":" + zero_pad(robot[n]->plen, 3) + " " << s << endl;
 
 
 	// Unfinished
 	  if (debugging_compiler)
-		  if (readkey == 27)
-			  halt();
+		  if (readkey() == 27)
+			  exit(EXIT_FAILURE);
 	  k = 0;
-	  for (i = s.length(); s >= 1; s--)
+	  for (i = s.length(); i >= 1; i--)
 		  if (s[i] == ';')
 			  k = i;
+
 	  if (k > 0)
 		  s = lstr(s, k - 1);
-	  s = trim(to_Uppercase(s));
-	  for (i = 0; i <= max_op; i++) {
+	 
+	  s = btrim(ucase(s));
+	  for (i = 0; i <= MAX_OP; i++) {
 		  pp[i] = "";
 	  }
 	  if (s.length() > 0 && s[1] != ';') {
 		  switch (s[1]) {
 		  case '#':
-			  s1 = to_Uppercase(trim(rstr(s, s.length() - 1)));
-			  msg = trim(rstr(orig_s, orig_s.length() - 5));
+			  s1 = ucase(btrim(rstr(s, s.length() - 1)));
+			  msg = btrim(rstr(orig_s, orig_s.length() - 5));
 			  k = 0;
 			  for (i = 1; i <= s1.length(); i++)
-				  if (k == 0 && s1[i] = ' ')
+				  if ( (k == 0) && (s1[i] == ' '))
 					  k = i;
 			  k--;
 			  if (k > 1) {
 				  s2 = lstr(s1, k);
-				  s3 = to_Uppercase(trim(rstr(s1, s1.length() - k)));
+				  s3 = ucase(btrim(rstr(s1, s1.length() - k)));
 				  k = 0;
 				  if (numvars > 0)
 					  for (i = 1; i <= numvars; i++)
-						  if (!strcmp(s3, varname[i]))
+						  if (!s3.compare(varname[i]))
 							  k = i;
-				  if (!strcmp(s2, "DEF") && numvars < max_vars) {
-					  if (s3.length() > max_var_len) {
+				  if (!strcmp(s2.c_str(), "DEF") && numvars < MAX_VARS) {
+					  if (s3.length() > MAX_VAR_LEN) {
 						  prog_error(14, "");
 					  } else {
 						  if (k > 0)
 							  prog_error(11, s3);
 						  else {
 							  numvars++;
-							  if (numvars > max_vars)
+							  if (numvars > MAX_VARS)
 								  prog_error(14, "");
 							  else {
 								  varname[numvars] = s3;
@@ -3990,83 +4037,85 @@ void compile(short n, std::string filename) {
 						  }
 
 					  }
-				  } else if (!strcmp(lstr(s2, 4), "LOCK")) {
+				  } else if (!strcmp(lstr(s2, 4).c_str(), "LOCK")) {
 					  robot[n]->is_locked = true;
-					  if (s2.length > 4)
-						  locktype = value(rstr(s2, length(s2) - 4));
-					  lock_code = trim(to_Uppercase(s3));
-					  std::cout << "Robot is of LOCKed format from this point forward. [", locktype, "]" << endl;
+					  if (s2.length() > 4)
+						  locktype = value(rstr(s2, s2.length() - 4));
+					  lock_code = btrim(ucase(s3));
+					  std::cout << "Robot is of LOCKed format from this point forward. [" << locktype << "]" << endl;
 					  for (i = 1; i <= lock_code.length(); i++) {
-						  lock_code[i] = char(ord(lock_code[i]) - 65);
+						  lock_code[i] = char(lock_code[i] - 65);
 					  }
-				  } else if (!strcmp(s2, "MSG"))
+				  } else if (!strcmp(s2.c_str(), "MSG"))
 					  robot[n]->name = msg;
-				  else if (!strcmp(s2, "TIME")) {
+				  else if (!strcmp(s2.c_str(), "TIME")) {
 					  robot[n]->robot_time_limit = value(s3);
 					  if (robot[n]->robot_time_limit < 0)
 						  robot[n]->robot_time_limit = 0;
-				  } else if (!strcmp(s2, "CONFIG")) {
-					  if (!strcmp(lstr(s3, 8), "SCANNER="))
+
+				  } else if (!strcmp(s2.c_str(), "CONFIG")) {
+					  if (!strcmp(lstr(s3, 8).c_str(), "SCANNER="))
 						  robot[n]->config.scanner = value(rstr(s3, s3.length() - 8));
-					  else if (!strcmp(lstr(s3, 7), "SHIELD="))
+
+					  else if (!strcmp(lstr(s3, 7).c_str(), "SHIELD="))
 						  robot[n]->config.shield = value(rstr(s3, s3.length() - 7));
-					  else if (!strcmp(lstr(s3, 7), "WEAPON="))
+					  else if (!strcmp(lstr(s3, 7).c_str(), "WEAPON="))
 						  robot[n]->config.weapon = value(rstr(s3, s3.length() - 7));
-					  else if (!strcmp(lstr(s3, 6), "ARMOR="))
+					  else if (!strcmp(lstr(s3, 6).c_str(), "ARMOR="))
 						  robot[n]->config.armor = value(rstr(s3, s3.length() - 6));
-					  else if (!strcmp(lstr(s3, 7), "ENGINE="))
+					  else if (!strcmp(lstr(s3, 7).c_str(), "ENGINE="))
 						  robot[n]->config.engine = value(rstr(s3, s3.length() - 7));
-					  else if (!strcmp(lstr(s3, 10), "HEATSINKS="))
+					  else if (!strcmp(lstr(s3, 10).c_str(), "HEATSINKS="))
 						  robot[n]->config.heatsinks = value(rstr(s3, s3.length() - 10));
-					  else if (!strcmp(lstr(s3, 6), "MINES="))
+					  else if (!strcmp(lstr(s3, 6).c_str(), "MINES="))
 						  robot[n]->config.mines = value(rstr(s3, s3.length() - 6));
 					  else
 						  prog_error(20, s3);
 
 					  if (robot[n]->config.scanner < 0)
-						  robot[n]->conifg.scanner = 0;
+						  robot[n]->config.scanner = 0;
 					  if (robot[n]->config.scanner > 5)
 						  robot[n]->config.scanner = 5;
 
 					  if (robot[n]->config.shield < 0)
-						  robot[n]->conifg.shield = 0;
+						  robot[n]->config.shield = 0;
 					  if (robot[n]->config.shield > 5)
 						  robot[n]->config.shield = 5;
 
 					  if (robot[n]->config.weapon < 0)
-						  robot[n]->conifg.weapon = 0;
+						  robot[n]->config.weapon = 0;
 					  if (robot[n]->config.weapon > 5)
 						  robot[n]->config.weapon = 5;
 
 					  if (robot[n]->config.armor < 0)
-						  robot[n]->conifg.armor = 0;
+						  robot[n]->config.armor = 0;
 					  if (robot[n]->config.armor > 5)
 						  robot[n]->config.armor = 5;
 
 					  if (robot[n]->config.engine < 0)
-						  robot[n]->conifg.engine = 0;
+						  robot[n]->config.engine = 0;
 					  if (robot[n]->config.engine > 5)
 						  robot[n]->config.engine = 5;
 
 					  if (robot[n]->config.heatsinks < 0)
-						  robot[n]->conifg.heatsinks = 0;
+						  robot[n]->config.heatsinks = 0;
 					  if (robot[n]->config.heatsinks > 5)
 						  robot[n]->config.heatsinks = 5;
 
 					  if (robot[n]->config.mines < 0)
-						  robot[n]->conifg.mines = 0;
+						  robot[n]->config.mines = 0;
 					  if (robot[n]->config.mines > 5)
 						  robot[n]->config.mines = 5;
 				  } else
-					  std::cout << "WARNING: unknown directive '", s2, "' " << endl;
+					  std::cout << "WARNING: unknown directive '" << s2 << "' " << endl;
 
 			  }
 			  break;
 		  case '*':
 			  check_plen(robot[n]->plen);
-			  for (i = 0; i <= max_op; i++)
+			  for (i = 0; i < MAX_OP; i++)
 				  pp[i] = "";
-			  for (i = 2; i <= s.length(); i++)
+			  for (i = 1; i < s.length(); i++)
 				  if (s[i] == '*')
 					  prog_error(23, s);
 			  k = 0;
@@ -4074,7 +4123,7 @@ void compile(short n, std::string filename) {
 			  s1 = "";
 			  if (s.length() <= 2)
 				  prog_error(23, s);
-			  while (i < length(s) && k <= max_op) {
+			  while (i < s.length() && k <= MAX_OP) {
 				  i++;
 				  /*
 				  * if ord(s[i]) in [33..41,43..127] then pp[k]:=pp[k]+s[i]
@@ -4082,41 +4131,41 @@ void compile(short n, std::string filename) {
 				  (ord(s[i-1]) in [33..41,43..127]) then inc(k);
 				  */
 			  }
-			  for (i = 0; i <= max_op; i++)
+			  for (i = 0; i <= MAX_OP; i++)
 				  robot[n]->code[robot[n]->plen].op[i] = value(pp[i]);
 			  robot[n]->plen++;
 			  break;
 		  case ':':
 			  check_plen(robot[n]->plen);
 			  s1 = rstr(s, s.length() - 1);
-			  for (i = 1; i <= s1.length())
+			  for (i = 0; i <= s1.length(); i++)
 				  //if not (s1[i] in ['0'..'9']) then
 				  prog_error(1, s);
 			  robot[n]->code[robot[n]->plen].op[0] = value(s1);
-			  robot[n]->code[robot[n]->plen].op[max_op] = 2;
+			  robot[n]->code[robot[n]->plen].op[MAX_OP] = 2;
 			  if (show_code)
 				  print_code(n, robot[n]->plen);
 			  robot[n]->plen++;
 			  break;
 		  case '!':
 			  check_plen(robot[n]->plen);
-			  s1 = trim(rstr(s, s.length() - 1));
+			  s1 = btrim(rstr(s, s.length() - 1));
 			  k = 0;
-			  for (i = s1.length(); i >= 1; i--) {
+			  for (i = s1.length()-1; i >= 0; i--) {
 				  //in [';',#8,#9,#10,' ',','] then k:=i;
 			  }
 			  if (k > 0)
 				  s1 = lstr(s1, k - 1);
 			  k = 0;
-			  for (i = 1; i <= numlabels; i++) {
-				  if (!strcmp(labelname[i], s1)) {
+			  for (i = 0; i <= numlabels; i++) {
+				  if (!strcmp(labelname[i].c_str(), s1.c_str())) {
 					  if (labelnum[i] >= 0)
-						  prog_error(13, "!", s1, "(", cstr(labelnum[i]), ")");
+						  prog_error(13, "!" + s1 + "(" + cstr(labelnum[i]) + ")");
 					  k = i;
 				  }
 				  if (k == 0) {
 					  numlabels++;
-					  if (numlabels > max_labels)
+					  if (numlabels > MAX_LABELS)
 						  prog_error(15, "");
 					  k = numlabels;
 				  }
@@ -4129,20 +4178,20 @@ void compile(short n, std::string filename) {
 			  //parse instruction
 			  //remove comments
 			  k = 0;
-			  for (i = s.length(); i >= 1; i--)
+			  for (i = s.length() -1; i >= 0; i--)
 				  if (s[i] == ';')
 					  k = i;
 			  if (k > 0)
 				  s = lstr(s, k - 1);
 			  //setup variables for parsing
 			  k = 0;
-			  for (j = 0; j <= max_op; j++)
+			  for (j = 0; j <= MAX_OP; j++)
 				  pp[j] = "";
-			  for (j = 1; j <= s.length(); j++) {
+			  for (j = 0; j < s.length(); j++) {
 				  c = s[j];
-				  if (/*not (c in [' ',#8,#9,#10,','])) &&*/ k <= max_op)
+				  if ( (!((c == '[') || (c == 8) || (c == 9) || (c == 10) || (c == '.'))) && k <= MAX_OP)
 					  pp[k] = pp[k] + c;
-				  else if (/*lc in [' ',#8,#9,#10,','])*/) {
+				  else if (!((lc == ' ') || (lc == '8') || (lc == '9') || (lc == 10) || (lc == '.')) ) {
 					  k = k + 1;
 				  }
 				  lc = c;
@@ -4158,7 +4207,7 @@ void compile(short n, std::string filename) {
 	  * no one tries using an empty robot program, kinda pointless otherwise
 	  */
 	  if (robot[n]->plen <= maxcode) {
-		  for (i = 0; i <= max_op; i++)
+		  for (i = 0; i <= MAX_OP; i++)
 			  pp[i] = "";
 		  pp[0] = "NOP";
 		  parse1(n, robot[n]->plen, pp);
@@ -4168,20 +4217,20 @@ void compile(short n, std::string filename) {
 
 	  //second pass, resolving !labels
 	  if (numlabels > 0) {
-		  for (i = 0; i <= plen; i++) {
-			  for (j = 0; j <= max_op - 1; j++) {
-				  if (robot[n]->code[i].op[max_op] >> (j * 4) == 3) {
+		  for (i = 0; i <= robot[n] -> plen; i++) {
+			  for (j = 0; j <= MAX_OP - 1; j++) {
+				  if (robot[n]->code[i].op[MAX_OP] >> (j * 4) == 3) {
 					  k = robot[n]->code[i].op[j];
 					  if (k > 0 && k <= numlabels) {
 						  l = labelnum[k];
 						  if (l<0)
-							  prog_error(19, '"!' + labelname[k] + '" (' + cstr(l) + ')');
+							  prog_error(19, "\"!" + labelname[k] + "\" (" + cstr(l) + ")");
 						  if (l<0 || l > maxcode)
-							  prog_error(18, '"!' + labelname[k] + '" (' + cstr(l) + ')');
+							  prog_error(18, "\"!" + labelname[k] + "\" (" + cstr(l) + ")");
 						  else {
 							  robot[n]->code[i].op[j] = l;
-							  mask = !(std::hex(F) << (j * 4));
-							  robot[n]->code[i].op[max_op] = (robot[n]->code[i].op[max_op] & mask) | (4 << (j * 4));
+							  mask = ~(0xf << (j * 4));
+							  robot[n]->code[i].op[MAX_OP] = (robot[n]->code[i].op[MAX_OP] & mask) | (4 << (j * 4));
 						  }
 					  }
 				  } else {
@@ -4192,8 +4241,6 @@ void compile(short n, std::string filename) {
 	  }
     }
     textcolor(7);
-}
-    }
 }
 
 int main(int argc, char ** argv) {

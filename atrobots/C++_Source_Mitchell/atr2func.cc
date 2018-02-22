@@ -712,7 +712,7 @@ char readkey() {
 		case SDL_KEYUP:
 			code = event.key.keysym.sym;
 			// See if code is in range of keys
-			if ( (code > 31) && ( code < 128 ) )
+			if ( ((code > 31) && ( code < 128 )) || (code == SDLK_ESCAPE) || (code == SDLK_RETURN) )
 				return (char)code;
 
 		}
@@ -732,7 +732,7 @@ bool keypressed() {
 	case SDL_KEYUP:
 		code = event.key.keysym.sym;
 		// See if code is in range of keys
-		if ((code > 31) && (code < 128))
+		if (((code > 31) && (code < 128)) || (code == SDLK_ESCAPE) || (code == SDLK_RETURN))
 			ret = true;
 		break;
 	}
