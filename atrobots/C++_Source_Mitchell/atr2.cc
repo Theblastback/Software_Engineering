@@ -616,13 +616,15 @@ void setscreen() {
 void graph_mode(bool on) {
 	if ( on && !graphix ) {
 		// Replace Graph_VGA function with sdl
-		SDL_CreateWindowAndRenderer(640, 480, SDL_WINDOW_OPENGL, &window_main, &renderer_main);
-
 		setscreen();
 		graphix = true;
 	} else if ( !on && graphix ) {
-		SDL_DestroyRenderer(renderer_main);
-		SDL_DestroyWindow(window_main);
+		// Turn graphics off
+		SDL_SetRenderDrawColor(renderer_main, 0x0, 0x0, 0x0, 0xff);
+		SDL_RenderClear(renderer_main);
+		// Blacks out entire screen. However, to retain portability, we need the window still.
+		// Without the window, key presses cannot be detected
+
 		graphix = false;
 	}
 }
@@ -914,6 +916,9 @@ void shutdown() {
 	for (i; i <= MAX_ROBOTS + 4; i++)
 		delete robot[i];
 
+	SDL_DestroyRenderer(renderer_main);
+	SDL_DestroyWindow(window_main);
+
 	TTF_Quit();
 	SDL_Quit();
 
@@ -938,7 +943,8 @@ void init() {
 	// Load text type here *sdl_ttf critical*
 
 
-
+	SDL_CreateWindowAndRenderer(640, 480, SDL_WINDOW_OPENGL, &window_main, &renderer_main);
+	
 
 	if ( debugging_compiler || compile_by_line || show_code ) {
 		std::cout << "!!! Warning !!! Compiler Debugging enabled !!!";
