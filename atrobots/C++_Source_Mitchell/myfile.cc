@@ -1,5 +1,8 @@
 #include "Headers/myfile.h"
 
+string	the_name;
+unsigned char the_eof;
+
 string lstr(string s1, int l){
 	if (s1.length() <= 1) {
 		return s1;

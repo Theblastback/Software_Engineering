@@ -9,7 +9,6 @@
 // Their original names were <SDL2/...
 
 #include <SDL.h>
-#include <SDL_mixer.h>
 #include <SDL_ttf.h>
 
 #ifndef _WIN32
@@ -37,20 +36,20 @@
 
 
 // All of these will be initialized in atr2's init function
-SDL_Window	* window_main;
-SDL_Renderer	* renderer_main;
-SDL_Color	bg_color; // Bar color
-SDL_Color	fg_color; // Line/rect color
-SDL_Color	text_color;
-TTF_Font	* text_type; // Needed to print text
+extern SDL_Window	* window_main;
+extern SDL_Renderer	* renderer_main;
+extern SDL_Color	bg_color; // Bar color
+extern SDL_Color	fg_color; // Line/rect color
+extern SDL_Color	text_color;
+extern TTF_Font	* text_type; // Needed to print text
 
-int	delay_per_sec;
-bool	registered, graphix, sound_on;
-string	reg_name;
+extern int	delay_per_sec;
+extern bool	registered, graphix, sound_on;
+extern string	reg_name;
 
-string reg_num;
-double	sint[256], cost[256];
-unsigned char pressed_key;
+extern string	reg_num;
+extern double	sint[256], cost[256];
+extern unsigned char pressed_key;
 
 extern void	arc(short, short, unsigned short, unsigned short, unsigned short);
 extern void	circle(short, short, unsigned short);
@@ -79,6 +78,7 @@ extern string	ltrim(string);
 extern string	rtrim(string);
 extern string	btrim(string);
 
+extern bool	keypressed();
 extern char	readkey();
 
 extern void	calibrate_timing();
@@ -86,10 +86,12 @@ extern void	time_delay(unsigned short);
 extern void	check_registration();
 
 // Assembly functions (Not created)
+
 extern short	rol(short, short);
 extern short	ror(short, short);
 extern short	sal(short, short);
 extern short	sar(short, short);
+
 
 extern void	viewport(short, short, short, short);
 extern void	main_viewport();
@@ -113,9 +115,12 @@ extern short	str2int(string);
 
 extern double	find_angle(double, double, double, double);
 extern short	find_anglei(double, double, double, double);
+extern double	_distance(double, double, double, double);
 
 extern string	bin(short);
 extern string	decimal(int, int);
 
+extern short	get_seconds_past_hour();
 
 #endif
+

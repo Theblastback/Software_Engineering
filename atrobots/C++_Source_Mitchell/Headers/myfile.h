@@ -9,8 +9,8 @@
 
 using namespace std;
 
-string	the_name;
-unsigned char	the_eof;
+extern string		the_name;
+extern unsigned char	the_eof;
 
 
 extern int	file_size(string *);

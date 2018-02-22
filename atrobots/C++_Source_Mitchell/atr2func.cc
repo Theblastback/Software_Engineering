@@ -3,6 +3,18 @@
 #include <climits>
 #include <ctime>
 
+SDL_Window	*window_main;
+SDL_Renderer	*renderer_main;
+SDL_Color	bg_color;
+SDL_Color	fg_color;
+TTF_Font	*text_type;
+int		delay_per_sec;
+bool		registered, graphix, sound_on;
+string		reg_name;
+string		reg_num;
+double		sint[256], cost[256];
+unsigned char	pressed_key;
+
 
 int get_rgb(short color) {
 	int rgb;
@@ -163,7 +175,7 @@ void outtextxy(short x_coor, short y_coor, string text) {
 
 	SDL_SetRenderDrawColor(renderer_main, fg_color.r, fg_color.g, fg_color.b, 0xff);
 
-	SDL_Surface * message_surf = TTF_RenderText_Solid(text_type, text.c_str(), text_color);
+	SDL_Surface * message_surf = TTF_RenderText_Solid(text_type, text.c_str(), fg_color);
 
 	SDL_Texture * message_rend = SDL_CreateTextureFromSurface(renderer_main, message_surf);
 	SDL_FreeSurface(message_surf);
@@ -380,11 +392,6 @@ string btrim(string s1) {
 }
 
 
-void flushkey() {
-// Remove queued keystrokes. Need to determine how we're to handle keystrokes
-
-}
-
 
 short get_seconds_past_hour() {
 	time_t since_start;
@@ -458,16 +465,37 @@ void check_registration() {
 }
 
 
-/*
+
 // ror same as >>, but wrap discarded bits
 short ror(short n, short k) {
-	short wrapped = 0;
-	fo
-*/
-// rol same as <<, but wrap discared bits
-// sal same as <<
-// sar same as >>, but copy signed bit over
+	while (k) {
+		n = ((unsigned short) n >> 1 ) | ((unsigned short) n << 15);
+		k--;
+	}
+	return n;
+}
 
+// rol same as <<, but wrap discarded bits
+short rol(short n, short k) {
+	while(k) {
+		n = ((unsigned short) n << 1 ) | ((unsigned short) n >> 15);
+		k--;
+	}
+
+	return n;
+}
+
+// sal same as <<
+short sal(short n, short k) {
+	return (n << k);
+}
+
+// sar same as >>, but copy signed bit over
+short sar(short n, short k) {
+	n = n / (1 << k);
+
+	return n;
+}
 
 
 

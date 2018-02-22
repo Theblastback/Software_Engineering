@@ -1,5 +1,8 @@
 #include "Headers/filelib.h"
 
+unsigned short	textattr;
+string		workstr;
+
 
 // Copy function was included in base pascal compiler. Recoding it here
 string copy(string name, unsigned short start, unsigned short count) {
@@ -133,7 +136,7 @@ string exten(string name) {
 }
 
 
-string base_name(string name) {
+std::string base_name(std::string name) {
 	unsigned short k;
 	string s1;
 

@@ -13,8 +13,8 @@ using namespace std;
 
 
 
-unsigned short 	textattr;
-string	workstr;
+extern unsigned short 	textattr;
+extern string	workstr;
 
 
 // Strings must be passed into functions as pointers or else null string errors may appear
@@ -34,6 +34,6 @@ extern string	attribs(unsigned char);
 extern string	path(string);
 extern string	no_path(string);
 extern int	file_length(string);
-
+extern string	base_name(string);
 
 #endif
