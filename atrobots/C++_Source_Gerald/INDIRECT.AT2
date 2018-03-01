@@ -1,0 +1,17 @@
+; Test the indirect addressing
+
+mov     CX,     512           ; Put the desired address in CX
+mov     [CX],   MAXINT        ; Now put MAXINT (32767 or 7FFFh into [CX]
+mov     BX,     512           ; Put the same address ito BX
+mov     AX,     [BX]          ; Read value stored at [BX] into AX
+err     AX                    ; Display it... It should be MAXINT.
+
+delay   300                   ; Wait a bit
+
+err     @512                  ; Display what is stored at @512, should be
+                              ; MAXINT as well, since that's where we
+                              ; kept it for this test.
+
+
+:1                            ; Test over; Freeze up.
+jmp     1

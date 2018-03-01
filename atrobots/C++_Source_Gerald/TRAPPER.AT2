@@ -1,0 +1,55 @@
+; TRAPPER - 12/16/98 -  Tests the config options, specifically for
+;                       mines and shields.
+;
+; NOTE- This robot is extremely anal-retentive and non-sportsman-like.
+;
+; This robot raises its shield, drops all its mines, and then just
+; waits to see what happens. It's intended only for one-on-one
+; battles (against Rammer in particular), since it has no means of
+; survival in the long-term, and will eventually die whether the
+; mines have killed everyone or not. One TRAPPER can single-handedly
+; take out 3 or 4 RAMMERs fairly effectively using the old shield
+; system. With the current shielding system, it can take out a single
+; rammer under most circumstances.
+
+#msg Come closer...
+
+; First, let's get the toys we want:
+
+#config shield=5    ; Heat-resistant shield (less than 3 and we don't get it)
+#config mines=5     ; '5' gives us 24 mines
+
+; These configs were costly (10 points), we must
+; reduce other devices below:
+;       Config        Description                                    Default
+#config armor=2     ; Normal armor. Maybe we live a while...           [2]
+#config weapon=0    ; Wimpy missiles.. Gives us 2 points.              [2]
+#config engine=0    ; We'll be at half speed, but who cares. 2 points. [2]
+#config scanner=0   ; We don't care about scanning range.    5 points. [5]
+#config heatsinks=0 ; Good heatsinks. Got a point.                     [1]
+
+; On to the battle!
+
+opo     20,     600     ; Set shutdown level so high that it never happens.
+opo     24,     1       ; Shields up!
+mov     BX      24      ; Set mine detection-radius
+
+:1
+mov     dx,     bx      ;
+shr     dx,     1       ;
+add     dx,     8       ; DX = BX/2 + 8
+
+opo     22,     DX      ; Lay a mine
+dec     BX              ; Each mine will have a smaller radius.
+:2
+ipo     22,     AX      ; Check our mines-remaining
+cmp     ax,     0       ; Do we have any mines left?
+jgr     1               ; If yes, then lay another one.
+
+
+:10
+opo     14,     1       ; Spin slowly, so we look enticing. :-)
+delay   4
+jmp     10              ; Sit and wait indefinitely, hoping we
+                        ; lure the target to its death before we
+                        ; overheat and die.

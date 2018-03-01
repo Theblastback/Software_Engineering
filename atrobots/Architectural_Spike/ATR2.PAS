@@ -74,7 +74,7 @@ Program Advanced_T_Robots_2;
 // Compile with these files
 uses dos, crt, graph, egavga, filelib, myfile, atr2func;
 
-{’á} {err}
+{ï¿½ï¿½} {err}
 
 // Begin listing of global variables, or is this the beginning of the program?
 
@@ -171,7 +171,7 @@ struct mine_rec {
 
 struct robot_rec {
 	// {FIFI}
-	bool is_ocked;	// {used to determine wether to allow debugger}
+	bool is_locked;	// {used to determine wether to allow debugger}
 	bool mem_watch;	// {current base of memory view for debugger}
 	// {/FIFI}
 

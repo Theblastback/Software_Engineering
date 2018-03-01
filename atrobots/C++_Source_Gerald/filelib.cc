@@ -1,205 +1,252 @@
 #include "Headers/filelib.h"
+#include <iostream>
+uint16_t		textattr;
+string		workstr;
 
-using namespace std;
 
-string addfront(string b, unsigned short l) {
-	// Find new length of font
-	while (b.length() < l)
+// Copy function was included in base pascal compiler. Recoding it here
+string copy(string name, uint16_t start, uint16_t count) {
+	string temp = "";
+
+	start--; // To compensate for c++ strings starting at 0, not 1
+	for ( uint16_t index = 0; index < count; index++ )
+		temp = temp + name.at(index);
+	
+	return temp;
+}
+
+
+string addfront(string b, uint16_t l) {
+	while ( b.length() < l )
 		b = " " + b;
 
-	return(b);
+	return b;
 }
 
-string addrear(string b, unsigned short l) {
-	while ( b.length() < l)
+
+string addrear(string b, uint16_t l) {
+	while ( b.length() < l )
 		b = b + " ";
 
-	return(b);
+	return b;
 }
 
-// Newly added. Created to emulate the copy frunction from pascal
-string copy(string name, short start, short end) {
-	string tmp;
 
-	start--;
-	end--;
-
-	while (start <= end) {
-		tmp = tmp + name[start];
-	 	start++;
-	}
-
-	return(tmp);
-}
-
-string lstr( string s1, unsigned short l) {
-	if (s1.length() <= l)
-		return(s1);
+string lstr(string s1, uint16_t l) {
+	if ( s1.length() <= l )
+		return s1;
 	else
-		return( copy(s1,1,l) );
+		return ( copy(s1, 1, l) );
 }
 
-string rstr(string s1, unsigned short l) {
-	if (s1.length() <= l)
-		return(s1);
+
+string rstr(string s1, uint16_t l) {
+	if ( s1.length() <= l )
+		return s1;
 	else
-		return( copy(s1, (s1.length()-l)+1 ,l) );
+		return ( copy(s1, s1.length() - l + 1, l) );
 }
+
 
 bool exist(string thisfile) {
 	fstream afile;
-	bool	return_value;
+	bool return_type = false;
 
-	afile.open(thisfile, std::fstream::in);
-	if ( (return_value = afile.good()) )
+	afile.open(thisfile, fstream::in);
+
+	if ( afile.good() ) {
 		afile.close();
 
-	return(return_value);
+		return_type = true;
+	}
+
+	return return_type;
 }
+
 
 bool valid(string thisfile) {
 	fstream afile;
+	bool ret_type = true;
+
 
 	if ( !exist(thisfile) ) {
-		afile.open(thisfile, std::fstream::out);
-		afile.close();
+		afile.open(thisfile, fstream::out);
 
-		std::remove(thisfile.c_str());
-		return(false);
-	} else
-		return(true);
-}
-
-std::string name_form( string name ) {
-	unsigned short k;
-	string s1, s2;
-
-	k = 1;
-	if ( name.compare(".")  || name.compare("..") ) {
-		return(addrear(name,12));
+		if ( afile.good() )
+			afile.close();
 	}
 
-	while ( (k <= name.length()) && (name[k] != '.') ) {
-		s1 = s1 + name[k];
+	return ret_type;
+}
+
+
+string name_form(string name) {
+	uint16_t k;
+	string s1, s2;
+
+	s1 = "";
+	s2 = "";
+
+	k = 0;
+
+	if ( !name.compare(".") || !name.compare("..") )
+		return ( addrear(name, 12) );
+
+	while ( (k <= name.length()) && ( name.at(k) != '.') ) {
+		s1 = s1 + name.at(k);
 		k++;
 	}
 
 	if ( k < name.length() ) {
 		k++;
-		while ( (k <= name.length()) &&  (name[k] != '.') ) {
-			s2 = s2 + name[k];
+
+		while ( (k <= name.length()) && (name.at(k) != '.') ) {
+			s2 = s2 + name.at(k);
 			k++;
 		}
 	}
-	return( addrear(s1,9)+addrear(s2,3) );
+
+	return ( (addrear(s1, 9) + addrear(s2, 3)) );
 }
 
-string exten(string name ) {
-	unsigned short k;
+
+string exten(string name) {
+	uint16_t k;
 	string s1, s2;
 
-	k = 1;
+	s1 = "";
+	s2 = "";
+	k = 0;
 
-	while ( (k <= name.length()) && (name[k] != '.') ) {
-		s1 = s1 + name[k];
+	while ( (k <= name.length()) && (name.at(k) != '.') ) {
+		s1 = s1 + name.at(k);
 		k++;
 	}
 
 	if ( k < name.length() ) {
 		k++;
-		while ( (k <= name.length()) && (name[k] != '.') ) {
-			s2 = s2 + name[k];
+
+		while ( (k <= name.length()) && (name.at(k) != '.') ) {
+			s2 = s2 + name.at(k);
 			k++;
 		}
 	}
-	return( addrear(s2,3) );
+
+	return (addrear(s2, 3));
 }
 
 
-string base_name(string name) {
-	unsigned short k;
+std::string base_name(std::string name) {
+	uint16_t k;
 	string s1;
 
-	k = 1;
-	while ( (k <= name.length()) && (name[k] != '.') ) {
-		s1 = s1 + name[k];
+	s1 = "";
+
+	k = 0;
+
+	while ( (k <= name.length()) && (name.at(k) != '.') ) {
+		s1 = s1 + name.at(k);
 		k++;
+		if (k == name.length())
+			break;
 	}
-	return(s1);
+	
+	
+	return s1;
 }
 
 
-string attribs(unsigned char b) {
-	string s1;
-	s1 = " ";
+/*
+	ReadOnly 	= 0x01
+	Hidden		= 0x02
+	SysFile		= 0x04
+	VolumeID	= 0x08
+	Directory	= 0x10
+	Archive		= 0x20
+	AnyFile		= 0x3f
+*/
 
-	// Check for readonly status
-	if ( b & 0x1 )
+string attribs (uint8_t b) {
+
+	string s1;
+
+	s1 = "";
+
+	if ( b & 0x01 ) // Check for read only
 		s1 = s1 + "R";
 	else
 		s1 = s1 + ".";
 
-	// Check for hidden status
-	if ( b and 0x2 )
+	if ( b & 0x02 )
 		s1 = s1 + "H";
 	else
 		s1 = s1 + ".";
 
-	// Check if file is system file
-	if ( b and 0x4 )
+	if ( b & 0x04 )
 		s1 = s1 + "S";
 	else
 		s1 = s1 + ".";
 
-	// Check if file is archive
-	if ( b and 0x20 )
+	if ( b & 0x20 )
 		s1 = s1 + "A";
 	else
 		s1 = s1 + ".";
 
-	return(s1);
+	return s1;
 }
+
 
 string path(string fn) {
-	unsigned short i, k;
 
-	k = -1;
+	uint16_t i, k;
 
-	// In pascal, strings start at index of 1, but in c they start at 0
-	for ( i = fn.length(); i >= 0; i--)
-		if ( ((fn[i] !=  '\\') || (fn[i] == ':')) && ( k < i ) )
+	k = 0;
+
+	for ( i = fn.length() - 1; i >= 0; i--)
+		if ( (fn.at(i) == '\\') || (fn.at(i) == ':') || (k < i) )
 			k = i;
 
-
-	if ( k != -1 )
-		return( lstr(fn,k) );
+	if ( k != 0 )
+		return (lstr(fn, k));
 	else
-		return("");
+		return "";
 }
+
 
 string no_path(string fn) {
-	unsigned short i, k;
+	uint16_t i, k;
+	k = 0;
 
-	k = -1;
-	for ( i = fn.length(); i >= 0; i--)
-		if ( ((fn[i] != '\\' ) || (fn[i] == ':')) && (k<i) )
+	for (i = fn.length() - 1; i >= 0; i--) {
+		if ((fn.at(i) == '\\') || (fn.at(i) == ':') || (k < i)) {
 			k = i;
+					}
+				
+		if (i == 0)
+			break;
+	}
 
-	if ( k != -1 )
-		return( rstr(fn, fn.length()-k) );
+	
+	if (k != 0)			
+	return (rstr(fn, fn.length() - k));
+		
+
 	else
-		return(fn);
+		return (fn);
+
 }
 
-short file_length(string fn) {
-	struct stat buf;
 
-	int buf_ret = stat(fn.c_str(), &buf);
+int32_t file_length(string fn) {
+	int32_t file_size;
 
-	if ( buf_ret == 0 )
-		buf_ret = buf.st_size;
-	else
-		buf_ret = 0;
+	fstream sr(fn, fstream::binary | fstream::ate);
 
-	return(buf_ret);
+	if ( sr.good() ) {
+		file_size = sr.tellg();
+		sr.close();
+	} else
+		file_size = 0;
+
+	return file_size;
 }

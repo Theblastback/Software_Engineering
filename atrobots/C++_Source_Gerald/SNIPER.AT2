@@ -1,0 +1,220 @@
+; Sniper                    Ed T. Toton III, 02/09/92
+;
+; Converted to ATR2, and vastly improved, on 02/04/97
+;                                          & 02/12/97
+;                                 #MSG added 02/23/97
+; This robot looks for a wall to sit against, and shoot its
+; enemies from afar. If it gets hit, it may pick up and move
+; to the other side of the arena and start blasting again.
+; The best way to defeat this one is to get in close.
+
+; define vars
+#def speed
+#def shoot
+#def move
+#def armor
+#def hitcheck
+#def hit
+#def accuracy
+#def turn
+#def start
+
+#msg Get back!
+
+;        mov     ax,     1
+;        int     4               ; Overburn ON!
+
+; set some label-remembering variables.
+        set     shoot   1000
+        set     move    2000
+        set     hitcheck  50
+
+;First order of business... Get the robot moving...
+;must find a nice safe wall.
+        mov     start,    1
+        gsb     move
+        mov     start,    0
+
+
+;MAIN (settings)
+:1
+; set speed=0, arc-wdth=3, turn-speed=+6
+        opo     11      0
+        opo     17      3
+        set     turn    6
+
+; Get random number... 50% chance of setting turn-speed to -6.
+        ipo     10      ax
+        cmp     ax      0
+        jls     2
+        set     turn    -6
+
+; MAIN loop..
+:2
+
+       ;turn
+        opo     12      turn
+
+       ;scan & shoot
+        ipo     7       ax
+        cmp     ax      1500
+        jgr     3
+        gsb     shoot
+:3
+       ;check to see if damaged since last check.
+        mov     hit     0
+        gsb     hitcheck
+
+       ;if damaged then MOVE.
+        cmp     hit     0
+        je      4
+        gsb     move
+:4
+        jmp 2
+; if a "JMP 10" is called, the settings can be repeated.
+:10
+        jmp 1
+
+
+;Hitcheck
+:50
+       ;read and compare armor
+        ipo     6       ax
+        cmp     ax      armor
+
+       ;if no damage then simply exit.
+        je      51
+
+       ;if hit, then say so!
+        set     armor   ax
+        set     hit     1
+:51
+ret
+
+
+;Shoot
+:1000
+       ;read accuracy setting.
+        ipo     8       accuracy
+;        mpy     accuracy        2
+
+       ;check heat, skip firing if too hot.
+        ipo     2,      ax
+        cmp     ax,     100
+        ja      1002
+
+       ;fire using accuracy
+        opo     15      accuracy
+:1002
+       ;turn using accuracy (to try to continue to face target)
+        opo     12      accuracy
+
+       ;scan again. If there then repeat, else exit.
+        ipo     7       ax
+        cmp     ax      1500    ; Find a target?
+        ja      1003            ; if not, we lost 'em, so skip along.
+        cmp     ax      50      ; if we did, is he real close?
+        jls     1004            ; if so, let's book it.
+        jmp     shoot           ; if not, let's shoot again!
+:1004
+        call    move            ; book it.
+:1003
+
+       ;before exiting, change turn rate and direction to match last scan.
+        cmp     accuracy,       0
+        je      1001
+        mov     turn,   accuracy
+        mpy     turn,   3
+:1001
+ret
+
+
+;Move
+:2000
+       ;read a random number, make it so it's 
+       ;in range of 0-255, then turn that way.
+        ipo     10      ax
+        and     ax      255
+
+        int     2               ; get x,y coordinates into EX,FX.
+
+        cmp     ex,     20      ; x<=20?
+        ja      2001
+        shr     ax,     1       ; if so, heading will be 0-79h
+        jmp     2004
+:2001
+        cmp     ex,     980     ; x>=980?
+        jb      2002
+        shr     ax,     1       ; 
+        add     ax,     80h     ; if so, heading will be 80h-FFh
+        jmp     2004
+:2002
+        cmp     fx,     20      ; y<=20?
+        ja      2003
+        shr     ax,     1       ; 
+        add     ax,     40h     ; if so, heading will be 40h-BFh
+        jmp     2004
+:2003
+        cmp     fx,     980     ; y>=980?
+        jb      2004
+        shr     ax,     1       ; 
+        add     ax,     80h     ; if so, heading will be C0h-3Fh
+:2004
+        cmp     start,  0       ; At the beginning, we want a nearby wall
+        je      2005            ; otherwise driving across arena is fine.
+        add     ax,     0x80    ; add 80h to heading.
+:2005
+        and     ax,     255
+;        err     ax               ; report our course to the screen-display.
+        call    3000             ; set course
+
+       ;Set speed to 100, then delay
+        opo     11      100
+
+       ;keep going until speed reaches zero.
+        opo     13      0        ; set turret to face forward.
+        mov     ax,     1
+        int     4                ; turn on overburn to get there quickly.
+:2100
+        ipo     2,      ax       ; read heat into AX
+        cmp     ax,     30       ; is heat above 30? (try to keep cool)
+        ja      2101             ; if so, skip along.
+        opo     15,     0        ; FIRE! (just in case someone is in the way)
+:2101
+        ipo     1       ax       ; read speed into AX
+        cmp     ax      0        ; is AX 0?
+        ja      2100             ; if not, we're still moving.
+
+        xor     ax,     ax       ; AX=0
+        int     4                ; turn overburn off, to conserve heat.
+
+       ;set armor so that the HITCHECK doesn't think 
+       ;we've been shot. (we take damage when we hit walls).
+        ipo     6       armor
+
+       ;Set speed to 0.
+        opo     11      0
+
+       ; Set turret to prepare for a quick scan.
+        cmp     turn    0        ; are we set to scan left or right?
+        jls     2102             ; choose turret facing
+        opo     13      0C0h     ; set turret to face 192 degrees.
+        jmp     2103
+:2102
+        opo     13      040h     ; set turret to face 64 degrees.
+:2103
+       ;turn all the way 'round
+        opo     14      80h      ; turn 80h degrees (128, or a half-circle)
+ret
+
+
+
+;course-setting subroutine
+;set course to heading in AX.
+:3000
+        mov     bx,     @1      ; get current desired heading
+                                ; (not actual heading)
+        sub     ax,     bx      ; get number of degrees to turn.
+        opo     14,     ax      ; turn!
+
+        ret
