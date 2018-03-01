@@ -1,0 +1,92 @@
+;
+; WEAVER - mostly wiggles around and chases other robots, flips out
+;            when it overheats. Its not complex, but it seems to work.
+;
+; VER - 2.1
+; 
+; Chris Rasys : E-mail (ethomumm@pop.k12.vt.us)
+;
+; The Magical weaver robot -- By Chris Rasys March 13 1998
+
+#msg I'm squiggly!
+
+#def randnum
+#def myrnge
+#def rad
+#def heat
+#def turn
+#def opturn
+#def accur
+     
+     mov        myrnge, 200
+     mov        rad,    6
+     mov        turn,   33
+     mov        opturn, 0
+     sub        opturn, turn
+ 
+     opo        13,     0       ; turret : in front
+     opo        17,     rad     ; scan radius
+     
+     :100
+     mov        rad,    6
+     mov        turn,   13
+     mov        opturn, 0
+     sub        opturn, turn
+     ipo        10      ax
+     cmp        ax,     0
+     ja         10
+     opo        15
+   
+
+     :1
+     opo        11,     100
+     opo        14,     turn     ;turn
+         
+     ipo        7,      myrnge ;check
+     cmp        myrnge, 2000   ;for
+     jb         2              ;enemy
+     jmp        1
+
+     :10
+     opo        11,     100
+     opo        14,     opturn    ;turn
+          
+     ipo        7,      myrnge ;check
+     cmp        myrnge, 2000   ;for
+     jb         2              ;enemy
+     jmp        10
+
+     ;enemy
+     :2
+     opo        17,     rad
+     ipo        8,      accur
+     opo        15,     accur
+     ipo        2       heat
+     cmp        heat,   280 ;checks heat
+     ja         200
+     opo        15,     accur
+     opo        11,     100 ; throttle
+     dec        rad         ; shrink scan field
+     nop
+     nop
+     ipo        7,      myrnge
+     cmp        myrnge, 2000
+     jb         2
+     opo        14,     180
+     opo        11,     100
+     nop
+     nop
+     jmp        100
+
+     ;heat
+     :200
+     opo        14,     90    ; This robot sure looks
+     opo        14,     5     ; wierd doing this
+     opo        11,     -100
+     ipo        2       heat
+     cmp        heat,   60
+     ja         200
+     jmp        100
+
+
+#END

@@ -1,0 +1,10 @@
+#msg Displays com data
+opo P_channel, 1        ; Set to channel 1.
+:1
+int i_dataready         ; Check for incoming data
+cmp fx,        0        ; Anything received yet?
+je  1                   ; If not, we loop back to check again.
+
+int i_receive           ; If there was data, lets retrieve it,
+err fx                  ; And now we'll display it,
+jmp 1                   ; then start over.

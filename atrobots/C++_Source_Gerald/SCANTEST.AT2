@@ -1,0 +1,29 @@
+; Fifi's scantest robot. Try putting this up 
+; against SDUCK to demonstrate the scanner.
+
+
+#msg watch the err!
+mov ex 0
+mov fx 500
+int i_angle
+in p_compass bx
+sub bx ax
+out p_steering bx
+del 5
+out p_throttle 100
+!still_moving
+cmp @8 0
+je !still_moving
+out p_throttle 0
+!scan_loop
+out p_arc 64
+in p_scan ax
+cmp ax 1600
+ja !not_found
+err @3
+jmp !cont
+!not_found
+err maxint
+!cont
+out p_trotate 1
+jmp !scan_loop
