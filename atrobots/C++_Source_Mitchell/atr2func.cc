@@ -170,6 +170,7 @@ void textcolor(int16_t color) {
 }
 
 void outtextxy(int16_t x_coor, int16_t y_coor, string text) {
+	cout << "Begin outtextxy" << endl;
 	SDL_Rect src;
 	int32_t W, H;
 
@@ -178,8 +179,8 @@ void outtextxy(int16_t x_coor, int16_t y_coor, string text) {
 	SDL_Surface * message_surf = TTF_RenderText_Solid(text_type, text.c_str(), fg_color);
 
 	SDL_Texture * message_rend = SDL_CreateTextureFromSurface(renderer_main, message_surf);
-	SDL_FreeSurface(message_surf);
 
+	SDL_FreeSurface(message_surf);
 
 	SDL_QueryTexture(message_rend, NULL, NULL, &W, &H);
 
@@ -191,6 +192,8 @@ void outtextxy(int16_t x_coor, int16_t y_coor, string text) {
 	SDL_RenderCopy(renderer_main, message_rend, NULL, &src);
 
 	SDL_DestroyTexture(message_rend);
+
+	cout << "End outtextxy" << endl << endl;
 }
 
 
@@ -368,6 +371,7 @@ string repchar(char c, uint8_t i) {
 
 
 string ltrim(string s1) {
+	// err_log << "Begin ltrim" << endl;
 	while ( s1.size() && isspace(s1.front()) )
 		s1.erase(s1.begin());
 
@@ -377,6 +381,7 @@ string ltrim(string s1) {
 
 
 string rtrim(string s1) {
+	// err_log << "Begin rtrim" << endl;
 	while ( !s1.empty() && isspace(s1.at(s1.size()-1)) )
 		s1.erase(s1.end() - 1);
 
@@ -385,6 +390,8 @@ string rtrim(string s1) {
 
 
 string btrim(string s1) {
+	// err_log << "Begin btrim" << endl;
+
 	s1 = ltrim(s1);
 	s1 = rtrim(s1);
 

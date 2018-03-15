@@ -1,5 +1,7 @@
 #include "Headers/filelib.h"
+#include <iostream>
 
+fstream		err_log;
 uint16_t		textattr;
 string		workstr;
 
@@ -8,10 +10,18 @@ string		workstr;
 string copy(string name, uint16_t start, uint16_t count) {
 	string temp = "";
 
+	// err_log << "Begin Copy" << endl;
+	// err_log << "Starting name: " << name << endl;
+	// err_log << "start: " << to_string(start) << "\tcount: " << to_string(count) << endl;
+
+
 	start--; // To compensate for c++ strings starting at 0, not 1
 	for ( uint16_t index = 0; index < count; index++ )
 		temp = temp + name.at(index);
 	
+
+	// err_log << "Ending name: " << temp << endl << "End copy" << endl;
+
 	return temp;
 }
 
@@ -41,10 +51,15 @@ string lstr(string s1, uint16_t l) {
 
 
 string rstr(string s1, uint16_t l) {
-	if ( s1.length() <= l )
+	// err_log << "Begin rstr" << endl;
+	// err_log << "String :" << s1 << "\tl: " << to_string(l) << endl;
+
+	if (s1.length() <= l) {
 		return s1;
-	else
-		return ( copy(s1, s1.length() - l + 1, l) );
+	} else {
+		// err_log << "Rstr, length less than string" << endl;
+		return (copy(s1, s1.length() - l + 1, l));
+	}
 }
 
 
@@ -137,6 +152,7 @@ string exten(string name) {
 
 
 std::string base_name(std::string name) {
+	// err_log << "Begin base_name" << endl;
 	uint16_t k;
 	string s1;
 
@@ -147,8 +163,11 @@ std::string base_name(std::string name) {
 	while ( (k <= name.length()) && (name.at(k) != '.') ) {
 		s1 = s1 + name.at(k);
 		k++;
+		if (k == name.length())
+			break;
 	}
-
+	
+	// err_log << "End base_name" << endl;
 	return s1;
 }
 
@@ -200,7 +219,7 @@ string path(string fn) {
 	k = 0;
 
 	for ( i = fn.length() - 1; i >= 0; i--)
-		if ( (fn.at(i) == '\\') || (fn.at(i) == ':') || (k < i) )
+		if ( ((fn.at(i) == '\\') || (fn.at(i) == ':')) && (k < i) )
 			k = i;
 
 	if ( k != 0 )
@@ -211,16 +230,28 @@ string path(string fn) {
 
 
 string no_path(string fn) {
+	// err_log << "Begin no_path" << endl;
 	uint16_t i, k;
-
 	k = 0;
 
-	for ( i = fn.length() - 1; i >= 0; i-- )
-		if ( (fn.at(i) == '\\') || (fn.at(i) == ':') || (k < i) )
-			k = i;
+	cout << to_string(fn.length()) << endl;
 
-	if (k != 0)
-		return (rstr(fn, fn.length() -k) );
+	for (i = fn.length() - 1; i >= 0; i--) {
+
+		if ( ((fn[i] == '\\') || (fn[i] == ':')) && (k < i)) {
+			k = i;
+		}
+				
+		if (i == 0)
+			break;
+	}
+
+	// err_log << "End no_path (Before returning)" << endl;
+
+	if (k != 0)			
+	return (rstr(fn, fn.length() - k));
+		
+
 	else
 		return (fn);
 
