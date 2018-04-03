@@ -1033,7 +1033,7 @@ void init() {
 	insanity = 0;
 	delay_per_sec = 0;
 	windoze = true;
-	graphix = false;
+	graphix = false; //n
 	no_gfx = false; // <-
 	sound_on = true;
 	timing = true;
@@ -2463,7 +2463,7 @@ void true_main() {
 			bout();
 	std::cout << "past bout" << endl;
 	if ( graphix == false )
-		std::cout << endl;
+		std::cout << "false graphix " << endl;
 
 	if ( quit )
 		return;
@@ -2538,11 +2538,12 @@ void execute_instruction(int16_t n) {
 	if ((robot[n]->ip > robot[n]->plen) || (robot[n]->ip < 0))
 		robot[n]->ip = 0;
 
-	if (invalid_microcode(n, robot[n]->ip))
-		robot_error(n, 15, hex(robot[n]->code[robot[n]->ip].op[MAX_OP]));
-
+	//if (invalid_microcode(n, robot[n]->ip))
+		//robot_error(n, 15, hex(robot[n]->code[robot[n]->ip].op[MAX_OP]));
+	//graphix = true;
+	std::cout << "graphix is: " << graphix << "step_mode is: " << step_mode << "n= " << n << endl;
 	if (graphix && (step_mode > 0) && (n == 0)) {
-
+		std::cout << "in graphix loop" << endl;
 		step_count++;
 		update_cycle_window();
 		//update_debug_window();

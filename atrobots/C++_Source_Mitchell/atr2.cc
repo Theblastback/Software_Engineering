@@ -180,7 +180,7 @@ void parse_param(std::string s) {
 		fn = rstr(s, s.length() - 1);
 		if (fn.compare(base_name(fn)) == 0)
 			fn = fn + config_ext;
-		
+
 		if (!exist(fn))
 			prog_error(6, fn);
 
@@ -394,7 +394,7 @@ std::string mnemonic(int16_t n, int16_t m) {
 
 
 int16_t max_shown() {
-	
+
 	switch(stats_mode) {
 	case 1:
 		return 12;
@@ -407,7 +407,7 @@ int16_t max_shown() {
 
 
 bool graph_check(int16_t n) {
-	
+
 	bool ok = true;
 
 	if (!graphix || (n < 0) || (n > num_robots) || (n >= max_shown()))
@@ -436,7 +436,7 @@ void robot_graph(int16_t n) {
 	}
 	setfillstyle(robot_color(n));
 	setcolor(robot_color(n));
-	
+
 	// err_log << "End robot_graph" << endl;
 }
 
@@ -477,7 +477,7 @@ void update_heat(int16_t n) {
 	// err_log << "Begin update heat" << endl;
 	if ( graph_check(n) && (step_mode <= 0) ) {
 		robot_graph(n);
-		
+
 		if ( robot[n] -> heat > 5 ) {
 			switch (stats_mode) {
 			case 1:
@@ -546,7 +546,7 @@ void update_cycle_window() {
 		std::cout << endl << "Match " << played << "/" << matches << " Cycle: " << zero_pad(game_cycle, 9);
 	}
 	else {
-		viewport(480, 440, 635, 475); 
+		viewport(480, 440, 635, 475);
 		setfillstyle(BLACK);
 		bar(59, 2, 154, 10);
 		setcolor(LIGHT_GRAY);
@@ -558,7 +558,7 @@ void update_cycle_window() {
 }
 
 
-// Initialize the entire screen 
+// Initialize the entire screen
 void setscreen() {
 	// err_log << "Begin setscreen" << endl;
 	int16_t i;
@@ -569,7 +569,7 @@ void setscreen() {
 	// Window & renderer will be created in init, so no to worry here
 	viewport(0, 0, 639, 479); // XXX Legitimate size of window XXX
 	box(0, 0, 639, 479);
-	
+
 	stats_mode = 0;
 	if ((num_robots >= 0) && (num_robots <= 5)) {
 		stats_mode = 0;
@@ -579,7 +579,7 @@ void setscreen() {
 		stats_mode = 2;
 	} else
 		stats_mode = 0;
-	
+
 
 	// Main arena
 	hole(4, 4, 475, 475);
@@ -593,16 +593,16 @@ void setscreen() {
 	//outtextxy(3, 23, "Limit     " + zero_pad(game_limit, 9));
 	//outtextxy(2, 33, "Match:    " + cstr(played) + "/" + cstr(matches));
 	update_cycle_window();
-	 
+
 	// Robot windows
 	for (i = 0; i <= MAX_ROBOTS; i++) {
 
 		if ( i < max_shown() ) {
-			
+
 			robot_graph(i);
-			
+
 			hole(0, 0, max_gx, max_gy);
-			
+
 			if ( i <= num_robots ) {
 				setcolor(robot_color(i));
 				//outtextxy(3, 2, base_name( no_path(robot[i] -> fn)) );
@@ -624,15 +624,15 @@ void setscreen() {
 
 
 				setcolor(robot_color(i));
-				
+
 				if ( stats_mode <= 1 ) {
-					
+
 					//outtextxy(80, 2, "Wins: ");
 					//outtextxy(122, 2, zero_pad(robot[i] -> wins, 4));
 				}
 
 				if ( stats_mode == 0 ) {
-					
+
 					//outtextxy(3, 56, " Error:");
 					setcolor(robot_color(i) & 7);
 					//outtextxy(3, 12, robot[i] -> name);
@@ -641,15 +641,15 @@ void setscreen() {
 				}
 
 				robot[i] -> lx = 1000 - robot[i] -> x;
-			
+
 				robot[i] -> ly = 1000 - robot[i] -> y;
-				
+
 				update_armor(i);
-				
-				update_heat(i); 
-				
+
+				update_heat(i);
+
 				update_lives(i);
-				
+
 			} else {
 				setfillstyle(DARK_GRAY); // XXX This would come out checkered. New color scheme may be needed
 				bar(1, 1, max_gx - 1, max_gy - 1);
@@ -804,7 +804,7 @@ void reset_software(int16_t n) {
 	robot[n] -> delay_left = 0;
 	robot[n] -> time_left = 0;
 	robot[n] -> shields_up = false;
-	
+
 	// err_log << "End reset_software" << endl << endl;
 }
 
@@ -826,7 +826,7 @@ void reset_hardware(int16_t n) {
 		robot[n] -> x = rand() % 1000;
 		robot[n] -> y = rand() % 1000;
 		dd = 1000;
-		
+
 		for (i = 0; i < num_robots; i++) {
 
 			if (robot[i]->x < 0)
@@ -845,10 +845,10 @@ void reset_hardware(int16_t n) {
 
 			if ((robot[i]->armor > 0) && (i != n) && (d < dd))
 				dd = d;
-			
+
 		}
 		} while ( dd < 32 );
-	
+
 	for ( i = 0; i < MAX_MINES; i++ ) {
 		robot[n] -> mine[i].x = 1;
 		robot[n] -> mine[i].y = -1;
@@ -939,7 +939,7 @@ void init_robot(int16_t n) {
 
 void create_robot(int16_t n, std::string filename) {
 	// err_log << "Begin create_robot" << endl;
-	
+
 	int16_t i, k;
 
 	for (i = 0; i <= MAX_ROBOTS + 4; i++)
@@ -947,7 +947,7 @@ void create_robot(int16_t n, std::string filename) {
 
 
 	init_robot(n);
-	
+
 	filename = ucase(btrim(filename));
 
 	if ( filename.compare(base_name(filename)) == 0 ) {
@@ -959,7 +959,7 @@ void create_robot(int16_t n, std::string filename) {
 			filename = filename + robot_ext;
 		}
 	}
-	
+
 	if (filename[0] == '?') {
 		// err_log << "-> Detected question mark" << endl;
 		filename = rstr(filename, filename.length() - 1);
@@ -967,22 +967,22 @@ void create_robot(int16_t n, std::string filename) {
 
 	// err_log << "Prior to robot[n] -> fn being created" << endl;
 	robot[n] -> fn = base_name(no_path(filename));
-	
+
 	// err_log << "\trobot -> fn created" << endl;
 	compile(n, filename);
-	
-	
+
+
 	robot_config(n);
-	
-	
+
+
 
 	k = robot[n] -> config.scanner + robot[n] -> config.armor + robot[n] -> config.weapon +
 		robot[n] -> config.engine + robot[n] -> config.heatsinks + robot[n] -> config.shield + robot[n] -> config.mines;
-	
+
 
 	if ( k > MAX_CONFIG_POINTS )
 		prog_error(21, cstr(k) + "/" + cstr(MAX_CONFIG_POINTS));
-	
+
 	// err_log << "End create_robot" << endl << endl;
 }
 
@@ -1116,20 +1116,20 @@ void init() {
 	std::string tmp;
 
 	if (paramcount > 0) {
-	
+
 		for (i = 1; i <= paramcount -1 ; i++) {
-		
+
 			tmp = paramstr[i]; // Arguement is paramstr. It is effectively argv, but global
 			parse_param(btrim(ucase(tmp)));
-			
+
 			if (i == paramcount)
 				break;
 		}
 	}
 	else
 		prog_error(5, "");
-	
-	
+
+
 	temp_mode = step_mode;
 
 	if ( logging_errors )
@@ -2080,16 +2080,16 @@ bool invalid_microcode(int16_t n, int16_t ip) {
 		err_log << "Invalid microcode: " << to_string(k) << endl;
 		if ((k < 0) || (k > 4)) {
 			invalid = true;
-			
+
 		}
 		else
 			invalid = false;
-			
+
 		if (i == 2)
 			break;
 	}
 		// err_log << "End invalid_microcode" << endl << endl;
-		return invalid;	
+		return invalid;
 }
 
 void process_keypress(char c) {
@@ -2307,7 +2307,7 @@ void bout() {
 		for ( i = 0; i <= num_robots; i++ ) {
 			if (robot[i]->armor > 0)
 				do_robot(i);
-			
+
 			if (i == 10)
 					break;
 			}
@@ -2366,7 +2366,7 @@ void bout() {
 					game_delay = 50;
 				else if ((game_delay >= 50) && (game_delay <= 59))
 					game_delay = 60;
-				else if ((game_delay >= 60) && (game_delay <= 74)) 
+				else if ((game_delay >= 60) && (game_delay <= 74))
 					game_delay = 75;
 				else if ((game_delay >= 75) && (game_delay <= 100))
 					game_delay = 100;
@@ -2382,19 +2382,19 @@ void bout() {
 				else if ((game_delay >= 11) && (game_delay <= 15))
 					game_delay = 10;
 				else if ((game_delay >= 16) && (game_delay <= 20))
-					game_delay = 15; 
+					game_delay = 15;
 				else if ((game_delay >= 21) && (game_delay <= 30))
-					game_delay = 20; 
+					game_delay = 20;
 				else if ((game_delay >= 31) && (game_delay <= 40))
 					game_delay = 30;
 				else if ((game_delay >= 41) && (game_delay <= 50))
-					game_delay = 40; 
+					game_delay = 40;
 				else if ((game_delay >= 51) && (game_delay <= 60))
-					game_delay = 50; 
+					game_delay = 50;
 				else if ((game_delay >= 61) && (game_delay <= 75))
-					game_delay = 65; 
+					game_delay = 65;
 				else if ((game_delay >= 76) && (game_delay <= 100))
-					game_delay = 75; 
+					game_delay = 75;
 
 			}
 			break;
@@ -2402,7 +2402,7 @@ void bout() {
 		default:
 			process_keypress(c);
 		}
-	
+
 
 
 		if ( game_delay < 0 )
@@ -2417,12 +2417,12 @@ void bout() {
 		else if ((game_delay >= 6) && (game_delay <= 10))
 			k = 25;
 		else if ((game_delay >= 11) && (game_delay <= 25))
-			k = 20; 
-		else if ((game_delay >= 26) && (game_delay <= 40)) 
-			k = 10; 
+			k = 20;
+		else if ((game_delay >= 26) && (game_delay <= 40))
+			k = 10;
 		else if ((game_delay >= 41) && (game_delay <= 70))
 			k = 5;
-		else if ((game_delay >= 71) && (game_delay <= MAXINT)) 
+		else if ((game_delay >= 71) && (game_delay <= MAXINT))
 			k = 1;
 		else
 			k = 10;
@@ -2489,24 +2489,24 @@ void begin_window() {
 
 	if (!graphix || !windoze)
 		return;
-	
+
 
 	setscreen();
-	
+
 	viewport(0, 0, 639, 479);
 	box(100, 150, 539, 200);
 	hole(105, 155, 534, 195);
 
 	setfillstyle(1); // Checkered
-	
+
 	//bar(105, 155, 534, 195);
 
 	setcolor(15);
 	s = "Press any key to begin!";
 	//outtextxy(320 - ((s.length() << 3) >> 1), 172, s);
-	
+
 	readkey();
-	
+
 	setscreen();
 
 	// err_log << "End begin_window" << endl;
@@ -2523,7 +2523,7 @@ void true_main() {
 	if ( matches > 0 )
 		for ( i = 1; i <= matches; i++ )
 			bout();
-	
+
 	if ( graphix == false )
 		std::cout << endl;
 
@@ -3036,13 +3036,13 @@ void do_robot(int16_t n) {
 		executed = 0;
 		//execute timeslice
 		while (robot[n]->time_left > 0 && !robot[n]->cooling && executed < 20 + time_slice && robot[n]->armor > 0) {
-			
+
 			if (robot[n]->delay_left < 0) {
-				
+
 				robot[n]->delay_left = 0;
 			}
 			if (robot[n]->delay_left > 0) {
-				
+
 				robot[n]->delay_left--;
 				robot[n]->time_left--;
 			}
@@ -3058,9 +3058,9 @@ void do_robot(int16_t n) {
 				damage(n, 1000, true);
 			}
 			executed++;
-			
+
 		}
-		
+
 
 		robot[n]->thd = (robot[n]->thd + 1024) & 255;
 		robot[n]->hd = (robot[n]->hd + 1024) & 255;
@@ -3126,9 +3126,9 @@ void do_robot(int16_t n) {
 				robot[n]->heat++;
 			if (robot[n]->heat > 0)
 				robot[n]->heat--;
-			if ((robot[n]->heat > 0) && ((game_cycle & 7) == 0) && (abs(robot[n]->tspd) <= 25))		
+			if ((robot[n]->heat > 0) && ((game_cycle & 7) == 0) && (abs(robot[n]->tspd) <= 25))
 				robot[n]->heat--;
-			if ((robot[n]->heat <= (robot[n]->shutdown - 50)) || (robot[n]->heat <= 0))		
+			if ((robot[n]->heat <= (robot[n]->shutdown - 50)) || (robot[n]->heat <= 0))
 				robot[n]->cooling = false;
 		}
 
@@ -4355,7 +4355,7 @@ void compile(int16_t n, std::string filename) {
 
 	  if (k > 0)
 		  s = lstr(s, k - 1);
-	 
+
 	  s = btrim(ucase(s));
 	  for (i = 0; i <= MAX_OP; i++) {
 		  pp[i] = "";
