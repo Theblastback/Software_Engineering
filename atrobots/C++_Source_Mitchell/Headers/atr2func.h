@@ -12,7 +12,7 @@
 #include <SDL_ttf.h>
 
 #ifndef _WIN32
-	#include <windows.h>
+#include <windows.h>
 #endif
 
 // Color definitions
@@ -36,7 +36,7 @@
 
 
 // All of these will be initialized in atr2's init function
-extern SDL_Window		* window_main;
+extern SDL_Window	* window_main;
 extern SDL_Renderer	* renderer_main;
 extern SDL_Color		bg_color; // Bar color
 extern SDL_Color		fg_color; // Line/rect color
@@ -123,4 +123,3 @@ extern string	decimal(int32_t, int32_t);
 extern int16_t	get_seconds_past_hour();
 
 #endif
-
