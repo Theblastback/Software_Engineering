@@ -1,0 +1,15 @@
+file_name=$(ls -1 | grep .cc )
+file_object=$(echo "$file_name" | sed 's/.cc/.o/')
+
+index=1
+while [ $index -lt 5 ]
+do
+	file_o=$(echo "$file_object" | head -$index | tail -1)
+	file_n=$(echo "$file_name" | head -$index | tail -1)
+
+	g++ -std=c++11 -Wall -c -o ${file_o} ${file_n} -lSDL2 -lSDL2_ttf
+	let index=index+1
+done
+mv *.o ./object_folder/
+
+exit

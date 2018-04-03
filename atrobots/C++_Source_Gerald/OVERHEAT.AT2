@@ -1,0 +1,29 @@
+;
+; OVERHEAT - Finds target, Fires until it overheats and keeps firing
+;
+; Sample robot - by Ed T. Toton III 02/10/97
+
+#def turn_rate
+
+     mov        ax,     1           ; AX=1
+     int        4                   ; Overburn ON!
+;     opo        20,     600         ; Set shutdown level to 600...
+
+     mov        turn_rate,      3   ; Set turn rate to 3 degrees
+     opo        13,     0           ; Port 13 - Set turret to 0 degrees
+     opo        17,     2           ; Port 17 - Set scan arc to 2 degrees.
+:1
+     opo        14,     turn_rate   ; Port 14 - turn
+
+     ipo        7,      ax          ; Port 7 - scan,   ax=range
+     cmp        ax,     2000        ; is enemy in range?
+     ja         10                  ; if not then don't fire
+     jmp        100                 ; Port 15 - got to Fire routine
+
+:10
+     jmp        1                   ; repeat loop
+
+
+:100
+        opo     15                  ; Fire!
+        jmp     100                 ; Repeat!

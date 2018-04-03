@@ -1,46 +1,39 @@
 #ifndef FILELIB_H
 #define FILELIB_H
 
+#include <fstream>
+#include <string>
+
+// Null is already defined as 0
 #define BELL	7
 #define ESC	27
 #define F10	0x44
 
-#include <fstream>
-#include <string>
-#include <sys/stat.h>
-#include <cstdio>
-#include <cstdlib>
+using namespace std;
 
 
-unsigned short	textattr;
-std::string		workstr;
+
+extern uint16_t 	textattr;
+extern string	workstr;
 
 
-/* wtf is this for?
-  basex : byte = 1;
-  basey : byte = 1;
-  tempx : byte = 1;
-  tempy : byte = 1;
-  endx  : byte = 24;
-  endy  : byte = 80;
-*/
+// Strings must be passed into functions as pointers or else null string errors may appear
 
+extern string	copy(string, uint16_t, uint16_t);
 
-extern std::string addfront(std::string, unsigned short);
-extern std::string addrear(std::string, unsigned short);
-extern std::string copy(std::string, unsigned short, unsigned short);
-extern std::string lstr( std::string, unsigned short);
-extern std::string rstr(std::string, unsigned short);
-extern bool exist(std::string);
-extern bool valid(std::string);
-extern std::string name_form(std::string);
-extern std::string exten(std::string name);
-extern std::string base_name(std::string);
-extern std::string attribs(unsigned char);
-extern std::string path(std::string fn);
-extern std::string no_path(std::string);
-extern short file_length(std::string);
+extern string	addfront(string, uint16_t);
+extern string	addrear(string, uint16_t);
+extern string	lstr(string, uint16_t);
+extern string	rstr(string, uint16_t);
 
-
+extern bool 	exist(string);
+extern bool 	valid(string);
+extern string	name_form(string);
+extern string	exten(string);
+extern string	attribs(uint8_t);
+extern string	path(string);
+extern string	no_path(string);
+extern int32_t		file_length(string);
+extern string	base_name(string);
 
 #endif

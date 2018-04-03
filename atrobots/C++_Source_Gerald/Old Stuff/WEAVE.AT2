@@ -1,0 +1,65 @@
+;
+; WEAVER - 
+;
+; Chris Rasys : E-mail (ethomumm@pop.k12.vt.us) 
+
+#def randnum
+#def myrnge
+#def scope
+#def accur
+#def accurop
+
+
+     
+     ;mov       myrnge, 200
+     mov        scope   6
+ 
+     opo        13,     0       ; turret : in front
+     opo        17,     scope   ; scan radius
+     
+     :100
+     inc        scope
+     inc        scope
+     inc        scope
+     opo        11,     0
+     :101
+     cmp        scope,  0
+     jb         300
+
+     cmp        scope,  0
+     je         300
+     opo        14,     scope
+     ipo        7,      myrnge ;check
+     cmp        myrnge, 2000   ;for
+     jb         10             ;enemy
+     
+     jmp        101
+
+     
+     :10
+  
+     ipo        8,      accur
+     opo        15,     accur
+     opo        15,     accur
+     opo        11,     100
+     opo        17,     scope
+     dec        scope
+     ipo        7,      myrnge ;check
+     cmp        myrnge, 2000   ;for
+     jb         10             ;enemy
+     jmp        100
+
+     :200
+     opo        18
+     opo        15
+     opo        15
+     opo        15
+     opo        18
+     jmp        100
+
+     :300
+     mov        scope,  6
+     jmp        101
+
+
+#END

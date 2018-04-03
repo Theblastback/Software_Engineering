@@ -1,0 +1,30 @@
+;
+; Sitting-Duck robot.  Use this one as a non-moving target.
+; (it just spins in place)
+;
+; Sample robot - by Ed T. Toton III 02/04/97
+
+#def turn_rate
+
+     mov        turn_rate,      8
+
+
+:1
+
+     ipo        p_rand, ax              ; get random number
+     and        ax,     255             ; fix it to 0 to 255
+     opo        p_abs_turret,     ax    ; aim turret
+
+     opo        14,     turn_rate
+
+     jmp        1
+
+
+#END
+
+  02/17/97
+
+  You can put whatever you want after the program by using the #END compiler
+directive, since the compiler stops compiling at that point.
+
+   

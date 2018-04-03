@@ -1,0 +1,49 @@
+;
+; TRACKER - Scans with sonar and uses interrupts to aim at it.
+;                                 Ed T. Toton III    02/10/97
+
+
+        opo     p_throttle, 50  ; throttle to 50%
+:1
+        ipo     p_sonar,ax      ; get heading to nearest enemy
+        cmp     ax,     0       ; check sonar result
+        jls     3               ; if under 0, goto 3
+        gsb     2000            ; turn to that absolute heading
+        opo     15              ; fire!
+
+:2
+        opo     p_throttle, 50  ; throttle to 50%
+
+        ipo     2,      bx      ; Get heat into BX
+        cmp     bx,     200     ; is it over 200?
+        ja      1000            ; if so, let's cool down.
+
+        jmp     1               ; repeat!
+
+:3
+        opo     p_throttle, 100 ; throttle to 50%
+        opo     p_steering, 16  ; turn
+        jmp     1
+
+;heat handler
+:1000
+        ; evasive maneuvers!
+        opo     14,     8       ; turn 8 degrees to the right.
+        opo     11      100     ; throttle up to 100%
+
+        ;check heat again
+        ipo     2,      bx      ; check heat
+        cmp     bx,     100     ; over 100?
+        ja      1000            ; if so keep scanning heat
+
+        jmp     1               ; feeling better, let's fight!
+
+
+;course-setting subroutine
+;set course to heading in AX.
+:2000
+        mov     bx,     @1      ; get current course-setting
+        sub     ax,     bx      ; get number of degrees to turn.
+        opo     14,     ax      ; turn!
+
+        ret
