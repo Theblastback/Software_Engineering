@@ -1,6 +1,6 @@
 #include "Headers\filelib.h"
-#include "\Headers\myfile.h"
-#include "\Headers\atr2func.h"
+#include "Headers\myfile.h"
+#include "Headers\atr2func.h"
 #include <time.h>
 #include <iostream>
 #include <cstdint>
@@ -207,11 +207,11 @@ void parse_param(std::string s) {
 		switch (s1[0]) {
 		case 'X':
 			std::cout << "In case x ------------------------------------------------------" << endl;
-				step_mode = value(rstr(s1, s1.length() - 1));
+			step_mode = value(rstr(s1, s1.length() - 1));
 			found = true;
 			if (step_mode == 0) {
-			step_mode = 1;
-			std::cout << "in step if ==============================" << endl;
+				step_mode = 1;
+				std::cout << "in step if ==============================" << endl;
 			}
 			if ((step_mode < 1) || (step_mode > 9))
 				prog_error(24, rstr(s1, s1.length() - 1));
@@ -900,7 +900,7 @@ void reset_hardware(int16_t n) {
 
 	robot_config(n);
 
-	 std::cout << "End reset_hardware" << endl << endl;
+	std::cout << "End reset_hardware" << endl << endl;
 }
 
 void init_robot(int16_t n) {
@@ -1190,7 +1190,7 @@ void init() {
 
 
 void draw_robot(int16_t n) {
-	// err_log << "Begin draw robot" << endl;
+	std::cout << "Begin draw robot" << endl;
 	int16_t i, t;
 	double xx, yy;
 
@@ -1302,7 +1302,7 @@ void draw_robot(int16_t n) {
 	robot[n]->lstartarc = robot[n]->startarc;
 	robot[n]->lendarc = robot[n]->endarc;
 
-	// err_log << "End draw_robot" << endl << endl;
+	std::cout << "End draw_robot" << endl << endl;
 }
 
 
@@ -2123,7 +2123,7 @@ bool invalid_microcode(int16_t n, int16_t ip) {
 
 		if (i == 2)
 			break;
-		std::cout << "still in for loop " <<"i= "<< i << endl;
+		std::cout << "still in for loop " << "i= " << i << endl;
 
 	}
 	std::cout << "End Invalid Microde " << cunt << endl;
@@ -2353,9 +2353,9 @@ void bout() {
 		for (i = 0; i <= num_robots; i++) {
 			std::cout << "robot armor" << robot[i]->armor << endl;
 			if (robot[i]->armor > 0) {
-			std::cout << "number of robots"<< num_robots << endl;
-			std::cout << "robot number ="<< i << endl;
-			do_robot(i);
+				std::cout << "number of robots" << num_robots << endl;
+				std::cout << "robot number =" << i << endl;
+				do_robot(i);
 
 			}
 
@@ -2580,9 +2580,9 @@ void true_main() {
 	if (matches > 0)
 		for (i = 1; i <= matches; i++) {
 
-	bout();
-	std::cout << "past bout" << endl;
-}
+			bout();
+			std::cout << "past bout" << endl;
+		}
 
 
 	if (graphix == false)
@@ -2685,12 +2685,12 @@ void execute_instruction(int16_t n) {
 		while (step_loop && (!(quit | gameover() | bout_over))) {
 
 			if (loopadoop < 1) {
-				std::cout << "Waiting for keypress" << loopadoop <<endl;
+				std::cout << "Waiting for keypress" << loopadoop << endl;
 				loopadoop++;
 			}
 			if (keypressed()) {
 				keypressnum++;
-				std::cout << "KEYPRESS "<< keypressnum<< endl ;
+				std::cout << "KEYPRESS " << keypressnum << endl;
 
 				// Loop does nothing until key is pressed
 				c = toupper(readkey());
@@ -2782,7 +2782,7 @@ void execute_instruction(int16_t n) {
 				}
 			}
 			if (loopadoop < 1) {
-				std::cout << " pastWaiting for keypress"  << endl;
+				std::cout << " pastWaiting for keypress" << endl;
 				loopadoop++;
 			}
 		}
@@ -3138,7 +3138,7 @@ void do_robot(int16_t n) {
 			robot[n]->time_left--;
 		}
 		if (robot[n]->time_left >= 0 && robot[n]->delay_left == 0) {
-			std::cout << "time left: "<< robot[n]->time_left << endl;
+			std::cout << "time left: " << robot[n]->time_left << endl;
 			std::cout << "delay_left: " << robot[n]->delay_left << endl;
 
 			execute_instruction(n);
@@ -4522,7 +4522,7 @@ void compile(int16_t n, std::string filename) {
 
 	if (!exist(filename)) {
 
-	prog_error(8, filename);
+		prog_error(8, filename);
 	}
 
 	textcolor(robot_color(n));
