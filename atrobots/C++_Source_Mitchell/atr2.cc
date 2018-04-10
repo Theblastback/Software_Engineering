@@ -53,7 +53,6 @@ bool debugging_compiler = false;
 #define MAX_MINES	63
 #define MINE_BLAST	35
 
-
 // Simulation & graphics
 #define SCREEN_SCALE	0.46
 #define SCREEN_X	5
@@ -168,7 +167,7 @@ void do_missile(int16_t);
 void create_robot(int16_t, std::string);
 
 void parse_param(std::string s) {
-	// err_log << "Begin parse_param" << endl;
+	std::cout << "parse_param" << endl;
 	fstream f;
 	string fn, s1;
 	bool found = false;
@@ -177,7 +176,7 @@ void parse_param(std::string s) {
 	if (s.compare("") == 0)
 		return;
 	if (s[0] == '#') {
-		fn = rstr(s, s.length() - 1);
+				fn = rstr(s, s.length() - 1);
 		if (fn.compare(base_name(fn)) == 0)
 			fn = fn + config_ext;
 		
@@ -198,6 +197,7 @@ void parse_param(std::string s) {
 		}
 		f.close();
 	} else if ((s[0] == '/') || (s1[0] == '-') || (s1[0] == '=')) {
+		/// Rstr shouldn't be used like this, but it is
 		s1 = rstr(s, s.length() - 1);
 		switch (s1[0]) {
 		case 'X':
@@ -294,13 +294,11 @@ void parse_param(std::string s) {
 
 	if (!found)
 		prog_error(8, s);
-
-	// err_log << "End parse_param" << endl << endl;
 }
 
 
 std::string operand(int16_t n, int16_t m) {
-	// err_log << "Begin operand" << endl;
+	std::cout << "operand" << endl;
 	std::string s = cstr(n);
 
 	switch (m & 7) {	// Microcode
@@ -323,14 +321,12 @@ std::string operand(int16_t n, int16_t m) {
 	if ( (m & 8) > 0 )
 		s = "[" + s + "]";
 
-	// err_log << "End operand" << endl << endl;
-
 	return s;
 }
 
 
 std::string mnemonic(int16_t n, int16_t m) {
-	// err_log << "Begin mnemonic" << endl;
+	std::cout << "mnemonic" << endl;
 	std::string s = cstr(n);
 
 	if ( m == 0 )
@@ -387,8 +383,6 @@ std::string mnemonic(int16_t n, int16_t m) {
 	else
 		s = operand(n, m);
 
-
-	// err_log << "End mnemonic" << endl << endl;
 	return s;
 }
 
@@ -417,7 +411,7 @@ bool graph_check(int16_t n) {
 }
 
 void robot_graph(int16_t n) {
-	// err_log << "Begin robot_graph" << endl;
+	
 	switch (stats_mode) {
 	case 1:
 		viewport(480, 4 + n * 35, 635, 37 + n * 35);
@@ -437,11 +431,10 @@ void robot_graph(int16_t n) {
 	setfillstyle(robot_color(n));
 	setcolor(robot_color(n));
 	
-	// err_log << "End robot_graph" << endl;
 }
 
 void update_armor(int16_t n) {
-	// err_log << "Begin update_armor" << endl;
+	std::cout << "update_armor" << endl;
 	if ( graph_check(n) && (step_mode <= 0) ) {
 		robot_graph(n);
 		if (robot[n] -> armor > 0) {
@@ -470,11 +463,10 @@ void update_armor(int16_t n) {
 			}
 		}
 	}
-	// err_log << "End update_armor" << endl << endl;
 }
 
 void update_heat(int16_t n) {
-	// err_log << "Begin update heat" << endl;
+	std::cout << "update heat" << endl;
 	if ( graph_check(n) && (step_mode <= 0) ) {
 		robot_graph(n);
 		
@@ -504,27 +496,25 @@ void update_heat(int16_t n) {
 			}
 		}
 	}
-	// err_log << "End update_heat" << endl << endl;
+	
 }
 
 void robot_error(int16_t n, int16_t i, std::string ov) {
-	// err_log << "Begin robot_error" << endl;
+	std::cout << "robot error" << endl;
 	if (graph_check(n) && (step_mode <= 0)) {
 		if (stats_mode == 0) {
 			robot_graph(n);
 			setfillstyle(BLACK);
 			bar(66, 56, 154, 64);
 			setcolor(robot_color(n));
-			//outtextxy(66, 56, addrear(cstr(i), 7) + hex(i));
+			outtextxy(66, 56, addrear(cstr(i), 7) + hex(i));
 			// chirp();
 		}
 	}
-
-	// err_log << "End robot_error" << endl << endl;
 }
 
 void update_lives(int16_t n) {
-	// err_log << "Begin update_lives" << endl;
+	std::cout << "update lives" << endl;
 	if ( graph_check(n) && (stats_mode == 0) ) {
 		robot_graph(n);
 		setcolor(robot_color(n) - 8);
@@ -536,16 +526,16 @@ void update_lives(int16_t n) {
 		//outtextxy(80, 46, "D :");
 		//outtextxy(98, 46, zero_pad(robot[n] -> deaths, 4));
 	}
-
-	// err_log << "End update_lives" << endl << endl;
 }
 
 void update_cycle_window() {
-	// err_log << "Begin update_cycle_window" << endl;
+	std::cout << "update cycle window" << endl;
 	if (!graphix) {
+		std::cout << "in update cycle window if" << endl;// No graphics
 		std::cout << endl << "Match " << played << "/" << matches << " Cycle: " << zero_pad(game_cycle, 9);
 	}
 	else {
+		std::cout << "in update cycle window else" << endl;
 		viewport(480, 440, 635, 475); 
 		setfillstyle(BLACK);
 		bar(59, 2, 154, 10);
@@ -553,14 +543,12 @@ void update_cycle_window() {
 		//outtextxy(75, 3, zero_pad(game_cycle, 9));
 		SDL_RenderPresent(renderer_main);
 	}
-
-	// err_log << "End update_cycle_window" << endl << endl;
 }
 
 
 // Initialize the entire screen 
 void setscreen() {
-	// err_log << "Begin setscreen" << endl;
+	std::cout << "setscreen" << endl;
 	int16_t i;
 
 
@@ -588,15 +576,17 @@ void setscreen() {
 	viewport(480, 480, 635, 475);
 	hole(0, 0, 155, 45);
 	setcolor(LIGHT_GRAY);
-//	//outtextxy(3, 3, "FreeMem: " + cstr(memavail);  XXX Not possible. Cannot get amount of bytes available in heap storage (that's what memavail is)
+//	outtextxy(3, 3, "FreeMem: " + cstr(memavail);  XXX Not possible. Cannot get amount of bytes available in heap storage (that's what memavail is)
+	std::cout << "problems with outtextxy" << endl;
 	//outtextxy(3, 13, "Cycle:    ");
 	//outtextxy(3, 23, "Limit     " + zero_pad(game_limit, 9));
 	//outtextxy(2, 33, "Match:    " + cstr(played) + "/" + cstr(matches));
 	update_cycle_window();
+	std::cout << "past update cycle window in setscreen" << endl;
 	 
 	// Robot windows
 	for (i = 0; i <= MAX_ROBOTS; i++) {
-
+		
 		if ( i < max_shown() ) {
 			
 			robot_graph(i);
@@ -604,24 +594,27 @@ void setscreen() {
 			hole(0, 0, max_gx, max_gy);
 			
 			if ( i <= num_robots ) {
+				
 				setcolor(robot_color(i));
 				//outtextxy(3, 2, base_name( no_path(robot[i] -> fn)) );
 				switch (stats_mode) {
 				case 1:
 					//outtextxy(3, 12, " A:");
 					//outtextxy(2, 22, " H:");
+					std::cout << "case1" << endl;
 					break;
 				case 2:
 					setcolor(robot_color(i) & 7);
 					//outtextxy(80, 2, "A");
 					//outtextxy(118, 2, "H");
+					std::cout << "case 2" << endl;
 					break;
 				default:
 					//outtextxy(3, 24, " A:");
 					//outtextxy(3, 34, " H:");
+					std::cout << "case3" << endl;
 					break;
 				}
-
 
 				setcolor(robot_color(i));
 				
@@ -651,17 +644,18 @@ void setscreen() {
 				update_lives(i);
 				
 			} else {
+				
 				setfillstyle(DARK_GRAY); // XXX This would come out checkered. New color scheme may be needed
 				bar(1, 1, max_gx - 1, max_gy - 1);
 			}
 		}
 	}
-	// err_log << "End setscreen" << endl << endl;
+	std::cout << "made it out of setscreen for loop" << endl;
 }
 
 
 void graph_mode(bool on) {
-	// err_log << "Begin graph_mode" << endl;
+	std::cout << "graph_mode" << endl;
 	if ( on && !graphix ) {
 		// Replace Graph_VGA function with sdl
 		setscreen();
@@ -675,13 +669,11 @@ void graph_mode(bool on) {
 
 		graphix = false;
 	}
-
-	// err_log << "End graph_mode" << endl << endl;
 }
 
 
 void print_code(int16_t n, int16_t p) {
-	// err_log << "Begin print_code" << endl << endl;
+	std::cout << "print code" << endl;
 	int16_t i;
 
 	std::cout << (hex(p) + ": ");
@@ -692,21 +684,19 @@ void print_code(int16_t n, int16_t p) {
 	for ( i = 0; i <= MAX_OP; i++ )
 		std::cout << hex(robot[n] -> code[p].op[i]) << "h ";
 
-	// err_log << "End print_code" << endl << endl;
+	std::cout << endl << endl;
 }
 
 
 void check_plen(int16_t plen) {
-	// err_log << "Begin check_plen" << endl;
+	std::cout << "check plen" << endl;
 	if (plen > MAX_CODE )
 		prog_error(16, "\nMaximum progrm length exceeded, (Limit: " + cstr(MAX_CODE + 1) + " compiled lines)");
-
-	// err_log << "End check_plen" << endl << endl;
 }
 
 
 void robot_config(int16_t n) {
-	// err_log << "Begin robot_config" << endl;
+	std::cout << "robot config" << endl;
 
 	// Doing case statements like this to reduce line count
 	switch (robot[n] -> config.scanner) {
@@ -778,13 +768,11 @@ void robot_config(int16_t n) {
 		robot[n] -> config.shield = 0;
 	if ( (robot[n] -> config.heatsinks < 0) || (robot[n] -> config.heatsinks > 5) )
 		robot[n] -> config.heatsinks = 0;
-
-	// err_log << "End robot_config" << endl << endl;
 }
 
 
 void reset_software(int16_t n) {
-	// err_log << "Begin reset_software" << endl;
+	std::cout << "reset software" << endl;
 	int16_t i;
 
 	for (i = 0; i <= MAX_RAM; i++)
@@ -805,12 +793,11 @@ void reset_software(int16_t n) {
 	robot[n] -> time_left = 0;
 	robot[n] -> shields_up = false;
 	
-	// err_log << "End reset_software" << endl << endl;
 }
 
 
 void reset_hardware(int16_t n) {
-	// err_log << "Begin reset_hardware" << endl;
+	std::cout << "reset hardware" << endl;
 	int16_t i;
 	double d, dd;
 
@@ -881,12 +868,10 @@ void reset_hardware(int16_t n) {
 	robot[n] -> startkills = robot[n] -> kills;
 
 	robot_config(n);
-
-	// err_log << "End reset_hardware" << endl << endl;
 }
 
 void init_robot(int16_t n) {
-	// err_log << "Begin init_robot" << endl;
+	std::cout << "init_robot" << endl;
 	int16_t i, k;
 
 	robot[n] -> wins = 0;
@@ -932,13 +917,11 @@ void init_robot(int16_t n) {
 
 	reset_hardware(n);
 	reset_software(n);
-
-	// err_log << "End init_robot" << endl << endl;
 }
 
 
 void create_robot(int16_t n, std::string filename) {
-	// err_log << "Begin create_robot" << endl;
+	std::cout << "create robot" << endl;
 	
 	int16_t i, k;
 
@@ -960,15 +943,11 @@ void create_robot(int16_t n, std::string filename) {
 		}
 	}
 	
-	if (filename[0] == '?') {
-		// err_log << "-> Detected question mark" << endl;
-		filename = rstr(filename, filename.length() - 1);
-	}
-
-	// err_log << "Prior to robot[n] -> fn being created" << endl;
-	robot[n] -> fn = base_name(no_path(filename));
+	if (filename[0] == '?') 
+			filename = rstr(filename, filename.length() - 1);
 	
-	// err_log << "\trobot -> fn created" << endl;
+	robot[n] -> fn = base_name(no_path(filename));
+			
 	compile(n, filename);
 	
 	
@@ -983,12 +962,12 @@ void create_robot(int16_t n, std::string filename) {
 	if ( k > MAX_CONFIG_POINTS )
 		prog_error(21, cstr(k) + "/" + cstr(MAX_CONFIG_POINTS));
 	
-	// err_log << "End create_robot" << endl << endl;
+
 }
 
 
 void shutdown() {
-	// err_log << "Begin shutdown" << endl;
+	std::cout << "shutdown" << endl;
 	int16_t i;
 
 	graph_mode(false);
@@ -1016,18 +995,17 @@ void shutdown() {
 	TTF_Quit();
 	SDL_Quit();
 
-	// err_log << "End shutdown" << endl;
 	std::exit(EXIT_SUCCESS);
 }
 
 
 void init() {
-	// err_log << "Begin init" << endl;
+	std::cout << "init" << endl;
 
 	int16_t i;
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-		cerr << "ERROR: Could not init SDL: " << SDL_GetError();
+		std::cout << "ERROR: Could not init SDL: " << SDL_GetError();
 		std::exit(EXIT_FAILURE);
 	}
 
@@ -1038,7 +1016,7 @@ void init() {
 	}
 
 	// Load text type here *sdl_ttf critical*
-	text_type = TTF_OpenFont("FUTURE.TTF", 8);
+
 
 	SDL_CreateWindowAndRenderer(640, 480, SDL_WINDOW_OPENGL, &window_main, &renderer_main);
 
@@ -1114,18 +1092,18 @@ void init() {
 	// delete_compile_report();
 
 	std::string tmp;
-
+	;
 	if (paramcount > 0) {
 	
-		for (i = 1; i <= paramcount -1 ; i++) {
+	for (i = 1; i <= paramcount -1 ; i++) {
 		
-			tmp = paramstr[i]; // Arguement is paramstr. It is effectively argv, but global
-			parse_param(btrim(ucase(tmp)));
-			
-			if (i == paramcount)
-				break;
-		}
+		tmp = paramstr[i]; // Arguement is paramstr. It is effectively argv, but global
+		parse_param(btrim(ucase(tmp)));
+		;
+		if (i == paramcount)
+			break;
 	}
+}
 	else
 		prog_error(5, "");
 	
@@ -1168,13 +1146,12 @@ void init() {
 	for ( i = num_robots + 1; i <= MAX_ROBOTS + 4; i++ )
 		robot[i] = robot[0];
 
-	// err_log << "End init" << endl << endl;
 }
 
 
 
 void draw_robot(int16_t n) {
-	// err_log << "Begin draw robot" << endl;
+	std::cout << "draw robot" << endl;
 	int16_t i, t;
 	double xx, yy;
 
@@ -1285,14 +1262,12 @@ void draw_robot(int16_t n) {
 
 	robot[n] -> lstartarc = robot[n] -> startarc;
 	robot[n] -> lendarc = robot[n] -> endarc;
-
-	// err_log << "End draw_robot" << endl << endl;
 }
 
 
 // The direct memory access from ram has been replaced with a psuedo ram array
 int16_t get_from_ram(int16_t n, int16_t i, int16_t j) {
-	// err_log << "Begin get_from_ram" << endl;
+	std::cout << "get from ram" << endl;
 	int16_t  k, l;
 
 	if ( (i < 0) || (i > (MAX_RAM) +(((MAX_CODE + 1) <<3)-1)) ) {
@@ -1306,15 +1281,12 @@ int16_t get_from_ram(int16_t n, int16_t i, int16_t j) {
 			k = robot[n] -> code[l << 2].op[l & 3];
 		}
 	}
-
-	// err_log << "End get_from_ram" << endl << endl;
-
 	return k;
 }
 
 
 int16_t get_val(int16_t n, int16_t c, int16_t o) {
-	// err_log << "Begin get_val" << endl;
+	std::cout << "get val" << endl;
 	int16_t i, j, k;
 
 	k = 0;
@@ -1328,12 +1300,11 @@ int16_t get_val(int16_t n, int16_t c, int16_t o) {
 	if ( (j & 8) > 0 )
 		k = get_from_ram(n, k, j);
 
-	// err_log << "End get_val" << endl << endl;
 	return k;
 }
 
 void put_val(int16_t n, int16_t c, int16_t o, int16_t v) {
-	// err_log << "Begin put_val" << endl;
+	std::cout << "put_val" << endl;
 	int16_t i, j;
 	i = 0; j = 0;
 
@@ -1354,23 +1325,19 @@ void put_val(int16_t n, int16_t c, int16_t o, int16_t v) {
 		}
 	} else
 		robot_error(n, 3, "");
-
-	// err_log << "End put_val" << endl << endl;
 }
 
 void push(int16_t n, int16_t v) {
-	// err_log << "Begin push" << endl;
+	std::cout << "push" << endl;
 	if ( (robot[n] -> ram[71] >= STACK_BASE) && (robot[n] -> ram[71] < (STACK_BASE + STACK_SIZE)) ) {
 		robot[n] -> ram[robot[n] -> ram[71]] = v ;
 		(robot[n] -> ram[71])++;
 	} else
 		robot_error(n, 1, cstr(robot[n] -> ram[71]));
-
-	// err_log << "End push" << endl << endl;
 }
 
 int16_t pop(int16_t n) {
-	// err_log << "Begin pop" << endl;
+	std::cout << "pop" << endl;
 	int16_t k;
 	if ( (robot[n] -> ram[71] > STACK_BASE) && (robot[n] -> ram[71] <= (STACK_BASE + STACK_SIZE)) ) {
 		(robot[n] -> ram[71])--;
@@ -1378,13 +1345,12 @@ int16_t pop(int16_t n) {
 	} else
 		robot_error(n, 5, cstr(robot[n] -> ram[71]));
 
-	// err_log << "End pop" << endl << endl;
 	return k;
 }
 
 
 int16_t find_label(int16_t n, int16_t l, int16_t m) {
-	// err_log << "Begin find_label" << endl;
+	std::cout << "find label" << endl;
 	int16_t i, j, k;
 
 	k = -1;
@@ -1399,14 +1365,12 @@ int16_t find_label(int16_t n, int16_t l, int16_t m) {
 				if ( (j == 2) && (robot[n] -> code[i].op[0] == l) )
 					k = i;
 			}
-
-	// err_log << "End find_label" << endl << endl;
 	return k;
 }
 
 
 void init_mine(int16_t n, int16_t detectrange, int16_t size) {
-	// err_log << "Begin init_mine" << endl;
+	std::cout << "init mine" << endl;
 	int16_t i, k;
 
 	k = -1;
@@ -1424,12 +1388,10 @@ void init_mine(int16_t n, int16_t detectrange, int16_t size) {
 		robot[n] -> mine[k].detonate = false;
 		// click(); XXX Sound function. Uncomment later
 	}
-
-	// err_log << "End init_mine" << endl << endl;
 }
 
 int16_t count_missiles() {
-	// err_log << "Begin count_missiles" << endl;
+	std::cout << "count missiles" << endl;
 	int16_t i, k;
 
 	k = 0;
@@ -1438,13 +1400,12 @@ int16_t count_missiles() {
 			k++;
 	}
 
-	// err_log << "End count_missiles" << endl << endl;
 	return k;
 }
 
 
 void init_missile(double xx, double yy, double xxv, double yyx, int16_t dir, int16_t s, int16_t blast, bool ob) {
-	// err_log << "Begin init_missile" << endl;
+	std::cout << "init missile" << endl;
 	int16_t i, k;
 	double m;
 
@@ -1496,12 +1457,10 @@ void init_missile(double xx, double yy, double xxv, double yyx, int16_t dir, int
 
 		*/
 	}
-
-	// err_log << "End init_missile" << endl << endl;
 }
 
 void damage(int16_t n, int16_t d, bool physical) {
-	// err_log << "Begin damage" << endl;
+	std::cout << "damage" << endl;
 	int16_t i, k, h, dd;
 	double m;
 
@@ -1584,12 +1543,11 @@ void damage(int16_t n, int16_t d, bool physical) {
 			}
 		}
 	}
-	// err_log << "End damage" << endl;
 }
 
 
 int16_t scan(int16_t n) {
-	// err_log << "Begin scan" << endl;
+	std::cout << "scan" << endl;
 	double r, d, acc;
 	int16_t dir, range, i, j, k, nn, xx, yy, sign;
 
@@ -1660,13 +1618,12 @@ int16_t scan(int16_t n) {
 		}
 	}
 
-	// err_log << "End scan" << endl << endl;
 	return range;
 }
 
 
 void com_transmit(int16_t n, int16_t chan, int16_t data) {
-	// err_log << "Begin com_transmit" << endl;
+	std::cout << "com_transmit" << endl;
 	int16_t i;
 
 	for ( i = 0; i <= num_robots; i++ ) {
@@ -1685,11 +1642,10 @@ void com_transmit(int16_t n, int16_t chan, int16_t data) {
 				robot[i] -> ram[10] = 0;
 		}
 	}
-	// err_log << "End com_trasmit" << endl << endl;
 }
 
 int16_t com_receive(int16_t i) {
-	// err_log << "Begin com_receive" << endl;
+	std::cout << "com receive" << endl;
 	int16_t k;
 
 	if ( robot[i] -> ram[10] != robot[i] -> ram[11] ) {
@@ -1706,12 +1662,11 @@ int16_t com_receive(int16_t i) {
 	} else
 		robot_error(i, 12, "");
 
-	// err_log << "End com_receive" << endl << endl;
 	return k;
 }
 
 int16_t in_port(int16_t n, int16_t p, int16_t *time_used) {
-	// err_log << "Begin in_port" << endl;
+	std::cout << "in port" << endl;
 	int16_t v, i, j, k, l, nn;
 
 	v = 0;
@@ -1815,15 +1770,12 @@ int16_t in_port(int16_t n, int16_t p, int16_t *time_used) {
 		default:
 			robot_error(n, 11, cstr(p));
 	}
-
-	// err_log << "End in_port" << endl << endl;
-
 	return v;
 }
 
 
 void out_port(int16_t n, int16_t p, int16_t v, int16_t *time_used) {
-	// err_log << "Begin out_port" << endl;
+	std::cout << "out port" << endl;
 	int16_t i;
 
 	switch (p) {
@@ -1885,12 +1837,11 @@ void out_port(int16_t n, int16_t p, int16_t v, int16_t *time_used) {
 	else if ( robot[n] -> scanarc < 0 )
 		robot[n] -> scanarc = 0;
 
-	// err_log << "End out_port" << endl << endl;
 }
 
 
 void call_int(int16_t n, int16_t int_num, int16_t * time_used) {
-	// err_log << "Begin call_int" << endl;
+	std::cout << "call int" << endl;
 	int16_t i, j, k;
 
 	switch ( int_num ) {
@@ -2012,13 +1963,11 @@ void call_int(int16_t n, int16_t int_num, int16_t * time_used) {
 	default:
 		robot_error(n, 10, cstr(int_num));
 	}
-
-	// err_log << "End call_int" << endl << endl;
 }
 
 
 void jump(int16_t n, int16_t o, bool * inc_ip) {
-	// err_log << "Begin jump" << endl;
+	std::cout << "jump" << endl;
 	int16_t loc;
 
 	loc = find_label(n, get_val(n, robot[n] -> ip, o), robot[n] -> code[robot[n] -> ip].op[MAX_OP] >> (o * 4));
@@ -2027,15 +1976,13 @@ void jump(int16_t n, int16_t o, bool * inc_ip) {
 		robot[n] -> ip = loc;
 	} else
 		robot_error(n, 2, cstr(loc));
-
-	// err_log << "End jump" << endl << endl;
 }
 
 // A bunch of debug related functions go here
 
 
 bool gameover() {
-	// err_log << "gameover" << endl;
+	std::cout << "gameover" << endl;
 	int16_t n, k;
 
 	if ( (game_cycle >= game_limit) && ( game_limit > 0 ) )
@@ -2058,26 +2005,24 @@ bool gameover() {
 
 
 void toggle_graphix() {
-	// err_log << "Begin toggle_grapix" << endl;
+	std::cout << "toggle grapix" << endl;
 	graph_mode(!graphix);
 	if ( graphix == false ) {
 		textcolor(7);
 		std::cout << "Match " << played << "/" << matches << ", Battle in progress&&" << endl << endl;
 	} else
 		setscreen();
-
-	// err_log << "End toggle_graphix" << endl << endl;
 }
 
 bool invalid_microcode(int16_t n, int16_t ip) {
-	// err_log << "Begin invalid_microcode" << endl;
+	std::cout << "invalid microcode" << endl;
 	bool invalid;
 	int16_t i, k;
 
 	for (i = 0; i <= 2; i++) {
+		cerr << "\t(robot[" << n << "]->code[" << ip << "].op[" << MAX_OP << "] >> " << (i << 2) << ") & 7;" << endl;
 		k = (robot[n]->code[ip].op[MAX_OP] >> (i << 2)) & 7;
-
-		err_log << "Invalid microcode: " << to_string(k) << endl;
+		cerr << "\t" << to_string(k) << endl;
 		if ((k < 0) || (k > 4)) {
 			invalid = true;
 			
@@ -2088,12 +2033,12 @@ bool invalid_microcode(int16_t n, int16_t ip) {
 		if (i == 2)
 			break;
 	}
-		// err_log << "End invalid_microcode" << endl << endl;
+		std::cout << "done with invalid microcode" << endl;
 		return invalid;	
 }
 
 void process_keypress(char c) {
-	// err_log << "Begin process_keypress" << endl;
+	std::cout << "process key press" << endl;
 	// Should probably replace these case statements with SDL's scancodes
 
 	switch (c) {
@@ -2116,13 +2061,11 @@ void process_keypress(char c) {
 		step_loop = false;
 		break;
 	}
-
-	// err_log << "End proccess_keypress" << endl << endl;
 }
 
 
 std::string victor_string(int16_t k, int16_t n) {
-	// err_log << "Begin victor_string" << endl;
+	std::cout << "victor string" << endl;
 	std::string s = "";
 
 	if ( k == 1 )
@@ -2132,14 +2075,12 @@ std::string victor_string(int16_t k, int16_t n) {
 	if ( k > 1 )
 		s = "No clear victor, match is a tie.";
 
-
-	// err_log << "End victor_string" << endl << endl;
 	return s;
 }
 
 
 void show_statistics() {
-	// err_log << "Begin show_statistics" << endl;
+	std::cout << "show statistics" << endl;
 	int16_t i, j, k, n, sx, sy;
 
 	if ( windoze == false )
@@ -2155,8 +2096,8 @@ void show_statistics() {
 
 		bar(sx + 5, sy + 5, sx + 586, sy + 97 + num_robots * 12);
 		setcolor(WHITE);
-		//outtextxy(sx + 16, sy + 20, "Robot            Scored   Wins   Matches   Armor   Kills   Deaths    Shots");
-		//outtextxy(sx + 16, sy + 30, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+		outtextxy(sx + 16, sy + 20, "Robot            Scored   Wins   Matches   Armor   Kills   Deaths    Shots");
+		outtextxy(sx + 16, sy + 30, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
 		n = -1;
 		k = 0;
@@ -2173,20 +2114,19 @@ void show_statistics() {
 				j = 1;
 			else
 				j = 0;
-			/* XXX XXX
+
 			outtextxy(sx + 16, sy + 42 + i * 12, addfront(cstr(i + 1), 2) +
 				" - " + addrear(robot[n] -> fn, 15) + cstr(j) +
 				addfront(cstr(robot[n] -> wins), 8) + addfront(cstr(robot[n] -> trials), 8) +
 				addfront(cstr(robot[n] -> armor) + "%", 9) + addfront(cstr(robot[n] -> kills), 7) +
 				addfront(cstr(robot[n] -> deaths), 8) + addfront(cstr(robot[n] -> match_shots), 9));
-			*/
 		}
 
 		setcolor(WHITE);
-		//outtextxy(sx + 16, sy + 64 + num_robots * 12, victor_string(k, n));
+		outtextxy(sx + 16, sy + 64 + num_robots * 12, victor_string(k, n));
 
 		if ( windoze ) {
-			//outtextxy(sx + 16, sy + 76 +num_robots * 12, "Press any key to continue&&");
+			outtextxy(sx + 16, sy + 76 +num_robots * 12, "Press any key to continue&&");
 			readkey();
 		}
 	} else { // No graphics; Display results on commandline/terminal
@@ -2221,12 +2161,11 @@ void show_statistics() {
 		textcolor(WHITE);
 		std::cout << endl << victor_string(k, n) << endl << endl;
 	}
-	// err_log << "End show_statistics" << endl << endl;
 }
 
 
 void score_robots() {
-	// err_log << "Begin score_robots" << endl;
+	std::cout << "score robots" << endl;
 	int16_t i, k, n;
 	k = 0;
 
@@ -2242,12 +2181,10 @@ void score_robots() {
 		robot[n] -> wins += 1;
 		robot[n] -> won = true;
 	}
-
-	// err_log << "End score_robots" << endl;
 }
 
 void init_bout() {
-	// err_log << "Begin init_bout" << endl;
+	std::cout << "init bout" << endl;
 	int16_t i;
 
 	game_cycle = 0;
@@ -2274,13 +2211,13 @@ void init_bout() {
 
 	if ( graphix == false )
 		textcolor(LIGHT_GRAY);
-	// err_log << "End init_bout" << endl << endl;
+	std::cout << "done with init bout" << endl;
 }
 
 
 // Primary function that runs the games.
 void bout() {
-	// err_log << "Begin bout" << endl;
+	std::cout << "bout" << endl;
 	int16_t i, k;
 	unsigned char c;
 
@@ -2305,7 +2242,8 @@ void bout() {
 	do {
 		game_cycle++;
 		for ( i = 0; i <= num_robots; i++ ) {
-			if (robot[i]->armor > 0)
+			if (robot[i]->armor > 0) 
+				std::cout << "-------------------------------" << endl;
 				do_robot(i);
 			
 			if (i == 10)
@@ -2314,6 +2252,7 @@ void bout() {
 
 		for ( i = 0; i <= MAX_MISSILES; i++ )
 			if ( missile[i].a > 0 )
+				std::cout << "missile" << endl;
 				do_missile(i);
 
 		for ( i = 0; i <= num_robots; i++ )
@@ -2400,7 +2339,9 @@ void bout() {
 			break;
 		case 'G': toggle_graphix(); break;
 		default:
+			std::cout << "right before process" << endl;
 			process_keypress(c);
+			std::cout << "made it past" << endl;
 		}
 	
 
@@ -2441,18 +2382,19 @@ void bout() {
 				update_timer = get_seconds_past_hour() >> 1;
 			}
 		}
+		std::cout << "still in loop" << endl;
 	} while ( !quit || !gameover() || !bout_over );
 
 	update_cycle_window();
 
 	score_robots();
 	show_statistics();
-	// err_log << "End bout" << endl << endl;
+	std::cout << "done with bout" << endl;
 }
 
 
 void write_report() {
-	// err_log << "Begin write_report" << endl;
+	std::cout << "write report" << endl;
 	int16_t i;
 	fstream f;
 
@@ -2479,12 +2421,11 @@ void write_report() {
 	}
 
 	f.close();
-	// err_log << "End write_report" << endl << endl;
 }
 
 
 void begin_window() {
-	// err_log << "Begin begin_window" << endl;
+	
 	std::string s;
 
 	if (!graphix || !windoze)
@@ -2508,22 +2449,21 @@ void begin_window() {
 	readkey();
 	
 	setscreen();
-
-	// err_log << "End begin_window" << endl;
 }
 
 void true_main() {
-	// err_log << "Begin true_main" << endl;
+	std::cout << "true main" << endl;
 	int16_t i, k, n, w;
 
 	if (graphix) {
 		begin_window();
-	}
+}
+	std::cout << "past begin window" << endl;
 
 	if ( matches > 0 )
 		for ( i = 1; i <= matches; i++ )
 			bout();
-	
+	std::cout << "past bout" << endl;
 	if ( graphix == false )
 		std::cout << endl;
 
@@ -2578,12 +2518,11 @@ void true_main() {
 	if ( report )
 		write_report();
 
-	// err_log << "End true_main" << endl << endl;
 }
 
 
 void execute_instruction(int16_t n) {
-	// err_log << "Begin execute_instruction" << endl;
+	std::cout << "execute instruction" << endl;
 	int16_t i, j, k;
 	int16_t time_used, loc;
 	bool inc_ip;
@@ -2604,6 +2543,7 @@ void execute_instruction(int16_t n) {
 	if (invalid_microcode(n, robot[n]->ip))
 		robot_error(n, 15, hex(robot[n]->code[robot[n]->ip].op[MAX_OP]));
 
+	cerr << "\tgraphix: " << graphix << "\tstepmode: " << step_mode << "\tn: " << n << endl;
 	if (graphix && (step_mode > 0) && (n == 0)) {
 
 		step_count++;
@@ -2614,10 +2554,12 @@ void execute_instruction(int16_t n) {
 		else
 			step_loop = false;
 
+		/// Gameover looping is caused here
 		while (step_loop && (!(quit | gameover() | bout_over))) {
 			if (keypressed()) {
 				// Loop does nothing until key is pressed
 				c = toupper(readkey());
+				cerr << "\tC: " << c << endl;
 				switch (c) {
 				case 'X':
 					temp_mode = step_mode;
@@ -2652,7 +2594,7 @@ void execute_instruction(int16_t n) {
 					if (robot[n]->mem_watch > 0) {
 						setcolor(BLACK);
 						for (i = 0; i <= 9; i++)
-							//outtextxy(35, 212 + (10 * i), decimal(robot[n]->mem_watch + i, 4) + " :");
+							outtextxy(35, 212 + (10 * i), decimal(robot[n]->mem_watch + i, 4) + " :");
 						robot[n]->mem_watch -= 1;
 						// update_debug_memory();
 					}
@@ -2662,7 +2604,7 @@ void execute_instruction(int16_t n) {
 					if (robot[n]->mem_watch < 1014) {
 						setcolor(BLACK);
 						for (i = 0; i <= 9; i++)
-							//outtextxy(35, 212 + (10 * i), decimal(robot[n]->mem_watch + i, 4) + " :");
+							outtextxy(35, 212 + (10 * i), decimal(robot[n]->mem_watch + i, 4) + " :");
 						robot[n]->mem_watch += 1;
 						// update_debug_memory();
 					}
@@ -2672,7 +2614,7 @@ void execute_instruction(int16_t n) {
 					if (robot[n]->mem_watch > 0) {
 						setcolor(BLACK);
 						for (i = 0; i <= 9; i++)
-							//outtextxy(35, 212 + (10 * i), decimal(robot[n]->mem_watch + i, 4) + " :");
+							outtextxy(35, 212 + (10 * i), decimal(robot[n]->mem_watch + i, 4) + " :");
 						robot[n]->mem_watch -= 10;
 						if (robot[n]->mem_watch < 0)
 							robot[n]->mem_watch = 0;
@@ -2685,7 +2627,7 @@ void execute_instruction(int16_t n) {
 					if (robot[n]->mem_watch > 1014) {
 						setcolor(BLACK);
 						for (i = 0; i <= 9; i++)
-							//outtextxy(35, 212 + (10 * i), decimal(robot[n]->mem_watch + i, 4) + " :");
+							outtextxy(35, 212 + (10 * i), decimal(robot[n]->mem_watch + i, 4) + " :");
 						robot[n]->mem_watch += 10;
 						if (robot[n]->mem_watch > 1014)
 							robot[n]->mem_watch = 1014;
@@ -2703,7 +2645,8 @@ void execute_instruction(int16_t n) {
 				}
 			}
 		}
-
+		cerr << "\trobot[" << n << "]->code[" << "robot[" << n << "]->" << robot[n]->ip << "].op[" << MAX_OP << "] = " << robot[n]->code[robot[n]->ip].op[MAX_OP] << endl;
+		std::fflush(stderr);
 		if (!(((robot[n]->code[robot[n]->ip].op[MAX_OP] & 7) == 0) || (robot[n]->code[robot[n]->ip].op[MAX_OP] == 1))) {
 			time_used = 0;
 		} else {
@@ -3018,11 +2961,11 @@ void execute_instruction(int16_t n) {
 				//update_debug_window();
 		}
 	}
-	// err_log << "End execute_instruction" << endl << endl;
+	std::cout << "done with execute instruction" << endl;
 }
 
 void do_robot(int16_t n) {
-	// err_log << "Begin do_robot" << endl;
+	std::cout << "do robot" << endl;
 	int16_t i, k, tthd, heat_mult, ttx, tty;
 	if (n < 0 || n > num_robots)
 		return;
@@ -3259,11 +3202,11 @@ void do_robot(int16_t n) {
 		robot[n]->larmor = robot[n]->armor;
 
 		robot[n]->cycles_lived++;
-		// err_log << "End do_robot" << endl << endl;
+		std::cout << "done with do robot" << endl;
 	}
 
 void do_mine(int16_t n, int16_t m) {
-	// err_log << "Begin do_mine" << endl;
+	std::cout << "do mine" << endl;
 	int16_t i, k;
 	double d;
 	bool source_alive;
@@ -3321,11 +3264,10 @@ void do_mine(int16_t n, int16_t m) {
 			}
 		}
 	}
-	// err_log << "End do_mine" << endl << endl;
 }
 
 void do_missile(int16_t n) {
-	// err_log << "Begin do_missile" << endl;
+	std::cout << "do missile" << endl;
 	double llx, lly, r, d, xv, yv;
 	int16_t i, k, l, xx, yy, tx, ty, dd, dam;
 	bool source_alive;
@@ -3455,13 +3397,11 @@ void do_missile(int16_t n) {
 				circle(int16_t(_.x * SCREEN_SCALE + 0.5) + SCREEN_X, int16_t(_.y * SCREEN_SCALE + 0.5) + SCREEN_Y, _.lrad);
 		}
 	}
-
-	// err_log << "End do_missile" << endl << endl;
 }
 
 
 void log_error(int16_t i, int16_t n, std::string ov) {
-	// err_log << "Begin log_error" << endl;
+	std::cout << "log error" << endl;
     std::string s;
 
     if (!logging_errors) {
@@ -3562,13 +3502,11 @@ void log_error(int16_t i, int16_t n, std::string ov) {
     robot[n] -> errorlog << " FX="<< addrear(hex(robot[n]->ram[70]) + ",", 7) << endl;
     robot[n] -> errorlog << " Flags = "<< hex(robot[n]->ram[64]) << endl;
 
-    // err_log << "End log_error" << endl << endl;
-
     return;
 }
 
 void prog_error(int16_t n, std::string ss) {
-	// err_log << "Begin prog_error" << endl;
+	std::cout << "prog error" << endl;
     std::string s;
     graph_mode(false);
 
@@ -3659,17 +3597,14 @@ void prog_error(int16_t n, std::string ss) {
         default:
             s = ss;
     }
-
     std::cout << s << endl << endl;
-
-    // err_log << "End prog_error" << endl << endl;
     exit(EXIT_FAILURE);
 
 }
 
 
 void parse1(int32_t n, int32_t p, string * s) {
-	// err_log << "Begin parse1" << endl;
+	std::cout << "parse1" << endl;
     int32_t i, j, opcode, microcode;
     bool found, indirect;
     std::string ss;
@@ -3695,8 +3630,6 @@ void parse1(int32_t n, int32_t p, string * s) {
             microcode = 0;
             found = true;
         }
-
-	  // err_log << "\tChecking for braces" << endl;
         if ( !(lstr(s[i], 1).compare("[")) && !(rstr(s[i], 1).compare("]")) ) {
             s[i] = copy(s[i], 2, s[i].length() - 2);
             indirect = true;
@@ -4266,12 +4199,10 @@ void parse1(int32_t n, int32_t p, string * s) {
                 readkey();
         }
     }
-
-    // err_log << "End parse1" << endl << endl;
 }
 
 void compile(int16_t n, std::string filename) {
-	// err_log << "Begin compile" << endl;
+	std::cout << "compile" << endl;
     fstream f;
     string pp[MAX_OP + 1];
     std::string s, s1, s2, s3, orig_s, msg;
@@ -4603,19 +4534,16 @@ void compile(int16_t n, std::string filename) {
 	  }
     }
     textcolor(7);
-
-    // err_log << "End compile" << endl << endl;
 }
 
 int main(int argc, char ** argv) {
+	std::cout << "main" << endl;
 	paramcount = argc;
 	paramstr = argv;
-
-	err_log.open("Debug_log.txt", fstream::out);
-
-
 	init();
+	std::cout << "end init" << endl;
 	true_main();
+	std::cout << "end true main" << endl;
 	shutdown();
 
 	return EXIT_SUCCESS;
