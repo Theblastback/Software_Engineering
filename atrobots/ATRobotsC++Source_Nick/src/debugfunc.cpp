@@ -845,6 +845,8 @@ void compile(int n, string filename) {
     s = '';
     linecount = 0;
 
+    //TODO robot[n] in front of all robot variables.
+
     //First pass, compile
     while (!feof(f) && s != "#END") {
         //readln(f, s);
@@ -875,44 +877,476 @@ void compile(int n, string filename) {
         }
         if (show_source && ((lock_code = '') || debugging_compiler))
             cout << zero_pas(linecount, 3) + ":" + zero_pad(robot[n]->plen, 3) + ' ', s << endl;
+        if(debugging_compiler)
+            if(readkey == 27)
+                halt();
+        k = 0;
+        for(i = s.length(); s >= 1; s--)
+            if(s[i] == ';')
+                k = i;
+        if(k > 0)
+            s = lstr(s, k-1);
+        s = trim(to_Uppercase(s));
+        for(i = 0; i <= max_op; i++){
+            pp[i] = '';
+        }
+        if(s.length() > 0 && s[1] != ';'){
+            switch(s[1]){
+                case '#':
+                    s1 = to_Uppercase(trim(rstr(s,s.length()-1)));
+                    msg = trim(rstr(orig_s, orig_s.length()-5));
+                    k = 0;
+                    for(i = 1; i <= s1.length(); i++)
+                        if(k == 0 && s1[i] = ' ')
+                            k = i;
+                    k--;
+                    if(k > 1) {
+                        s2 = lstr(s1, k);
+                        s3 = to_Uppercase(trim(rstr(s1, s1.length() - k)));
+                        k = 0;
+                        if(numvars > 0)
+                            for(i = 1; i <= numvars; i++)
+                                if(!strcmp(s3, varname[i]))
+                                    k = i;
+                        if(!strcmp(s2, "DEF") && numvars < max_vars){
+                            if(s3.length() > max_var_len) {
+                                prog_error(14, '');
+                            }else{
+                                if(k > 0)
+                                    prog_error(11, s3);
+                                else {
+                                    numvars++;
+                                    if(numvars > max_vars)
+                                        prog_error(14, '');
+                                    else{
+                                        varname[numvars] = s3;
+                                        varloc[numvars] = 127 + numvars;
+                                    }
+
+                                }
+
+                            }
+                        }
+                        else if(!strcmp(lstr(s2, 4), "LOCK")){
+                            robot[n]->is_locked = true;
+                            if(s2.length > 4)
+                                locktype = value(rstr(s2, length(s2)-4));
+                            lock_code = trim(to_Uppercase(s3));
+                            cout<< "Robot is of LOCKed format from this point forward. [",locktype,"]"<<endl;
+                            for(i = 1; i <= lock_code.length(); i++){
+                                lock_code[i] = char(ord(lock_code[i])- 65);
+                            }
+                        }else if(!strcmp(s2, "MSG"))
+                            robot[n]->name = msg;
+                        else if(!strcmp(s2, "TIME")){
+                            robot[n]->robot_time_limit = value(s3);
+                            if(robot[n]->robot_time_limit < 0)
+                                robot[n]->robot_time_limit = 0;
+                        }else if(!strcmp(s2, "CONFIG")){
+                            if(!strcmp(lstr(s3,8), "SCANNER="))
+                                robot[n]->config.scanner = value(rstr(s3, s3.length()-8));
+                            else if(!strcmp(lstr(s3,7), "SHIELD="))
+                                robot[n]->config.shield = value(rstr(s3, s3.length()-7));
+                            else if(!strcmp(lstr(s3,7), "WEAPON="))
+                                robot[n]->config.weapon = value(rstr(s3, s3.length()-7));
+                            else if(!strcmp(lstr(s3,6), "ARMOR="))
+                                robot[n]->config.armor = value(rstr(s3, s3.length()-6));
+                            else if(!strcmp(lstr(s3,7), "ENGINE="))
+                                robot[n]->config.engine = value(rstr(s3, s3.length()-7));
+                            else if(!strcmp(lstr(s3,10), "HEATSINKS="))
+                                robot[n]->config.heatsinks = value(rstr(s3, s3.length()-10));
+                            else if(!strcmp(lstr(s3,6), "MINES="))
+                                robot[n]->config.mines = value(rstr(s3, s3.length()-6));
+                            else
+                                prog_error(20, s3);
+
+                            if(robot[n]->config.scanner < 0)
+                                robot[n]->conifg.scanner = 0;
+                            if(robot[n]->config.scanner > 5)
+                                robot[n]->config.scanner = 5;
+
+                            if(robot[n]->config.shield < 0)
+                                robot[n]->conifg.shield = 0;
+                            if(robot[n]->config.shield > 5)
+                                robot[n]->config.shield = 5;
+
+                            if(robot[n]->config.weapon < 0)
+                                robot[n]->conifg.weapon = 0;
+                            if(robot[n]->config.weapon > 5)
+                                robot[n]->config.weapon = 5;
+
+                            if(robot[n]->config.armor < 0)
+                                robot[n]->conifg.armor = 0;
+                            if(robot[n]->config.armor > 5)
+                                robot[n]->config.armor = 5;
+
+                            if(robot[n]->config.engine < 0)
+                                robot[n]->conifg.engine = 0;
+                            if(robot[n]->config.engine > 5)
+                                robot[n]->config.engine = 5;
+
+                            if(robot[n]->config.heatsinks < 0)
+                                robot[n]->conifg.heatsinks = 0;
+                            if(robot[n]->config.heatsinks > 5)
+                                robot[n]->config.heatsinks = 5;
+
+                            if(robot[n]->config.mines < 0)
+                                robot[n]->conifg.mines = 0;
+                            if(robot[n]->config.mines > 5)
+                                robot[n]->config.mines = 5;
+                        }
+                        else
+                            cout<< "WARNING: unknown directive '", s2, "' "<<endl;
+
+                    }
+                    break;
+                case '*':
+                    check_plen(robot[n]->plen);
+                    for(i = 0; i <= max_op; i++)
+                        pp[i] = '';
+                    for(i = 2; i <= s.length(); i++)
+                        if(s[i] == '*')
+                            prog_error(23,s);
+                    k = 0;
+                    i = 1;
+                    s1 = '';
+                    if(s.length() <= 2)
+                        prog_error(23, s);
+                    while(i < length(s) && k <= max_op){
+                        i++;
+                        /*
+                         * if ord(s[i]) in [33..41,43..127] then pp[k]:=pp[k]+s[i]
+                            else if (ord(s[i]) in [0..32,128..255]) and
+                            (ord(s[i-1]) in [33..41,43..127]) then inc(k);
+                         */
+                    }
+                    for(i = 0; i <= max_op; i++)
+                        robot[n]->code[robot[n]->plen].op[i] = value(pp[i]);
+                    robot[n]->plen++;
+                    break;
+                case ':':
+                    check_plen(robot[n]->plen);
+                    s1 = rstr(s, s.length()-1);
+                    for(i = 1; i <= s1.length())
+                        //if not (s1[i] in ['0'..'9']) then
+                            prog_error(1, s);
+                    robot[n]->code[robot[n]->plen].op[0] = value(s1);
+                    robot[n]->code[robot[n]->plen].op[max_op] = 2;
+                    if(show_code)
+                        print_code(n, robot[n]->plen);
+                    robot[n]->plen++;
+                    break;
+                case '!':
+                    check_plen(robot[n]->plen);
+                    s1 = trim(rstr(s, s.length()-1));
+                    k = 0;
+                    for(i = s1.length(); i >= 1; i--) {
+                        //in [';',#8,#9,#10,' ',','] then k:=i;
+                    }
+                    if(k > 0)
+                        s1 = lstr(s1, k-1);
+                    k = 0;
+                    for(i = 1; i <= numlabels; i++){
+                        if(!strcmp(labelname[i], s1)){
+                            if(labelnum[i] >= 0)
+                                prog_error(13, "!", s1, "(", cstr(labelnum[i]),")");
+                            k = i;
+                        }
+                        if(k == 0){
+                            numlabels++;
+                            if(numlabels > max_labels)
+                                prog_error(15, "");
+                            k = numlabels;
+                        }
+                        labelname[k] = s1;
+                        labelnum[k] = robot[n]->plen;
+                    }
+                    break;
+                default:
+                    check_plen(robot[n]->plen);
+                    //parse instruction
+                    //remove comments
+                    k = 0;
+                    for(i = s.length(); i >= 1; i--)
+                        if(s[i] == ';')
+                            k = i;
+                    if(k > 0)
+                        s = lstr(s, k-1);
+                    //setup variables for parsing
+                    k = 0;
+                    for(j = 0; j <= max_op; j++)
+                        pp[j] = '';
+                    for(j = 1; j <= s.length(); j++){
+                        c = s[j];
+                        if(/*not (c in [' ',#8,#9,#10,','])) &&*/ k <= max_op)
+                            pp[k] = pp[k]+c;
+                        else if (/*lc in [' ',#8,#9,#10,','])*/){
+                            k = k+1;
+                        }
+                        lc = c;
+                    }
+                    parse1(n, robot[n]->plen, pp);
+                    robot[n]->plen++;
+                    break;
+            }
+        }
+        //f.close();?
+        /*
+         * Add our implied NOP if there's room. This was originally to make sure
+         * no one tries using an empty robot program, kinda pointless otherwise
+         */
+        if(robot[n]->plen <= maxcode) {
+            for (i = 0; i <= max_op; i++)
+                pp[i] = "";
+            pp[0] = "NOP";
+            parse1(n, robot[n]->plen, pp);
+        }else{
+            robot[n]->plen--;
+        }
+
+        //second pass, resolving !labels
+        if(numlabels > 0){
+            for(i = 0; i <= plen; i++){
+                for(j = 0; j <= max_op-1; j++){
+                    if(robot[n]->code[i].op[max_op] >> (j*4) == 3){
+                        k = robot[n]->code[i].op[j];
+                        if(k > 0 && k <= numlabels){
+                            l = labelnum[k];
+                            if(l<0)
+                                prog_error(19,'"!'+labelname[k]+'" ('+cstr(l)+')');
+                            if(l<0 || l > maxcode)
+                                prog_error(18, '"!'+labelname[k]+'" ('+cstr(l)+')');
+                            else{
+                                robot[n]->code[i].op[j] = l;
+                                mask = !(std::hex(F) << (j*4));
+                                robot[n]->code[i].op[max_op] = (robot[n]->code[i].op[max_op] & mask) or (4 << (j*4));
+                            }
+                        }
+                    }else{
+                        prog_error(17, cstr(k));
+                    }
+                }
+            }
+        }
     }
+    textcolor(7);
 }
 
-/*
- * {--first pass, compile--}
-   while (not eof(f)) and (s<>'#END') {and (plen<=maxcode)} do
-    begin
-     readln(f,s);
-     inc(linecount);
-     if locktype<3 then lock_pos:=0;
-     if lock_code<>'' then
-      for i:=1 to length(s) do
-       begin
-        inc(lock_pos); if lock_pos>length (lock_code) then lock_pos:=1;
-        case locktype of
-         3:s[i]:=char((ord(s[i])-1) xor (ord(lock_code[lock_pos]) xor lock_dat));
-         2:s[i]:=char(ord(s[i]) xor (ord(lock_code[lock_pos]) xor 1));
-         else s[i]:=char(ord(s[i]) xor ord(lock_code[lock_pos]));
-        end;
-        lock_dat:=ord(s[i]) and 15;
-       end;
-     s:=btrim(s);
-     orig_s:=s;
-     for i:=1 to length(s) do
-      if s[i] in [#0..#32,',',#128..#255] then s[i]:=' ';
-     if show_source and ((lock_code='') or debugging_compiler) then
-        writeln(zero_pad(linecount,3)+':'+zero_pad(plen,3)+' ',s);
-     if debugging_compiler then
-        begin if readkey=#27 then halt; end;
-     {-remove comments-}
-     k:=0;
-     for i:=length(s) downto 1 do
-         if s[i]=';' then k:=i;
-     if k>0 then s:=lstr(s,k-1);
-     s:=btrim(ucase(s));
-     for i:=0 to max_op do pp[i]:='';
-     if (length(s)>0) and (s[1]<>';') then
- */
+void do_robot(int n){
+    int i, j, k, l, tthd, heat_mult, ttx, tty;
+    if(n < 0 || n > num_robots)
+        return EXIT_SUCCESS;
+    if(robot[n]->armor <= 0)
+        return EXIT_SUCCESS;
+    robot[n]->time_left = time_slice;
+    if(robot[n]->time_left > robot[n]->robot_time_limit && robot[n]->robot_time_limit > 0)
+        robot[n]->time_left = robot[n]->robot_time_limit;
+    if(robot[n]->time_left>robot[n]->max_time && robot[n]->max_time > 0)
+        robot[n]->time_left = robot[n]->max_time;
+    robot[n]->executed = 0;
+    //execute timeslice
+    while(robot[n]->time_left > 0 && !robot[n]->cooling && robot[n]->executed < 20+time_slice && robot[n]->armor > 0){
+        if(robot[n]->delay_left < 0)
+            robot[n]->delay_left = 0;
+        if(robot[n]->delay_left > 0) {
+            robot[n]->delay_left--;
+            robot[n]->time_left--;
+        }
+        if(robot[n]->time_left >= 0 && robot[n]->delay_left == 0)
+            execute_instruction(n);
+        if(robot[n]->heat >= robot[n]->shutdown){
+            robot[n]->cooling = true;
+            robot[n]->shields_up = false;
+        }
+        if(robot[n]->heat >= 500){
+            damage(n, 1000, true);
+        }
+    }
+    robot[n]->thd = (robot[n]->thd + 1024) and 255;
+    robot[n]->hd = (robot[n]->hd + 1024) and 255;
+    robot[n]->shift = (robot[n]->shift + 1024) and 255;
+    if(robot[n]->tspd < -75)
+        robot[n]->tspd = -75;
+    if(robot[n]->tspd > 100)
+        robot[n]->tspd = 100;
+    if(robot[n]->spd < -75)
+        robot[n]->spd = -75;
+    if(robot[n]->spd > 100)
+        robot[n]->spd = 100;
+    if(robot[n]->heat < 0)
+        robot[n]->heat = 0;
+    if(robot[n]->last_damage < robot[n]->maxint)
+        robot[n]->last_damage++;
+    if(robot[n]->last_hit < robot[n]->maxint)
+        robot[n]->last_hit++;
+
+    //update heat
+    if(robot[n]->shields_up && (game_cycle and 3 == 0))
+        robot[n]->heat++;
+    if(!robot[n]->shields_up){
+        if(robot[n]->heat > 0)
+            switch(robot[n]->config.heatsinks){
+                case 5:
+                    if(game_cycle and 1 == 0)
+                        robot[n]->heat--;
+                    break;
+                case 4:
+                    if(game_cycle % 3 == 0)
+                        robot[n]->heat--;
+                    break;
+                case 3:
+                    if(game_cycle and 3 == 0)
+                        robot[n]->heat--;
+                    break;
+                case 2:
+                    if(game_cycle and 7 == 0)
+                        robot[n]->heat--;
+                    break;
+                case 1:
+                    break;
+                default:
+                    if(game_cycle and 3 == 0)
+                        robot[n]->heat++;
+            }
+        if(robot[n]->overburn && (game_cycle % 3 == 0))
+            robot[n]->heat++;
+        if(robot[n]->head > 0)
+            robot[n]->heat--;
+        if(robot[n]->heat > 0 && (game_cycle and 7 == 0) && (abs(robot[n]->tspd) <= 25))
+            robot[n]->heat--;
+        if(robot[n]->heat <= robot[n]->shutdown-50 || (robot[n]->heat <= 0))
+            robot[n]->cooling = false;
+    }
+    if(robot[n]->cooling)
+        robot[n]->tspd = 0;
+    heat_mult = 1;
+    switch(robot[n]->heat){
+        case 80..99:
+            heat_mult = 0.98;
+            break;
+        case 100..149:
+            heat_mult = 0.95;
+            break;
+        case 150..199:
+            heat_mult = 0.85;
+            break;
+        case 200..249:
+            heat_mult = 0.75;
+            break;
+        case 250..maxint:
+            heat_mult = 0.50;
+    }
+    if(robot[n]->overburn)
+        heat_mult = heat_mult * 1.3;
+    if(robot[n]->heat >= 475 && (game_cycle and 3 == 0))
+        damage(n, 1, true);
+    if(robot[n]->heat >= 450 && (game_cycle and 7 == 0))
+        damage(n, 1, true);
+    if(robot[n]->heat >= 400 && (game_cycle and 15 == 0))
+        damage(n, 1, true);
+    if(robot[n]->heat >= 350 && (game_cycle and 31 == 0))
+        damage(n, 1, true);
+    if(robot[n]->heat >= 300 && (game_cycle and 63 == 0))
+        damage(n, 1, true);
+
+    //update robot in physical world
+    //acceleration
+    if(abs(robot[n]->spd-robot[n]->tspd) <= robot[n]->acceleration)
+        robot[n]->spd = robot[n]->tspd;
+    else{
+        if(robot[n]->tspd > robot[n]->spd) {
+            robot[n]->spd++;
+            robot[n]->acceleration++;
+        }else{
+            robot[n]->spd--;
+            robot[n]->acceleration--;
+        }
+    }
+    tthd = robot[n]->hd+robot[n]->shift;
+    if(abs(robot[n]->hd-robot[n]->thd) <= robot[n]->turn_rate || (abs(robot[n]->hd-robot[n]->thd) >= 256-robot[n]->turn_rate))
+        robot[n]->hd = robot[n]->thd;
+    else if(robot[n]->hd != robot[n]->thd){
+        k = 0;
+        if((robot[n]->thd > robot[n]->hd) && (abs(robot[n]->hd-robot[n]->thd) <= 128) ||
+                (robot[n]->thd < robot[n]->hd) && (abs(robot[n]->hd-robot[n]->thd) >= 128))
+            k = 1;
+        if(k = 1)
+            robot[n]->hd = (robot[n]->hd + robot[n]->turn_rate) and 255;
+        else
+            robot[n]->hd = (robot[n]->hd + 256 - robot[n]->turn_rate) and 255;
+    }
+    robot[n]->hd = robot[n]->hd and 255;
+    if(robot[n]->keepshift)
+        robot[n]->shift = (tthd - robot[n]->hd + 1024) and 255;
+    robot[n]->speed = robot[n]->spd/100*(max_vel*heat_mult*robot[n]->speedadj);
+    robot[n]->xv = sint[robot[n]->hd]*robot[n]->speed;
+    robot[n]->yv = -cost[robot[n]->hd]*robot[n]->speed;
+    if(robot[n]->hd == 0 || robot[n]->hd == 128)
+        robot[n]->xv = 0;
+    if(robot[n]->hd == 64 || robot[n]->hd == 192)
+        robot[n]->yv = 0;
+    if(robot[n]->xv != 0)
+        robot[n]->ttx = robot[n]->x + robot[n]->xv;
+    else
+        robot[n]->ttx = robot[n]->x;
+    if(robot[n]->yv != 0)
+        robot[n]->tty = robot[n]->y + robot[n]->yv;
+    else
+        robot[n]->tty = y;
+    if(robot[n]->ttx < 0 || (robot[n]->tty < 0) || (robot[n]->ttx > 1000) || (robot[n]->tty > 1000)){
+        robot[n]->ram[8]++;
+        robot[n]->tspd = 0;
+        if(abs(robot[n]->speed) >= max_vel/2)
+            damage(n, 1, true);
+        robot[n]->spd = 0;
+    }
+    for(i = 0; i <= num_robots; i++)
+        if(i != n && robot[i]->armor > 0 && distance(robot[n]->ttx, robot[n]->tty, robot[i]->x, robot[i]->y) < crash_range){
+            robot[n]->tspd = 0;
+            robot[n]->spd = 0;
+            robot[n]->ttx = x;
+            robot[n]->tty = y;
+            robot[i]->tspd = 0;
+            robot[i]->spd = 0;
+            robot[n]->ram[8]++;
+            robot[i]->ram[8];
+            if(abs(robot[n]->speed) >= max_vel/2){
+                damage(n, 1, true);
+                damage(i, 1, true);
+            }
+        }
+    if(robot[n]->ttx < 0)
+        robot[n]->ttx = 0;
+    if(robot[n]->tty < 0)
+        robot[n]->tty = 0;
+    if(robot[n]->ttx > 1000)
+        robot[n]->ttx = 1000;
+    if(robot[n]->tty > 1000)
+        robot[n]->tty = 1000;
+    robot[n]->meters = robot[n]->meters + distance(robot[n]->x, robot[n]->y, robot[n]->ttx, robot[n]->tty);
+    if(robot[n]->meters > maxint)
+        robot[n]->meters = robot[n]->meters-maxint;
+    robot[n]->ram[9] = trunc(robot[n]->meters);
+    robot[n]->x = robot[n]->ttx;
+    robot[n]->y = robot[n]->tty;
+
+    //draw robot
+    if(robot[n]->armor < 0)
+        robot[n]->armor = 0;
+    if(robot[n]->heat < 0)
+        robot[n]->heat = 0;
+    if(graphix){
+        if(robot[n]->armor != robot[n]->larmor)
+            update_armor(n);
+        if(robot[n]->heat/5 != robot[n]->lheat/5)
+            update_heat(n);
+        draw_robot(n);
+    }
+    robot[n]->lheat = robot[n]->heat;
+    robot[n]->larmor = robot[n]->armor;
+
+    robot[n]->cycles_lives++;
+}
 
 int main() {
     log_error(4);
