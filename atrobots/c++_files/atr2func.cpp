@@ -1,4 +1,4 @@
-#
+
 #pragma warning (disable:4996)
 #include "myfile.h" // filelib is already included in myfile
 #include "atr2func.h"
@@ -622,7 +622,7 @@ void hole(int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
 }
 
 
-int16_t hex2int32_t(string s) {
+int16_t hex2int(string s) {
 	uint16_t w, i;
 
 	i = 0;

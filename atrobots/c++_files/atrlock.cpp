@@ -14,7 +14,7 @@ int16_t	i, j, k, lock_pos, lock_dat, this_dat;
 
 
 string encode(string s) {
-	int16_t	i, j, k;
+	int16_t	i;
 	static int count = 1;
 	cout << "atrlock encode section: s is '" << s <<"'" << endl;
 	if (lock_code.compare("")) {
@@ -24,7 +24,7 @@ string encode(string s) {
 				lock_pos = 0;
 			}
 
-			if (((s[i] >= 0) && (s[i] <= 31)) || ((s[i] >= 128))) {
+			if (((s[i] >= 0) && (s[i] <= 31)) || ((s[i] >= 128) && (s[i] <= 255))) {
 				s[i] = ' ';
 			}
 
@@ -42,7 +42,7 @@ string encode(string s) {
 
 
 string prepare(string s, string s1) {
-	int16_t i, j, k;
+	int16_t i, k;
 	string s2;
 	cout << "atrlock prepare: s1 is '" << s1 << "'" << endl;
 	if ((s1.length() == 0) || (s1[0] == ';')) {
@@ -93,7 +93,6 @@ void write_line(string s, string s1) {
 
 int main(int argc, char ** argv) {
 	//srand(time(NULL)); // Imitates the randomize function
-	srand(0);
 	string arg1, arg2;
 
 	// To put in the date in the header
@@ -146,7 +145,7 @@ int main(int argc, char ** argv) {
 		std::getline(f1, s);
 		s = btrim(s);
 
-		if (s[1] == ';') {
+		if (s[0] == ';') {
 			f2 << s << endl;
 			s = "";
 		}
@@ -163,13 +162,14 @@ int main(int argc, char ** argv) {
 	//exit(0);
 	lock_code = "";
 
-	k = (rand() % 21) + 20;
+	k = 15;
+	//k = (rand() % 21) + 20;
 	for (i = 1; i <= k; i++) {
-		lock_code = lock_code + (char)((rand() % 33) + 65);
+		lock_code = lock_code + (char)((15 % 33) + 65);
 	}
 	//lock_code = "";
-
-	f2 << "#LOCK " << LOCKTYPE << " " << lock_code;
+	lock_code = "RLQUDX`EBH^CLDAHFGWWW`DFWHIQ";
+	f2 << "#LOCK " << LOCKTYPE << " " << lock_code << endl;
 
 	// Decode lock_code
 	for (i = 0; i < lock_code.length(); i++) {
