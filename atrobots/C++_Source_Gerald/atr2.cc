@@ -1090,6 +1090,8 @@ void init() {
 	report = false;
 	kill_count = 0;
 	maxcode = MAX_CODE;
+	make_tables();
+	//randomize();
 
 	num_robots = -1;
 	game_limit = 100000;
@@ -1208,29 +1210,37 @@ void draw_robot(int16_t n) {
 
 	// Set up for draw
 	xx = (robot[n]->x * SCREEN_SCALE) + SCREEN_X;
+	
 	yy = (robot[n]->y * SCREEN_SCALE) + SCREEN_Y;
+	
 	robot[n]->hd = (robot[n]->hd + 1024) & 255;
+	
 	robot[n]->tx[0] = (xx + sint[robot[n]->hd] * 5) + 0.5;
+	
 	robot[n]->ty[0] = (yy - cost[robot[n]->hd] * 5) + 0.5;
-
+	
 	robot[n]->tx[1] = (xx + sint[(robot[n]->hd + 0x68) & 255] * ROBOT_SCALE) + 0.5;
 	robot[n]->ty[1] = (yy - cost[(robot[n]->hd + 0x68) & 255] * ROBOT_SCALE) + 0.5;
-
+	
 	robot[n]->tx[2] = (xx + sint[(robot[n]->hd + 0x98) & 255] * ROBOT_SCALE) + 0.5;
 	robot[n]->ty[2] = (yy - cost[(robot[n]->hd + 0x98) & 255] * ROBOT_SCALE) + 0.5;
+	
 	t = (robot[n]->hd + (robot[n]->shift & 255) + 1024) & 255;
 
 	robot[n]->tx[3] = xx + 0.5;
 	robot[n]->ty[3] = yy + 0.5;
+	
 
 	robot[n]->tx[4] = (xx + sint[t] * ROBOT_SCALE * 0.8) + 0.5;
 	robot[n]->ty[4] = (yy - cost[t] * ROBOT_SCALE * 0.8) + 0.5;
+	
 
 	robot[n]->tx[5] = (xx + sint[(t + robot[n]->scanarc + 1024) & 255] * robot[n]->scanrange * SCREEN_SCALE) + 0.5;
 	robot[n]->ty[5] = (yy - cost[(t + robot[n]->scanarc + 1024) & 255] * robot[n]->scanrange * SCREEN_SCALE) + 0.5;
-
+	
 	robot[n]->tx[6] = (xx + sint[(t - robot[n]->scanarc + 1024) & 255] * robot[n]->scanrange * SCREEN_SCALE) + 0.5;
 	robot[n]->ty[6] = (yy - cost[(t - robot[n]->scanarc + 1024) & 255] * robot[n]->scanrange * SCREEN_SCALE) + 0.5;
+	
 
 	robot[n]->startarc = (((265 - ((t + robot[n]->scanarc) & 255)) / 256 * 360) + 90) + 0.5;
 	robot[n]->endarc = (((265 - ((t - robot[n]->scanarc) & 255)) / 256 * 360) + 90) + 0.5;

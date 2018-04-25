@@ -516,11 +516,11 @@ void main_viewport() {
 
 
 void make_tables() {
-	int16_t i;
+	int i;
 
 	for (i = 0; i <= 255; i++) {
-		sint[i] = sin((i / 128) * M_PI);
-		cost[i] = cos((i / 128) * M_PI);
+		sint[i] = sin(((double)i / 128) * M_PI);
+		cost[i] = cos(((double)i / 128) * M_PI);
 	}
 }
 
