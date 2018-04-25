@@ -16,7 +16,7 @@ int16_t	i, j, k, lock_pos, lock_dat, this_dat;
 string encode(string s) {
 	int16_t	i;
 	static int count = 1;
-	cout << "atrlock encode section: s is '" << s <<"'" << endl;
+	//cout << "atrlock encode section: s is '" << s <<"'" << endl;
 	if (lock_code.compare("")) {
 		for (i = 0; i < s.length(); i++) {
 			lock_pos++;
@@ -28,15 +28,16 @@ string encode(string s) {
 				s[i] = ' ';
 			}
 
-			this_dat = s[i] & 15;
+			this_dat = unsigned char(s[i]) & 15;
 			cout << s[i] << endl;
-			s[i] = (char)((s[i] ^ (lock_code[lock_pos] ^ lock_dat)) + 1);
+			s[i] = char((unsigned char(s[i]) ^ (lock_code[lock_pos] ^ lock_dat)) + 1);
 			cout << "\t" << s[i] << endl;
 			lock_dat = this_dat;
+			//f2 << "Lock_dat is: " << lock_dat << endl;
 		}
 	}
-	cout << "#######################################";
-	cout << count++ << " " << s << endl;
+	//cout << "#######################################";
+	//cout << count++ << " " << s << endl;
 	return s;
 }
 
@@ -44,7 +45,8 @@ string encode(string s) {
 string prepare(string s, string s1) {
 	int16_t i, k;
 	string s2;
-	cout << "atrlock prepare: s1 is '" << s1 << "'" << endl;
+	//cout << "atrlock prepare: s1 is '" << s1.length() << "'" << endl;
+	// remove comments
 	if ((s1.length() == 0) || (s1[0] == ';')) {
 		s1 = "";
 	}
@@ -53,14 +55,17 @@ string prepare(string s, string s1) {
 
 		for (i = (s1.length()-1); i >= 0; i--) {
 			if (s1[i] == ';')
-				k = i;
+				k = i+1;
+			//cout << "prepare K value is: " << k << endl;
 		}
 
 		if (k > 0)
 			s1 = lstr(s1, k - 1);
-		cout << "prepare s1 after lstr is '" << s1 << "'" << endl;
+		//cout << "prepare s1 after lstr is '" << s1.length() << "'\t" << s1 << endl;
 	}
 
+	// remove excess spaces
+	//cout << "excess spaces s1 is: " << s1.length() << ": " << s1 << endl;
 	s2 = "";
 	for (i = 0; i < s1.length(); i++) {
 		if (!((s1[i] == ' ') || (s1[i] == 8) || (s1[i] == 9) || (s1[i] == 10) || (s1[i] == ','))) {
@@ -73,17 +78,17 @@ string prepare(string s, string s1) {
 			}
 		}
 	}
-	cout << "prepare s is: '" << s << "'" << endl;
+	//cout << "prepare s is: '" << s.length() << "'" << endl;
 	if (s2.compare(""))
 		s = s + s2;
-	cout << "prepare s after compare is: '" << s << "'" << endl;
+	//cout << "prepare s after compare is: '" << s.length() << ":" << s << "'" << endl;
 	return s;
 }
 
 void write_line(string s, string s1) {
-	cout << "atrlock write_line: s1 is '" << s1 << "'" << endl;
+	//cout << "atrlock write_line: s1 is '" << s1 << "'" << endl;
 	s = prepare(s, s1);
-	cout << "write_line: s is '" << s << "'" << endl;
+	//cout << "write_line: s is '" << s << "'" << endl;
 	if (s.length() > 0) {
 		s = encode(s);
 		f2 << s << endl;
@@ -102,7 +107,7 @@ int main(int argc, char ** argv) {
 
 
 
-	lock_pos = 0;
+	lock_pos = -1;
 	lock_dat = 0;
 
 	if ((argc < 2) || (argc > 3)) {
@@ -162,20 +167,20 @@ int main(int argc, char ** argv) {
 	//exit(0);
 	lock_code = "";
 
-	k = 15;
-	//k = (rand() % 21) + 20;
-	for (i = 1; i <= k; i++) {
-		lock_code = lock_code + (char)((15 % 33) + 65);
+	//k = 15;
+	k = (rand() % 21) + 20;
+	for (i = 0; i <= k; i++) {
+		lock_code = lock_code + char((rand() % 33) + 65);
 	}
 	//lock_code = "";
-	lock_code = "RLQUDX`EBH^CLDAHFGWWW`DFWHIQ";
+	//lock_code = "RLQUDX`EBH^CLDAHFGWWW`DFWHIQ";
 	f2 << "#LOCK " << LOCKTYPE << " " << lock_code << endl;
 
 	// Decode lock_code
 	for (i = 0; i < lock_code.length(); i++) {
-		lock_code[i] = ((char)lock_code[i] - 65);
+		lock_code[i] = char(lock_code[i] - 65);
 	}
-
+	//f2 << "Lock_code is: " << lock_code << endl;
 	std::cerr<< "Encoding " << fn1 << "...";
 
 	// Encode robot
@@ -184,10 +189,12 @@ int main(int argc, char ** argv) {
 		write_line("", ucase(s));
 	while (!f1.eof()) {
 		std::getline(f1, s1);
+		//f2 << "Input read in: " << s1.length() << endl;
 		s = "";
 		s1 = btrim(ucase(s1));
-		cout << "atrlock main before encode is: '" << s1 << "'" << endl;
+		//cout << "atrlock main before encode is: '" << s1 << "'" << endl;
 		write_line(s, s1);
+		//f2 << "Main: lock_dat is: " << lock_dat << endl;
 	}
 
 	cout << "Done. Used LOCK Format #" << LOCKTYPE << "." << endl;
