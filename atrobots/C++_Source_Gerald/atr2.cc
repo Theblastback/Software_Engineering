@@ -5,7 +5,6 @@
 #include <iostream>
 #include <cstdint>
 
-
 // Begin global variable/definition listings
 std::string progname = "AT-Robots";
 std::string version = "2.11";
@@ -1215,35 +1214,35 @@ void draw_robot(int16_t n) {
 
 	robot[n]->hd = (robot[n]->hd + 1024) & 255;
 
-	robot[n]->tx[0] = (xx + sint[robot[n]->hd] * 5) + 0.5;
+	robot[n]->tx[0] = int((xx + sint[robot[n]->hd] * 5) + 0.5);
 
-	robot[n]->ty[0] = (yy - cost[robot[n]->hd] * 5) + 0.5;
+	robot[n]->ty[0] = int ((yy - cost[robot[n]->hd] * 5) + 0.5);
 
-	robot[n]->tx[1] = (xx + sint[(robot[n]->hd + 0x68) & 255] * ROBOT_SCALE) + 0.5;
-	robot[n]->ty[1] = (yy - cost[(robot[n]->hd + 0x68) & 255] * ROBOT_SCALE) + 0.5;
+	robot[n]->tx[1] = int ((xx + sint[(robot[n]->hd + 0x68) & 255] * ROBOT_SCALE) + 0.5);
+	robot[n]->ty[1] = int ((yy - cost[(robot[n]->hd + 0x68) & 255] * ROBOT_SCALE) + 0.5);
 
-	robot[n]->tx[2] = (xx + sint[(robot[n]->hd + 0x98) & 255] * ROBOT_SCALE) + 0.5;
-	robot[n]->ty[2] = (yy - cost[(robot[n]->hd + 0x98) & 255] * ROBOT_SCALE) + 0.5;
+	robot[n]->tx[2] = int((xx + sint[(robot[n]->hd + 0x98) & 255] * ROBOT_SCALE) + 0.5);
+	robot[n]->ty[2] = int((yy - cost[(robot[n]->hd + 0x98) & 255] * ROBOT_SCALE) + 0.5);
 
 	t = (robot[n]->hd + (robot[n]->shift & 255) + 1024) & 255;
 
-	robot[n]->tx[3] = xx + 0.5;
-	robot[n]->ty[3] = yy + 0.5;
+	robot[n]->tx[3] = int ( xx + 0.5);
+	robot[n]->ty[3] = int (yy + 0.5);
 
 
-	robot[n]->tx[4] = (xx + sint[t] * ROBOT_SCALE * 0.8) + 0.5;
-	robot[n]->ty[4] = (yy - cost[t] * ROBOT_SCALE * 0.8) + 0.5;
+	robot[n]->tx[4] = int((xx + sint[t] * ROBOT_SCALE * 0.8) + 0.5);
+	robot[n]->ty[4] = int((yy - cost[t] * ROBOT_SCALE * 0.8) + 0.5);
 
 
-	robot[n]->tx[5] = (xx + sint[(t + robot[n]->scanarc + 1024) & 255] * robot[n]->scanrange * SCREEN_SCALE) + 0.5;
-	robot[n]->ty[5] = (yy - cost[(t + robot[n]->scanarc + 1024) & 255] * robot[n]->scanrange * SCREEN_SCALE) + 0.5;
+	robot[n]->tx[5] = int((xx + sint[(t + robot[n]->scanarc + 1024) & 255] * robot[n]->scanrange * SCREEN_SCALE) + 0.5);
+	robot[n]->ty[5] = int((yy - cost[(t + robot[n]->scanarc + 1024) & 255] * robot[n]->scanrange * SCREEN_SCALE) + 0.5);
 
-	robot[n]->tx[6] = (xx + sint[(t - robot[n]->scanarc + 1024) & 255] * robot[n]->scanrange * SCREEN_SCALE) + 0.5;
-	robot[n]->ty[6] = (yy - cost[(t - robot[n]->scanarc + 1024) & 255] * robot[n]->scanrange * SCREEN_SCALE) + 0.5;
+	robot[n]->tx[6] = int((xx + sint[(t - robot[n]->scanarc + 1024) & 255] * robot[n]->scanrange * SCREEN_SCALE) + 0.5);
+	robot[n]->ty[6] = int((yy - cost[(t - robot[n]->scanarc + 1024) & 255] * robot[n]->scanrange * SCREEN_SCALE) + 0.5);
 
 
-	robot[n]->startarc = (((265 - ((t + robot[n]->scanarc) & 255)) / 256 * 360) + 90) + 0.5;
-	robot[n]->endarc = (((265 - ((t - robot[n]->scanarc) & 255)) / 256 * 360) + 90) + 0.5;
+	robot[n]->startarc = int((((265 - ((t + robot[n]->scanarc) & 255)) / 256 * 360) + 90) + 0.5);
+	robot[n]->endarc = int((((265 - ((t - robot[n]->scanarc) & 255)) / 256 * 360) + 90) + 0.5);
 
 	if (graphix) {
 		main_viewport();
@@ -1515,7 +1514,7 @@ void init_missile(double xx, double yy, double xxv, double yyx, int16_t dir, int
 			if (insane_missiles)
 				missile[k].mspd = 100 + (50 * insanity) * missile[k].mult;
 			if ((s >= 0) && (s <= num_robots)) {
-				robot[s]->heat += (20 * m);
+				robot[s]-> heat += int((20 * m));
 				(robot[s]->shots_fired)++;
 				(robot[s]->match_shots)++;
 			}
@@ -1552,20 +1551,20 @@ void damage(int16_t n, int16_t d, bool physical) {
 		else {
 			switch (robot[n]->config.shield) {
 			case 3:
-				d = (dd * 2 / 3) + 0.5;
+				d = int ((dd * 2 / 3) + 0.5);
 				if (d < 1)
 					d = 1;
-				h = (dd * 2 / 3) + 0.5;
+				h = int ((dd * 2 / 3) + 0.5);
 				break;
 			case 4:
 				h = dd / 2;
 				d = dd - h;
 				break;
 			case 5:
-				d = (dd * 1 / 3) + 0.5;
+				d = int((dd * 1 / 3) + 0.5);
 				if (d < 1)
 					d = 1;
-				h = (dd * 1 / 3) + 0.5;
+				h = int ((dd * 1 / 3) + 0.5);
 				if (h < 1)
 					h = 1;
 				break;
@@ -1579,7 +1578,7 @@ void damage(int16_t n, int16_t d, bool physical) {
 
 	*/
 	if (d > 0) {
-		d = (d * robot[n]->damageadj) + 0.5;
+		d = int ((d * robot[n]->damageadj) + 0.5);
 		if (d < 1)
 			d = 1;
 	}
@@ -1611,7 +1610,7 @@ void damage(int16_t n, int16_t d, bool physical) {
 
 		for (i = 0; i <= num_robots; i++) {
 			if ((i != n) && (robot[i]->armor > 0)) {
-				k = (_distance(robot[n]->x, robot[n]->y, robot[i]->x, robot[i]->y)) + 0.5;
+				k = int((_distance(robot[n]->x, robot[n]->y, robot[i]->x, robot[i]->y)) + 0.5);
 				if (k < BLAST_RADIUS)
 					damage(i, (abs(BLAST_RADIUS - k) * m) + 0.5, false);
 			}
@@ -1643,12 +1642,12 @@ int16_t scan(int16_t n) {
 		if ((i != n) && (robot[i]->armor > 0)) {
 			j = find_anglei(robot[n]->x, robot[n]->y, robot[i]->x, robot[i]->y);
 			d = _distance(robot[n]->x, robot[n]->y, robot[i]->x, robot[i]->y);
-			k = d + 0.5;
+			k = int (d + 0.5);
 			if ((k < range) && (k <= robot[n]->scanrange) && ((abs(j - dir) <= abs(robot[n]->scanarc)) || (abs(j - dir) >= (256 - abs(robot[n]->scanarc))))) {
 
 				dir = (dir + 1024) & 255;
-				xx = (sint[dir] * d + robot[n]->x) + 0.5;
-				yy = ((-1 * cost[dir])* d + robot[n]->y) + 0.5;
+				xx = int ((sint[dir] * d + robot[n]->x) + 0.5);
+				yy = int (((-1 * cost[dir])* d + robot[n]->y) + 0.5);
 				r = _distance(xx, yy, robot[i]->x, robot[i]->y);
 				// XXX Debug code here
 				if ((robot[n]->scanarc > 0) || (r < (HIT_RANGE - 2))) {
@@ -1689,7 +1688,7 @@ int16_t scan(int16_t n) {
 			robot[n]->ram[5] = robot[nn]->transponder;
 			robot[n]->ram[6] = (robot[nn]->hd - (robot[n]->hd + robot[n]->shift) + 1024) & 255;
 			robot[n]->ram[7] = robot[nn]->spd;
-			robot[n]->ram[13] = (robot[nn]->speed * 100) + 0.5;
+			robot[n]->ram[13] = int ((robot[nn]->speed * 100) + 0.5);
 		}
 	}
 
@@ -1772,7 +1771,7 @@ int16_t in_port(int16_t n, int16_t p, int16_t *time_used) {
 		*time_used += 3;
 		k = MAXINT;
 		for (i = 0; i <= num_robots; i++) {
-			j = _distance(robot[n]->x, robot[n]->y, robot[i]->x, robot[i]->y) + 0.5;
+			j = int( _distance(robot[n]->x, robot[n]->y, robot[i]->x, robot[i]->y) + 0.5);
 			if ((n != j) && (j < k) && (j < MAX_SONAR) && (robot[i]->armor > 0)) {
 				k = j;
 				nn = i;
@@ -1794,7 +1793,7 @@ int16_t in_port(int16_t n, int16_t p, int16_t *time_used) {
 		k = MAXINT;
 
 		for (i = 0; i <= MAX_ROBOTS; i++) {
-			j = _distance(robot[n]->x, robot[n]->y, robot[i]->x, robot[i]->y) + 0.5;
+			j = int( _distance(robot[n]->x, robot[n]->y, robot[i]->x, robot[i]->y) + 0.5);
 			if ((n != j) && (j < k) && (j < MAX_SONAR) && (robot[i]->armor > 0)) {
 				k = j;
 				l = i;
@@ -1942,8 +1941,8 @@ void call_int(int16_t n, int16_t int_num, int16_t * time_used) {
 		break;
 	case 2:
 		*time_used = 5;
-		robot[n]->ram[69] = robot[n]->x + 0.5; // double to signed int16_t may cause problems
-		robot[n]->ram[70] = robot[n]->y + 0.5;
+		robot[n]->ram[69] = int16_t(robot[n]->x + 0.5); // double to signed int16_t may cause problems
+		robot[n]->ram[70] = int (robot[n]->y + 0.5);
 		break;
 	case 3:
 		*time_used = 2;
@@ -2003,7 +2002,7 @@ void call_int(int16_t n, int16_t int_num, int16_t * time_used) {
 		*time_used = 4;
 		break;
 	case 11:
-		robot[n]->ram[68] = (robot[n]->speed * 100) + 0.5;
+		robot[n]->ram[68] = int ((robot[n]->speed * 100) + 0.5);
 		robot[n]->ram[69] = robot[n]->last_damage;
 		robot[n]->ram[70] = robot[n]->last_hit;
 		*time_used = 5;
@@ -3123,7 +3122,7 @@ void do_robot(int16_t n) {
 	// err_log << "Begin do_robot" << endl;
 	std::cout << "begin do robot" << endl;
 	int16_t i, k, tthd;
-	double heat_mult, ttx, ttx; //change made since variable eventually needs decimal
+	double heat_mult, ttx, tty; //change made since variable eventually needs decimal
 
 	if (n < 0 || n > num_robots)
 		return;
@@ -3280,6 +3279,7 @@ void do_robot(int16_t n) {
 		}
 	}
 
+	//Turn Robot
 	tthd = robot[n]->hd + robot[n]->shift;
 	if (abs(robot[n]->hd - robot[n]->thd) <= TURN_RATE || (abs(robot[n]->hd - robot[n]->thd) >= 256 - TURN_RATE))
 		robot[n]->hd = robot[n]->thd;
@@ -3298,6 +3298,7 @@ void do_robot(int16_t n) {
 	if (robot[n]->keepshift)
 		robot[n]->shift = (tthd - robot[n]->hd + 1024) & 255;
 
+	//Move Robot
 	robot[n]->speed = robot[n]->spd / 100 * (MAX_VEL * heat_mult * robot[n]->speedadj);
 	robot[n]->xv = sint[robot[n]->hd] * robot[n]->speed;
 	robot[n]->yv = -cost[robot[n]->hd] * robot[n]->speed;
@@ -3350,6 +3351,14 @@ void do_robot(int16_t n) {
 	robot[n]->x = ttx;
 	robot[n]->y = tty;
 
+	//test of robots out values
+	std::cout << "test of values going into draw robots" << endl;
+	std::cout << "robot hd: " << robot[n]->hd << endl << "robot thd: " << robot[n]->thd << endl;
+	std::cout << "robot speed: " << robot[n]->speed << endl << "robot shift: " << robot[n]->shift << endl;
+	std::cout << "robot xv: " << robot[n]->xv << endl << "robot yv: " << robot[n]->yv << endl;
+
+
+
 	//draw robot
 	if (robot[n]->armor < 0)
 		robot[n]->armor = 0;
@@ -3360,7 +3369,9 @@ void do_robot(int16_t n) {
 			update_armor(n);
 		if (robot[n]->heat / 5 != (int)robot[n]->lheat / 5)
 			update_heat(n);
-
+		std::cout << "**********************************" << endl;
+		std::cout << "Value of ttx: " << ttx << endl;
+		std::cout << "Value of tty: " << tty << endl;
 		draw_robot(n);
 	}
 
@@ -3399,11 +3410,11 @@ void do_mine(int16_t n, int16_t m) {
 
 			for (i = 0; i <= num_robots; i++) {
 				if (robot[i]->armor > 0) {
-					k = _distance(_.x, _.y, robot[i]->x, robot[i]->y) + 0.5;
+					k = int( _distance(_.x, _.y, robot[i]->x, robot[i]->y) + 0.5);
 					if (k < _.yield) {
 						damage(i, int16_t(abs(_.yield - k) + 0.5), false);
 						if ((n >= 0) && (n <= num_robots) && (i != n))
-							robot[n]->damage_total += abs(_.yield - k) + 0.5;
+							robot[n]->damage_total += int (abs(_.yield - k) + 0.5);
 					}
 				}
 			}
@@ -3472,13 +3483,13 @@ void do_missile(int16_t n) {
 			if ((robot[i]->armor > 0) && (i != _.source)) {
 				d = _distance(_.lx, _.ly, robot[i]->x, robot[i]->y);
 				_.hd = _.hd & 0xff;
-				xx = (sint[_.hd] * d + _.lx) + 0.5;
-				yy = (cost[_.hd] * d + _.ly) + 0.5;
+				xx =  int ((sint[_.hd] * d + _.lx) + 0.5);
+				yy = int ((cost[_.hd] * d + _.ly) + 0.5);
 				r = _distance(xx, yy, robot[i]->x, robot[i]->y);
 				if ((d <= _.mspd) && (r < HIT_RANGE) && ((d + 0.5) <= l)) {
 					k = i;
-					l = d + 0.5;
-					dd = r + 0.5;
+					l = int (d + 0.5);
+					dd = int (r + 0.5);
 					tx = xx;
 					ty = yy;
 				}
@@ -3496,9 +3507,9 @@ void do_missile(int16_t n) {
 				}
 
 				for (i = 0; i <= num_robots; i++) {
-					dd = (_distance(_.x, _.y, robot[i]->x, robot[i]->y)) + 0.5;
+					dd = int ((_distance(_.x, _.y, robot[i]->x, robot[i]->y)) + 0.5);
 					if (dd <= HIT_RANGE) {
-						dam = (abs(HIT_RANGE - dd) * _.mult) + 0.5;
+						dam = int ((abs(HIT_RANGE - dd) * _.mult) + 0.5);
 						if (dam <= 0)
 							dam = 1;
 

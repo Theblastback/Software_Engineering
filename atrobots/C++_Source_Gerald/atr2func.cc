@@ -738,11 +738,11 @@ char readkey() {
 	if (keyboard_buffer)
 		return keyboard_buffer;
 
-		while (SDL_PollEvent(&event)) {
+	while (SDL_PollEvent(&event)) {
 		SDL_PollEvent(&event);
 		switch (event.type) {
 		case SDL_KEYDOWN:
-		//case SDL_KEYUP:
+			//case SDL_KEYUP:
 			code = event.key.keysym.sym;
 			// See if code is in range of keys
 			if (((code > 31) && (code < 128)) || (code == SDLK_ESCAPE) || (code == SDLK_RETURN))
@@ -762,11 +762,11 @@ bool keypressed() {
 	SDL_PollEvent(&event);
 	switch (event.type) {
 	case SDL_KEYDOWN:
-	//case SDL_KEYUP:
+		//case SDL_KEYUP:
 		code = event.key.keysym.sym;
 		// See if code is in range of keys
 		if (((code > 31) && (code < 128)) || (code == SDLK_ESCAPE) || (code == SDLK_RETURN))
-					ret = true;
+			ret = true;
 		break;
 	}
 	keyboard_buffer = uint8_t(code);
