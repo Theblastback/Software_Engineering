@@ -96,19 +96,19 @@ void arc(int16_t cent_x, int16_t cent_y, uint16_t st_angle, uint16_t end_angle, 
 
 	SDL_SetRenderDrawColor(renderer_main, fg_color.r, fg_color.g, fg_color.b, 0xff);
 
-	st_angle = st_angle / 1.4;
-	end_angle = end_angle / 1.4;
+	st_angle = int (st_angle / 1.4);
+	end_angle = int (end_angle / 1.4);
 
 	// Do this outside of the loop in order to set up loop
-	x2 = (cost[st_angle] * radius) + cent_x;
-	y2 = (sint[st_angle] * radius) + cent_y;
+	x2 = int( (cost[st_angle] * radius) + cent_x);
+	y2 = int( (sint[st_angle] * radius) + cent_y);
 
 	for (uint16_t angle = st_angle + 1; angle <= end_angle; angle++) {
 		x1 = x2;
 		y1 = y2;
 
-		x2 = (cost[angle] * radius) + cent_x;
-		y2 = (sint[angle] * radius) + cent_y;
+		x2 = int ((cost[angle] * radius) + cent_x);
+		y2 = int ((sint[angle] * radius) + cent_y);
 
 		SDL_RenderDrawLine(renderer_main, x1, y1, x2, y2);
 	}
@@ -668,7 +668,7 @@ double find_angle(double xx, double yy, double tx, double ty) {
 	int16_t v, z;
 	double q = 0;
 
-	v = abs(tx - xx);
+	v = int (abs(tx - xx));
 
 	if (v == 0) {
 		if ((tx == xx) && (ty > yy))
@@ -677,7 +677,7 @@ double find_angle(double xx, double yy, double tx, double ty) {
 			q = 0;
 	}
 	else {
-		z = abs(ty - yy);
+		z = int( abs(ty - yy));
 		q = abs(atan(z / v));
 		if ((tx > xx) && (ty > yy))
 			q = (M_PI / 2) + q;

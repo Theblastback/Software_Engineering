@@ -3299,7 +3299,10 @@ void do_robot(int16_t n) {
 		robot[n]->shift = (tthd - robot[n]->hd + 1024) & 255;
 
 	//Move Robot
-	robot[n]->speed = robot[n]->spd / 100 * (MAX_VEL * heat_mult * robot[n]->speedadj);
+	robot[n]->spd = 100;
+	robot[n]->speed = double(robot[n]->spd / 100 * (MAX_VEL * heat_mult * robot[n]->speedadj));
+	std::cout << "Speed variable defenitions" << endl;
+	std::cout << "Robot spd: " << robot[n]->spd << endl << "max_vel: " << MAX_VEL << endl << "heat_mult" << heat_mult << endl << "Speedadj: " << robot[n]->speedadj << endl;
 	robot[n]->xv = sint[robot[n]->hd] * robot[n]->speed;
 	robot[n]->yv = -cost[robot[n]->hd] * robot[n]->speed;
 	if (robot[n]->hd == 0 || robot[n]->hd == 128)
