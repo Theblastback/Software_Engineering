@@ -14,12 +14,12 @@ string		reg_name;
 string		reg_num;
 double		sint[256], cost[256];
 uint8_t	pressed_key;
-
+uint8_t keyboard_buffer;
 
 int32_t get_rgb(int16_t color) {
 	int32_t rgb;
 
-	switch ( color ) {
+	switch (color) {
 	case BLACK:
 		rgb = 0x0;
 		break;
@@ -103,7 +103,7 @@ void arc(int16_t cent_x, int16_t cent_y, uint16_t st_angle, uint16_t end_angle, 
 	x2 = (cost[st_angle] * radius) + cent_x;
 	y2 = (sint[st_angle] * radius) + cent_y;
 
-	for ( uint16_t angle = st_angle + 1; angle <= end_angle; angle++ ) {
+	for (uint16_t angle = st_angle + 1; angle <= end_angle; angle++) {
 		x1 = x2;
 		y1 = y2;
 
@@ -123,11 +123,11 @@ void circle(int16_t cent_x, int16_t cent_y, uint16_t radius) {
 
 	SDL_SetRenderDrawColor(renderer_main, fg_color.r, fg_color.g, fg_color.b, 0xff);
 
-	for ( int32_t i = 0; i < area; i++ ) {
+	for (int32_t i = 0; i < area; i++) {
 		int32_t x = (i % rad_r) - radius;
 		int32_t y = (i / rad_r) - radius;
 
-		if ( ((x*x) + (y*y)) <= rad_2 )
+		if (((x*x) + (y*y)) <= rad_2)
 			SDL_RenderDrawPoint(renderer_main, (cent_x + x), (cent_y + y));
 	}
 
@@ -157,20 +157,19 @@ void setcolor(int16_t color) {
 
 // SetTextColor (orwhatever its called) Determines the text color XXX Terminals only XXX
 void textcolor(int16_t color) {
-/*	int32_t rgb = get_rgb(color);
+	/*	int32_t rgb = get_rgb(color);
 
 	text_color.r = rgb >> 24;
 	text_color.g = (rgb << 8) >> 24;
 	text_color.b = (rgb << 16) >> 24;
-*/
+	*/
 	// For terminals. Linux terminals may not support colors
-	#ifndef _WIN32
-		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
-	#endif
+#ifndef _WIN32
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+#endif
 }
 
 void outtextxy(int16_t x_coor, int16_t y_coor, string text) {
-	cout << "Begin outtextxy" << endl;
 	SDL_Rect src;
 	int32_t W, H;
 
@@ -179,8 +178,8 @@ void outtextxy(int16_t x_coor, int16_t y_coor, string text) {
 	SDL_Surface * message_surf = TTF_RenderText_Solid(text_type, text.c_str(), fg_color);
 
 	SDL_Texture * message_rend = SDL_CreateTextureFromSurface(renderer_main, message_surf);
-
 	SDL_FreeSurface(message_surf);
+
 
 	SDL_QueryTexture(message_rend, NULL, NULL, &W, &H);
 
@@ -192,13 +191,11 @@ void outtextxy(int16_t x_coor, int16_t y_coor, string text) {
 	SDL_RenderCopy(renderer_main, message_rend, NULL, &src);
 
 	SDL_DestroyTexture(message_rend);
-
-	cout << "End outtextxy" << endl << endl;
 }
 
 
 void bar(int16_t x_coor, int16_t y_coor, int16_t w_coor, int16_t h_coor) {
-	SDL_Rect src = {x_coor, y_coor, x_coor, h_coor};
+	SDL_Rect src = { x_coor, y_coor, x_coor, h_coor };
 
 	SDL_SetRenderDrawColor(renderer_main, bg_color.r, bg_color.g, bg_color.b, 0xff);
 
@@ -281,7 +278,7 @@ string hex(uint16_t num) {
 double valuer(string i) {
 	int64_t n = strtol(i.c_str(), NULL, 0);
 
-	if ( (n == LONG_MAX) || (n == LONG_MIN) )
+	if ((n == LONG_MAX) || (n == LONG_MIN))
 		return 0;
 	else
 		return ((double)n);
@@ -292,7 +289,7 @@ double valuer(string i) {
 int32_t value(string i) {
 	int64_t n = strtol(i.c_str(), NULL, 0);
 
-	if ( (n == LONG_MAX) || (n == LONG_MIN) )
+	if ((n == LONG_MAX) || (n == LONG_MIN))
 		return 0;
 	else
 		return ((int32_t)n);
@@ -350,8 +347,8 @@ string space(uint8_t i) {
 	uint8_t k;
 	string s = "";
 
-	if ( i )
-		for (k = 0; k < i; k ++)
+	if (i)
+		for (k = 0; k < i; k++)
 			s = s + " ";
 
 	return s;
@@ -362,7 +359,7 @@ string repchar(char c, uint8_t i) {
 	uint8_t k;
 	string s = "";
 
-	if ( i )
+	if (i)
 		for (k = 0; k < i; k++)
 			s = s + c;
 
@@ -371,8 +368,7 @@ string repchar(char c, uint8_t i) {
 
 
 string ltrim(string s1) {
-	// err_log << "Begin ltrim" << endl;
-	while ( s1.size() && isspace(s1.front()) )
+	while (s1.size() && isspace(s1.front()))
 		s1.erase(s1.begin());
 
 	return s1;
@@ -381,8 +377,7 @@ string ltrim(string s1) {
 
 
 string rtrim(string s1) {
-	// err_log << "Begin rtrim" << endl;
-	while ( !s1.empty() && isspace(s1.at(s1.size()-1)) )
+	while (!s1.empty() && isspace(s1.at(s1.size() - 1)))
 		s1.erase(s1.end() - 1);
 
 	return s1;
@@ -390,8 +385,6 @@ string rtrim(string s1) {
 
 
 string btrim(string s1) {
-	// err_log << "Begin btrim" << endl;
-
 	s1 = ltrim(s1);
 	s1 = rtrim(s1);
 
@@ -407,13 +400,13 @@ int16_t get_seconds_past_hour() {
 	time(&since_start);
 	info_time = localtime(&since_start);
 
-	return ( info_time->tm_sec + (info_time->tm_min * 60));
+	return (info_time->tm_sec + (info_time->tm_min * 60));
 }
 
 
 void calibrate_timing() {
-// THE RTC IS LOCATED AT MEM ADDRESSES 0000:046C is current seconds past the hour
-// 0000:046E is the current hour in 24 hour time format
+	// THE RTC IS LOCATED AT MEM ADDRESSES 0000:046C is current seconds past the hour
+	// 0000:046E is the current hour in 24 hour time format
 	int32_t k;
 
 	delay_per_sec = 0;
@@ -426,19 +419,19 @@ void calibrate_timing() {
 	do {
 		SDL_Delay(1);
 		delay_per_sec++;
-	} while ( k == get_seconds_past_hour() );
+	} while (k == get_seconds_past_hour());
 }
 
 
 void time_delay(uint16_t n) {
 	int32_t i, l;
 
-	if ( delay_per_sec == 0 )
+	if (delay_per_sec == 0)
 		calibrate_timing();
 
-	l = ((float)(n/1000)*delay_per_sec);
+	l = ((float)(n / 1000)*delay_per_sec);
 
-	for ( i = 1; i <= l; i++)
+	for (i = 1; i <= l; i++)
 		SDL_Delay(1);
 }
 
@@ -450,9 +443,9 @@ void check_registration() {
 
 	registered = false;
 
-	if ( exist(s) ) {
+	if (exist(s)) {
 		f.open(s, fstream::in);
-		if ( f.good() ) {
+		if (f.good()) {
 			getline(f, reg_name);
 			getline(f, reg_num);
 			f.close();
@@ -465,7 +458,7 @@ void check_registration() {
 				w = w + s[i];
 
 			w = w ^ 0x5aa5;
-			if ( w == strtoul(reg_num.c_str(), NULL, 0) )
+			if (w == strtoul(reg_num.c_str(), NULL, 0))
 				registered = true;
 		}
 	}
@@ -476,7 +469,7 @@ void check_registration() {
 // ror same as >>, but wrap discarded bits
 int16_t ror(int16_t n, int16_t k) {
 	while (k) {
-		n = ((uint16_t) n >> 1 ) | ((uint16_t) n << 15);
+		n = ((uint16_t)n >> 1) | ((uint16_t)n << 15);
 		k--;
 	}
 	return n;
@@ -484,8 +477,8 @@ int16_t ror(int16_t n, int16_t k) {
 
 // rol same as <<, but wrap discarded bits
 int16_t rol(int16_t n, int16_t k) {
-	while(k) {
-		n = ((uint16_t) n << 1 ) | ((uint16_t) n >> 15);
+	while (k) {
+		n = ((uint16_t)n << 1) | ((uint16_t)n >> 15);
 		k--;
 	}
 
@@ -510,10 +503,10 @@ int16_t sar(int16_t n, int16_t k) {
 
 
 void viewport(int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
-	if ( !graphix )
+	if (!graphix)
 		return;
 
-	SDL_Rect view = {x1, y1, (x2 - x1), (y2 - y1)};
+	SDL_Rect view = { x1, y1, (x2 - x1), (y2 - y1) };
 	SDL_RenderSetViewport(renderer_main, &view);
 }
 
@@ -523,11 +516,11 @@ void main_viewport() {
 
 
 void make_tables() {
-	int16_t i;
+	int i;
 
 	for (i = 0; i <= 255; i++) {
-		sint[i] = sin((i/128) * M_PI);
-		cost[i] = cos((i/128) * M_PI);
+		sint[i] = sin(((double)i / 128) * M_PI);
+		cost[i] = cos(((double)i / 128) * M_PI);
 	}
 }
 
@@ -557,16 +550,16 @@ int16_t robot_color(int16_t n) {
 void box(int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
 	int16_t i;
 
-	if ( !graphix )
+	if (!graphix)
 		return;
 
-	if ( x2 < x1 ) {
+	if (x2 < x1) {
 		i = x1;
 		x1 = x2;
 		x2 = i;
 	}
 
-	if ( y2 < y1 ) {
+	if (y2 < y1) {
 		i = y1;
 		y1 = y2;
 		y2 = i;
@@ -577,27 +570,27 @@ void box(int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
 	bar(x1, y1, x2, y2);
 
 	setcolor(WHITE);
-	line(x1, y1, x2-1, y1);
-	line(x1, y1, x1, y2-1);
+	line(x1, y1, x2 - 1, y1);
+	line(x1, y1, x1, y2 - 1);
 
 	setcolor(DARK_GRAY);
-	line(x1+1, y2, x2, y2);
-	line(x2, y1+1, x2, y2);
+	line(x1 + 1, y2, x2, y2);
+	line(x2, y1 + 1, x2, y2);
 }
 
 void hole(int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
 	int16_t i;
 
-	if ( !graphix )
+	if (!graphix)
 		return;
 
-	if ( x2 < x1 ) {
+	if (x2 < x1) {
 		i = x1;
 		x1 = x2;
 		x2 = i;
 	}
 
-	if ( y2 < y1 ) {
+	if (y2 < y1) {
 		i = y1;
 		y1 = y2;
 		y2 = i;
@@ -608,12 +601,12 @@ void hole(int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
 	bar(x1, y1, x2, y2);
 
 	setcolor(DARK_GRAY);
-	line(x1, y1, x2-1, y1);
-	line(x1, y1, x1, y2-1);
+	line(x1, y1, x2 - 1, y1);
+	line(x1, y1, x1, y2 - 1);
 
 	setcolor(WHITE);
-	line(x1+1, y2, x2, y2);
-	line(x2, y1+1, x2, y2);
+	line(x1 + 1, y2, x2, y2);
+	line(x2, y1 + 1, x2, y2);
 
 	putpixel(x1, y1, LIGHT_GRAY);
 	putpixel(x2, y1, LIGHT_GRAY);
@@ -626,8 +619,8 @@ int16_t hex2int32_t(string s) {
 	i = 0;
 	w = 0;
 
-	while ( i < s.length() ) {
-		switch(s.at(i)) {
+	while (i < s.length()) {
+		switch (s.at(i)) {
 		case '0': w = (w << 4) | 0x0; break;
 		case '1': w = (w << 4) | 0x1; break;
 		case '2': w = (w << 4) | 0x2; break;
@@ -657,7 +650,7 @@ int16_t hex2int32_t(string s) {
 int16_t str2int(string s) {
 	long value = strtol(s.c_str(), NULL, 0);
 
-	if ( (value < SHRT_MIN) )
+	if ((value < SHRT_MIN))
 		return -32768;
 	else if (value > SHRT_MAX)
 		return 32767;
@@ -667,7 +660,7 @@ int16_t str2int(string s) {
 
 
 double _distance(double x1, double y1, double x2, double y2) {
-	return (sqrt(pow(y1-y2, 2) + pow(x1-x2, 2)));
+	return (sqrt(pow(y1 - y2, 2) + pow(x1 - x2, 2)));
 }
 
 
@@ -677,29 +670,30 @@ double find_angle(double xx, double yy, double tx, double ty) {
 
 	v = abs(tx - xx);
 
-	if ( v == 0 ) {
-		if ( (tx == xx) && (ty > yy) )
+	if (v == 0) {
+		if ((tx == xx) && (ty > yy))
 			q = M_PI;
-		if ( (tx == xx) && (ty < yy) )
+		if ((tx == xx) && (ty < yy))
 			q = 0;
-	} else {
+	}
+	else {
 		z = abs(ty - yy);
 		q = abs(atan(z / v));
-		if ( (tx > xx) && (ty > yy) )
+		if ((tx > xx) && (ty > yy))
 			q = (M_PI / 2) + q;
-		if ( (tx > xx) && (ty < yy) )
+		if ((tx > xx) && (ty < yy))
 			q = (M_PI / 2) - q;
-		if ( (tx < xx) && (ty < yy) )
+		if ((tx < xx) && (ty < yy))
 			q = M_PI + (M_PI / 2) + q;
-		if ( (tx < xx) && (ty > yy) )
+		if ((tx < xx) && (ty > yy))
 			q = M_PI + (M_PI / 2) - q;
-		if ( (tx == xx) && (ty > yy) )
+		if ((tx == xx) && (ty > yy))
 			q = M_PI / 2;
-		if ( (tx == xx) && (ty < yy) )
+		if ((tx == xx) && (ty < yy))
 			q = 0;
-		if ( (tx < xx) && ( ty == yy) )
+		if ((tx < xx) && (ty == yy))
 			q = M_PI + (M_PI / 2);
-		if ( (tx > xx) && (ty == yy) )
+		if ((tx > xx) && (ty == yy))
 			q = M_PI / 2;
 	}
 
@@ -710,7 +704,7 @@ double find_angle(double xx, double yy, double tx, double ty) {
 int16_t find_anglei(double xx, double yy, double tx, double ty) {
 	int16_t i = (int16_t)round(find_angle(xx, yy, tx, ty) / M_PI * 128 + 256);
 
-	while ( i < 0 )
+	while (i < 0)
 		i += 255;
 
 	i = i & 255;
@@ -741,13 +735,17 @@ char readkey() {
 	int32_t code;
 	SDL_Event event;
 
-	while ( SDL_PollEvent(&event) ) {
+	if (keyboard_buffer)
+		return keyboard_buffer;
+
+	while (SDL_PollEvent(&event)) {
+		SDL_PollEvent(&event);
 		switch (event.type) {
 		case SDL_KEYDOWN:
-		case SDL_KEYUP:
+			//case SDL_KEYUP:
 			code = event.key.keysym.sym;
 			// See if code is in range of keys
-			if ( ((code > 31) && ( code < 128 )) || (code == SDLK_ESCAPE) || (code == SDLK_RETURN) )
+			if (((code > 31) && (code < 128)) || (code == SDLK_ESCAPE) || (code == SDLK_RETURN))
 				return (char)code;
 
 		}
@@ -757,20 +755,20 @@ char readkey() {
 }
 
 bool keypressed() {
-	int32_t code;
+	int32_t code = 0;
 	bool ret = false;
 	SDL_Event event;
 
 	SDL_PollEvent(&event);
 	switch (event.type) {
 	case SDL_KEYDOWN:
-	case SDL_KEYUP:
+		//case SDL_KEYUP:
 		code = event.key.keysym.sym;
 		// See if code is in range of keys
 		if (((code > 31) && (code < 128)) || (code == SDLK_ESCAPE) || (code == SDLK_RETURN))
 			ret = true;
 		break;
 	}
-
+	keyboard_buffer = uint8_t(code);
 	return ret;
 }

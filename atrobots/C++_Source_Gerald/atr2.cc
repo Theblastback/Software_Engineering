@@ -1210,37 +1210,37 @@ void draw_robot(int16_t n) {
 
 	// Set up for draw
 	xx = (robot[n]->x * SCREEN_SCALE) + SCREEN_X;
-	
+
 	yy = (robot[n]->y * SCREEN_SCALE) + SCREEN_Y;
-	
+
 	robot[n]->hd = (robot[n]->hd + 1024) & 255;
-	
+
 	robot[n]->tx[0] = (xx + sint[robot[n]->hd] * 5) + 0.5;
-	
+
 	robot[n]->ty[0] = (yy - cost[robot[n]->hd] * 5) + 0.5;
-	
+
 	robot[n]->tx[1] = (xx + sint[(robot[n]->hd + 0x68) & 255] * ROBOT_SCALE) + 0.5;
 	robot[n]->ty[1] = (yy - cost[(robot[n]->hd + 0x68) & 255] * ROBOT_SCALE) + 0.5;
-	
+
 	robot[n]->tx[2] = (xx + sint[(robot[n]->hd + 0x98) & 255] * ROBOT_SCALE) + 0.5;
 	robot[n]->ty[2] = (yy - cost[(robot[n]->hd + 0x98) & 255] * ROBOT_SCALE) + 0.5;
-	
+
 	t = (robot[n]->hd + (robot[n]->shift & 255) + 1024) & 255;
 
 	robot[n]->tx[3] = xx + 0.5;
 	robot[n]->ty[3] = yy + 0.5;
-	
+
 
 	robot[n]->tx[4] = (xx + sint[t] * ROBOT_SCALE * 0.8) + 0.5;
 	robot[n]->ty[4] = (yy - cost[t] * ROBOT_SCALE * 0.8) + 0.5;
-	
+
 
 	robot[n]->tx[5] = (xx + sint[(t + robot[n]->scanarc + 1024) & 255] * robot[n]->scanrange * SCREEN_SCALE) + 0.5;
 	robot[n]->ty[5] = (yy - cost[(t + robot[n]->scanarc + 1024) & 255] * robot[n]->scanrange * SCREEN_SCALE) + 0.5;
-	
+
 	robot[n]->tx[6] = (xx + sint[(t - robot[n]->scanarc + 1024) & 255] * robot[n]->scanrange * SCREEN_SCALE) + 0.5;
 	robot[n]->ty[6] = (yy - cost[(t - robot[n]->scanarc + 1024) & 255] * robot[n]->scanrange * SCREEN_SCALE) + 0.5;
-	
+
 
 	robot[n]->startarc = (((265 - ((t + robot[n]->scanarc) & 255)) / 256 * 360) + 90) + 0.5;
 	robot[n]->endarc = (((265 - ((t - robot[n]->scanarc) & 255)) / 256 * 360) + 90) + 0.5;
@@ -3122,7 +3122,9 @@ void execute_instruction(int16_t n) {
 void do_robot(int16_t n) {
 	// err_log << "Begin do_robot" << endl;
 	std::cout << "begin do robot" << endl;
-	int16_t i, k, tthd, heat_mult, ttx, tty;
+	int16_t i, k, tthd;
+	double heat_mult, ttx, ttx; //change made since variable eventually needs decimal
+
 	if (n < 0 || n > num_robots)
 		return;
 	if (robot[n]->armor <= 0)
@@ -3344,7 +3346,7 @@ void do_robot(int16_t n) {
 	robot[n]->meters = robot[n]->meters + _distance(robot[n]->x, robot[n]->y, ttx, tty);
 	if (robot[n]->meters > MAXINT)
 		robot[n]->meters = robot[n]->meters - MAXINT;
-	robot[n]->ram[9] = trunc(robot[n]->meters);
+	robot[n]->ram[9] = (int)trunc(robot[n]->meters);
 	robot[n]->x = ttx;
 	robot[n]->y = tty;
 
@@ -3356,8 +3358,9 @@ void do_robot(int16_t n) {
 	if (graphix) {
 		if (robot[n]->armor != robot[n]->larmor)
 			update_armor(n);
-		if (robot[n]->heat / 5 != robot[n]->lheat / 5)
+		if (robot[n]->heat / 5 != (int)robot[n]->lheat / 5)
 			update_heat(n);
+
 		draw_robot(n);
 	}
 
