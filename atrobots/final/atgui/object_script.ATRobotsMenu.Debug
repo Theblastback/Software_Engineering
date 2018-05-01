@@ -1,0 +1,13 @@
+INPUT(
+./debug\main.o
+./debug\mainmenu.o
+./debug\robotselection.o
+./debug\roboteditor.o
+./debug\atrlock.o
+./debug\qrc_background.o
+./debug\qrc_fonts.o
+./debug\moc_mainmenu.o
+./debug\moc_robotselection.o
+./debug\moc_roboteditor.o
+./debug\moc_atrlock.o
+);
